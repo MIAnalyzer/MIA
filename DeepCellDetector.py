@@ -39,7 +39,6 @@ class Canvas(QGraphicsView):
         self.lasttool = Tools.DrawTool(self)
         self.Contours = Contours()
         self.activeContour = None
-        self.activeClass = 0
         
         self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
@@ -78,17 +77,15 @@ class Canvas(QGraphicsView):
       
     def addline(self, p1 ,p2):
         p = self.getPainter()
-        self.setActiveClassColor(p)
         p.drawLine(p2, p1)
         self.displayedimage.setPixmap(self.image)
         self.update()
         
     def addcircle(self, center , radius):
         p = self.getPainter()
-        self.setActiveClassColor(p)
-        p.setBrush(QBrush(self.colors[self.activeClass], Qt.SolidPattern))
+        p.setBrush(QBrush(self.parent.ClassColor(self.parent.activeClass()), Qt.SolidPattern))
         p.drawEllipse(center, radius, radius)
-        p.setBrush(QBrush(self.colors[self.activeClass], Qt.NoBrush))
+        p.setBrush(QBrush(self.parent.ClassColor(self.parent.activeClass()), Qt.NoBrush))
         self.displayedimage.setPixmap(self.image)
         self.update()
         
@@ -127,6 +124,7 @@ class Canvas(QGraphicsView):
         self.displayedimage.pixmap().fill(self.bgcolor)
         
     def newImage(self):
+        self.bufferimage = QPixmap(self.parent.files[self.parent.currentImage])
         self.clearContours()
         self.getContours()
         self.redrawImage()
@@ -154,17 +152,15 @@ class Canvas(QGraphicsView):
             self.Contours.loadContours(self.parent.CurrentLabelFullName())
             self.drawcontours()
     
-  
     def redrawImage(self):
-        self.image = QPixmap(self.parent.files[self.parent.currentImage])
-        if self.image is not None:
+        if self.bufferimage is not None:
+            self.image = self.bufferimage.copy()
             self.displayedimage.setPixmap(self.image)
             self.drawcontours()
     
     def drawcontours(self):
         if self.image is None:
             return
-        currclass = self.activeClass
         paint = self.getPainter()
         for c in self.Contours.contours:  
             path = QPainterPath()
@@ -175,22 +171,20 @@ class Canvas(QGraphicsView):
                     else:
                         path.lineTo(np2QPoint(c.points[i].reshape(2,1)))
                 path.lineTo(np2QPoint(c.points[0].reshape(2,1)))
-                self.activeClass = c.classlabel
-                self.setActiveClassColor(paint)
+                self.setPainterColor(paint, self.parent.ClassColor(c.classlabel))
                 paint.drawPath(path)
              
         self.displayedimage.setPixmap(self.image)
         self.update()
-        self.activeClass = currclass
         
     def getPainter(self):
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
-        p.setPen(QPen(self.colors[self.activeClass], self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
+        p.setPen(QPen(self.parent.ClassColor(self.parent.activeClass()), self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         return p
         
-    def setActiveClassColor(self, painter):
-        painter.setPen(QPen(self.colors[self.activeClass], self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
+    def setPainterColor(self, painter, color):
+        painter.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         
     def clearContours(self):
         self.Contours.clear()
@@ -219,7 +213,7 @@ class Canvas(QGraphicsView):
             self.tool = Tools.PolygonTool(self)
         
         self.setCursor(self.tool.Cursor())
-        self.parent.mode.setText(self.tool.Text) 
+        
 
     def toggleDrag(self):
         if self.tool.type == canvasTool.drag:
@@ -236,9 +230,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.show()
         self.imagepath = None
         self.labelpath = None
+        self.trainImagespath = None
+        self.trainImageLabelspath = None
         self.testImagespath = None
         self.testImageLabelspath = None
-        self.maxNumOfClasses = len(self.RBClasses)
+        self.train_test_dir = True
         
         self.files = None
         self.currentImage = 0
@@ -248,7 +244,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         height = self.canvas.geometry().height()    
         
         self.dl = DeepLearning.DeepLearning()
-        self.dl.initModel()
         
         # init canvas
         self.hlayout.removeWidget(self.canvas)
@@ -262,12 +257,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.hlayout.addWidget(self.canvas)
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
-        self.createColors()
+        self.classList.SetClass(0)
         
         
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
-        self.Bload.clicked.connect(self.setFolder)
+        self.BLoadTrainImages.clicked.connect(self.setTrainFolder)
+        self.BLoadTestImages.clicked.connect(self.setTestFolder)
+        self.BTestImageFolder.clicked.connect(self.switchToTestFolder)
+        self.BTrainImageFolder.clicked.connect(self.switchToTrainFolder)
         self.Bnext.clicked.connect(self.nextImage)
         self.Bprev.clicked.connect(self.previousImage)
         
@@ -278,22 +276,30 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setMode)
         self.Bpoly.clicked.connect(self.setMode)
         
-        
-        for i in range (len(self.RBClasses)):
-            self.RBClasses[i].toggled.connect(self.changeClass)
-        self.RBClasses[0].setChecked(True)
         self.Btrain.clicked.connect(self.trainModel)
         self.Bpredict.clicked.connect(self.predictContours)
+        self.Baddclass.clicked.connect(self.addClass)
+        self.Bdelclass.clicked.connect(self.removeLastClass)
         
+    def addClass(self):
+        self.classList.addClass()
         
-    def createColors(self):
-        for i in range(self.maxNumOfClasses):
-            r = random.randint(0,255)
-            g = random.randint(0,255)
-            b = random.randint(0,255)
-            color = self.ColorClasses[i]
-            color.setStyleSheet("background-color: rgb(%s, %s, %s)" % (r,g,b))
-            self.canvas.colors.append(QColor(r,g,b))
+    def removeLastClass(self):
+        self.classList.removeClass()
+        
+    def activeClass(self):
+        c = self.classList.getActiveClass()
+        assert(c >= 0)
+        return c
+    
+    def ClassColor(self, c):
+        return self.classList.getClassColor(c)
+    
+    def NumOfClasses(self):
+        return self.classList.getNumberOfClasses
+        
+    def colorChanged(self):
+        self.canvas.redrawImage()
         
     def clear(self):
         self.canvas.clearContours()
@@ -318,28 +324,77 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeImage(self):
         if self.numofImages > 0:
             self.canvas.newImage()
+            self.StatusFile.setText(self.CurrentFileName())
         else:
             width = self.canvas.geometry().width()
             height = self.canvas.geometry().height()
             self.canvas.reset(width, height)
             
-    def setFolder(self):
-        self.imagepath = str(QFileDialog.getExistingDirectory(self, "Select Folder"))
-        self.getFiles()
+    def setTrainFolder(self):
+        folder = str(QFileDialog.getExistingDirectory(self, "Select Training Image Folder"))
+        if not folder:
+            return
+        self.trainImagespath = folder
+        self.trainImageLabelspath = self.trainImagespath + "/labels"
+        self.ensureFolder(self.trainImageLabelspath)
+        self.train_test_dir = True
+        self.setWorkingFolder()
         
-        try:
-            self.labelpath = self.imagepath + "/labels"
-            self.testImagespath = self.imagepath + "/testImages"
-            self.testImageLabelspath = self.testImagespath + "/labels"
-            os.mkdir(self.testImagespath)
-            os.mkdir(self.testImageLabelspath)
-            os.mkdir(self.labelpath)
+    def setTestFolder(self):
+        folder = str(QFileDialog.getExistingDirectory(self, "Select Test Image Folder"))
+        if not folder:
+            return
+        self.testImagespath = folder
+        self.testImageLabelspath = self.testImagespath + "/labels"
+        self.ensureFolder(self.testImageLabelspath)
+        self.train_test_dir = False
+        self.setWorkingFolder()
+       
+    def switchToTrainFolder(self):
+        self.train_test_dir = True
+        self.setWorkingFolder()
+        
+    def switchToTestFolder(self):
+        self.train_test_dir = False
+        self.setWorkingFolder()
             
+    def setWorkingFolder(self):
+        if self.train_test_dir:
+            self.imagepath = self.trainImagespath
+            self.labelpath = self.trainImageLabelspath
+        else:
+            self.imagepath = self.testImagespath
+            self.labelpath = self.testImageLabelspath
+        self.getFiles()
+        self.changeImage()
+        self.setFolderLabels()
+        
+    def ensureFolder(self, foldername):
+        try:
+            os.mkdir(foldername)
         except FileExistsError:
             pass # do nothing
-        self.changeImage()
+        
+    def setFolderLabels(self):
+        if self.trainImagespath:
+            self.BTrainImageFolder.setText('...' + self.trainImagespath[-18:])
+            self.BTrainImageFolder.setEnabled(True)
+        if self.testImagespath:
+            self.BTestImageFolder.setText('...' + self.testImagespath[-20:])
+            self.BTestImageFolder.setEnabled(True)
+        if self.train_test_dir:
+            if self.BTrainImageFolder.isEnabled():
+                self.BTrainImageFolder.setStyleSheet('font:bold; text-align:left')
+                self.BTestImageFolder.setStyleSheet('font:normal;text-align:left')
+        else:
+            if self.BTestImageFolder.isEnabled():
+                self.BTrainImageFolder.setStyleSheet('font:normal;text-align:left')
+                self.BTestImageFolder.setStyleSheet('font:bold;text-align:left')
+        
         
     def getFiles(self):
+        if self.imagepath is None:
+            return
         exts = ['*.png', '*.jpg', '*.tif']
         self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
         self.currentImage = 0
@@ -353,16 +408,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def setMode(self, mode):
         tool = self.sender().objectName()[1:]
         self.canvas.setnewTool(tool)
+        self.StatusMode.setText('Current Mode: ' + self.canvas.tool.Text)      
             
     def keyPressEvent(self, e):
         if e.key() == 32: # space bar
             self.canvas.toggleDrag()
         if 48 <= e.key() <= 57:
-            self.RBClasses[e.key()-48].setChecked(True)
-
-    def changeClass(self):
-        button = self.sender()
-        self.canvas.activeClass = button.classNum    
+            classnum = e.key()-48
+            if classnum < self.classList.getNumberOfClasses():
+                self.classList.SetClass(e.key()-48)
     
     def CurrentFileName(self):
         if self.files is None:
@@ -374,25 +428,24 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
-    ## deep learning
+    ## deep learning  
     def trainModel(self):
         if self.imagepath is None or self.labelpath is None:
             return
         self.canvas.createLabelFromContours()
         self.dl.TrainPath = self.imagepath
         self.dl.LabelPath = self.labelpath
+        if not self.dl.initialized:
+            self.dl.initModel(self.classList.getNumberOfClasses())
         self.dl.Train()
-        
         self.predictContours()
         
     def predictContours(self):
         self.dl.TestImagesPath = self.testImagespath
         self.dl.TestLabelsPath = self.testImageLabelspath
         self.dl.Predict()
-        self.imagepath = self.testImagespath
-        self.labelpath = self.testImageLabelspath
-        self.getFiles()
-        self.changeImage()
+        self.switchToTestFolder()
+        
 
 if __name__ == "__main__":
     app = QCoreApplication.instance()

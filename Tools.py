@@ -115,7 +115,7 @@ class DrawTool(AbstractTool):
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             if self.canvas.activeContour is None:
-                self.canvas.activeContour = Contour.Contour(self.canvas.activeClass, self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
+                self.canvas.activeContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
        
     def Cursor(self):
         return Qt.ArrowCursor
@@ -142,7 +142,7 @@ class PolygonTool(AbstractTool):
         elif e.button() == Qt.LeftButton:
             if self.canvas.activeContour is None:
                 self.image = self.canvas.image.copy()
-                self.canvas.activeContour = Contour.Contour(self.canvas.activeClass, self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
+                self.canvas.activeContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
             else:
                 p1 = self.canvas.activeContour.getLastPoint()
                 p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
@@ -170,7 +170,7 @@ class AssignTool(AbstractTool):
         if e.button() == Qt.LeftButton:
             contour = self.canvas.Contours.getContour(self.canvas.mapToScene(e.pos()))
             if contour is not None:
-                contour.classlabel = self.canvas.activeClass
+                contour.classlabel = self.canvas.parent.activeClass()
                 self.canvas.redrawImage()
                       
     def mousePressEvent(self,e):
@@ -218,7 +218,7 @@ class ExtendTool(AbstractTool):
             return
         p0 = self.canvas.mapToScene(e.pos())
         p = Contour.QPoint2np(p0)
-        cv2.circle(self.sketch, (p[0,0], p[0,1]), self.size, (self.canvas.activeClass), -1)
+        cv2.circle(self.sketch, (p[0,0], p[0,1]), self.size, (self.canvas.parent.activeClass()), -1)
         self.canvas.addcircle(p0, self.size)
 
         
@@ -232,9 +232,6 @@ class ExtendTool(AbstractTool):
     def mousePressEvent(self,e):
         if self.canvas.image is None:
                 return
-        #c = self.canvas.Contours.getclosestContour(self.canvas.mapToScene(e.pos()), self.size)
-        #cnt = c.points
-        #cv2.drawContours(self.sketch, [cnt], 0, (255), -1)
         width = self.canvas.image.width()
         height = self.canvas.image.height()
         self.sketch = np.zeros((height, width, 1), np.uint8)
