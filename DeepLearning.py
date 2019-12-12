@@ -36,10 +36,11 @@ class DeepLearning():
         self.TestLabelsPath = None
         self.TrainInMemory = True
         self.ImageScaleFactor = 0.5
+        self.initialized = False
         
         self.Model = None
         self.Mode = dlMode.segmentation
-        self.NumClasses = 3
+        self.NumClasses = 2
         
         # Training settings
         self.MonoChrome = True
@@ -48,11 +49,15 @@ class DeepLearning():
         self.learning_rate = 1e-4
         
         
-    def initModel(self):
+    def initModel(self, numClasses = 2):
+        self.NumClasses = numClasses
         #self.Model = dl_models.resnetSegModel(self.NumClasses, monochrome = self.MonoChrome)
         self.Model = dl_models.load_simple_model(self.NumClasses, monochrome = self.MonoChrome)
+        self.initialized = True
        
     def Train(self):
+        if not self.initialized or self.TrainPath is None or self.LabelPath is None:
+            return
         
         if self.TrainInMemory:
             x,y = dl_data.loadTrainingDataSet(self.TrainPath, self.LabelPath, self.NumClasses, scalefactor=self.ImageScaleFactor, monochrome = self.MonoChrome)
@@ -73,7 +78,7 @@ class DeepLearning():
         
     
     def Predict(self):    
-        if self.Model is None:
+        if not self.initialized or self.TestImagesPath is None:
             return
         
         images = glob.glob(os.path.join(self.TestImagesPath,'*.*'))
@@ -107,10 +112,11 @@ class DeepLearning():
             Contour.saveContours(contours, os.path.join(self.TestLabelsPath, (name+ ".npz")))
         
     
-    def setMode(self, mode, numclasses):
+    def setMode(self, mode):
         self.Mode = mode
-        self.NumClasses = numclasses
             
+    def Reset(self):
+        self.initialized = False
     
     def LoadModel(self, modelpath):
         pass

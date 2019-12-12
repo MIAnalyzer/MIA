@@ -36,9 +36,6 @@ class Contours():
             if c.distance(point) < dist:
                 return c
 
-
-
-
 class Contour():
     def __init__(self, classlabel, points = None):
         self.classlabel = classlabel
@@ -95,15 +92,13 @@ def drawContoursToLabel(label, contours):
        target = bg_contours if c.classlabel == 0 else target_contours
        target.append(c)
        
-       
     if bg_contours == list():
         label[:] = (255)
     else:
         for c in bg_contours:
             cnt = c.points
             if c.numPoints() > 0: 
-                cv2.drawContours(label, [cnt], 0, (255), -1)
-                
+                cv2.drawContours(label, [cnt], 0, (255), -1)        
         
     for c in target_contours:
         cnt = c.points
@@ -116,14 +111,14 @@ def drawContoursToLabel(label, contours):
 
 def extractContoursFromLabel(image):
     image = image.astype(np.uint8)
-    _, thresh = cv2.threshold(image, 254, 255,  cv2.THRESH_BINARY)
-    _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#    _, thresh = cv2.threshold(image, 254, 255,  cv2.THRESH_BINARY)
+#    _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     image[np.where(image == 255)] = 0
     ret_contours = []
     maxclass = np.max(image)
-    for c in contours:
-        if cv2.contourArea(c)+1 <= (image.shape[0]-1)*(image.shape[1]-1):
-            ret_contours.append(Contour(0,c))
+#    for c in contours:
+#        #if cv2.contourArea(c)+1 <= (image.shape[0]-1)*(image.shape[1]-1):
+#         ret_contours.append(Contour(0,c))
     for i in range(maxclass,0,-1):
         _, thresh = cv2.threshold(image, i-1, 255,  cv2.THRESH_BINARY)
         _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
