@@ -82,7 +82,7 @@ class MainWindow(object):
         self.BLoadTestImages.setIcon(QIcon('icons/load.png'))
         self.BLoadTestImages.setFlat(True)
         self.BTestImageFolder = QPushButton(self.centralWidget)
-        self.BTestImageFolder.setText("Set Training Image Folder")
+        self.BTestImageFolder.setText("Set Test Image Folder")
         self.BTestImageFolder.setObjectName("BTestImageFolder")
         self.BTestImageFolder.setFlat(True)
         self.BTestImageFolder.setStyleSheet('text-align:left')
@@ -93,43 +93,43 @@ class MainWindow(object):
         
         
         
-        
-        self.Buttonslayout = QHBoxLayout(self.centralWidget)
-        self.Buttonslayout.setContentsMargins(0, 0, 0, 0)
+        ### segmentation
+        self.SButtonslayout = QHBoxLayout(self.centralWidget)
+        self.SButtonslayout.setContentsMargins(0, 0, 0, 0)
         self.Bdrag = QPushButton(self.centralWidget)
         self.Bdrag.setMaximumSize(bwidth, bheight)
         self.Bdrag.setObjectName("Bdrag")
         self.Bdrag.setIcon(QIcon('icons/drag.png'))
         self.Bdrag.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bdrag)
+        self.SButtonslayout.addWidget(self.Bdrag)
 
         self.Bdraw = QPushButton(self.centralWidget)
         self.Bdraw.setMaximumSize(bwidth, bheight)
         self.Bdraw.setObjectName("Bdraw")
         self.Bdraw.setIcon(QIcon('icons/draw.png'))
         self.Bdraw.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bdraw)
+        self.SButtonslayout.addWidget(self.Bdraw)
         
         self.Bpoly = QPushButton(self.centralWidget)
         self.Bpoly.setMaximumSize(bwidth, bheight)
         self.Bpoly.setObjectName("Bpoly")
         self.Bpoly.setIcon(QIcon('icons/poly.png'))
         self.Bpoly.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bpoly)
+        self.SButtonslayout.addWidget(self.Bpoly)
 
         self.Bassign = QPushButton(self.centralWidget)
         self.Bassign.setMaximumSize(bwidth, bheight)
         self.Bassign.setObjectName("Bassign")
         self.Bassign.setIcon(QIcon('icons/assign.png'))
         self.Bassign.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bassign)
+        self.SButtonslayout.addWidget(self.Bassign)
         
         self.Bextend = QPushButton(self.centralWidget)
         self.Bextend.setMaximumSize(bwidth, bheight)
         self.Bextend.setObjectName("Bexpand")
         self.Bextend.setIcon(QIcon('icons/expand.png'))
         self.Bextend.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bextend)
+        self.SButtonslayout.addWidget(self.Bextend)
         
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
@@ -141,9 +141,35 @@ class MainWindow(object):
         self.Bdelete.setObjectName("Bdelete")
         self.Bdelete.setIcon(QIcon('icons/delete.png'))
         self.Bdelete.setFlat(True)
-        self.Buttonslayout.addWidget(self.Bdelete)
+        self.SButtonslayout.addWidget(self.Bdelete)
 
-        self.vlayout.addItem(self.Buttonslayout)
+        self.SegmentButtons = QFrame()
+        self.SegmentButtons.setLayout(self.SButtonslayout)
+        
+        self.vlayout.addWidget(self.SegmentButtons)
+        
+        ### classification
+        self.CButtonslayout = QHBoxLayout(self.centralWidget)
+        self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
+        self.BsetClass = QPushButton(self.centralWidget)
+        self.BsetClass.setMaximumSize(bwidth, bheight)
+        self.BsetClass.setObjectName("BsetClass")
+        self.BsetClass.setIcon(QIcon('icons/setclass.png'))
+        self.BsetClass.setFlat(True)
+        self.CButtonslayout.addWidget(self.BsetClass)
+
+        self.BassignClass = QPushButton(self.centralWidget)
+        self.BassignClass.setMaximumSize(bwidth, bheight)
+        self.BassignClass.setObjectName("BassignClass")
+        self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
+        self.BassignClass.setFlat(True)
+        self.CButtonslayout.addWidget(self.BassignClass)
+        
+        self.ClassificationButtons = QFrame()
+        self.ClassificationButtons.setLayout(self.CButtonslayout)
+        self.vlayout.addWidget(self.ClassificationButtons)
+        
+        
         
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
@@ -176,7 +202,21 @@ class MainWindow(object):
         self.Bpredict.setStyleSheet('text-align:left')
         self.vlayout.addWidget(self.Bpredict) 
         
-      
+        self.Bloadmodel = QPushButton(self.centralWidget)
+        self.Bloadmodel.setObjectName("Bloadmodel")
+        self.Bloadmodel.setIcon(QIcon('icons/loadmodel.png'))
+        self.Bloadmodel.setText("Load")
+        self.Bloadmodel.setFlat(True)
+        self.Bloadmodel.setStyleSheet('text-align:left')
+        self.vlayout.addWidget(self.Bloadmodel) 
+        
+        self.Bsavemodel = QPushButton(self.centralWidget)
+        self.Bsavemodel.setObjectName("Bsavemodel")
+        self.Bsavemodel.setIcon(QIcon('icons/savemodel.png'))
+        self.Bsavemodel.setText("Save")
+        self.Bsavemodel.setFlat(True)
+        self.Bsavemodel.setStyleSheet('text-align:left')
+        self.vlayout.addWidget(self.Bsavemodel) 
         
         
         ##############
