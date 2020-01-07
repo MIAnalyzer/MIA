@@ -45,7 +45,8 @@ class TrainingDataGenerator_inMemory(Sequence):
             self.cnt += self.batch_size
             
             img, mask = dl_augment.augment(batch_images,batch_masks)             
-            img = img.astype('float')/255.
+            img = img.astype('float')/255.        
+                
             if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
             else:
@@ -120,7 +121,7 @@ class TrainingDataGenerator_fromDisk(Sequence):
             self.cnt+=self.batch_size
             
             img = img.astype('float')/255.
-            if self.numclasses > 2:
+            if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
             else:
                 mask = mask.astype('bool')

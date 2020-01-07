@@ -12,7 +12,7 @@ import os
 
 
 import numpy as np
-import random
+
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -39,6 +39,7 @@ class Canvas(QGraphicsView):
         self.lasttool = Tools.DrawTool(self)
         self.Contours = Contours()
         self.activeContour = None
+        self.enableToggleTools = True
         
         self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
@@ -216,6 +217,9 @@ class Canvas(QGraphicsView):
         
 
     def toggleDrag(self):
+        if not self.enableToggleTools:
+            return
+            
         if self.tool.type == canvasTool.drag:
             self.setnewTool(self.lasttool.type.name)
         else:
@@ -235,6 +239,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.testImagespath = None
         self.testImageLabelspath = None
         self.train_test_dir = True
+        self.LearningMode = 0
         
         self.files = None
         self.currentImage = 0
@@ -244,7 +249,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         height = self.canvas.geometry().height()    
         
         self.dl = DeepLearning.DeepLearning()
-        
         # init canvas
         self.hlayout.removeWidget(self.canvas)
         self.canvas.close()
@@ -258,6 +262,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
         self.classList.SetClass(0)
+        self.changeLearningMode(self.LearningMode)
+        self.CBLearningMode.setCurrentIndex (self.LearningMode)
+        
         
         
     def setCallbacks(self):
@@ -269,23 +276,47 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bnext.clicked.connect(self.nextImage)
         self.Bprev.clicked.connect(self.previousImage)
         
-        self.Bdrag.clicked.connect(self.setMode)
-        self.Bdraw.clicked.connect(self.setMode)
-        self.Bassign.clicked.connect(self.setMode)
-        self.Bextend.clicked.connect(self.setMode)
-        self.Bdelete.clicked.connect(self.setMode)
-        self.Bpoly.clicked.connect(self.setMode)
+        self.Bdrag.clicked.connect(self.setCanvasMode)
+        self.Bdraw.clicked.connect(self.setCanvasMode)
+        self.Bassign.clicked.connect(self.setCanvasMode)
+        self.Bextend.clicked.connect(self.setCanvasMode)
+        self.Bdelete.clicked.connect(self.setCanvasMode)
+        self.Bpoly.clicked.connect(self.setCanvasMode)
         
         self.Btrain.clicked.connect(self.trainModel)
         self.Bpredict.clicked.connect(self.predictContours)
+        self.Bloadmodel.clicked.connect(self.loadModel)
+        self.Bsavemodel.clicked.connect(self.saveModel)
+        
+        
         self.Baddclass.clicked.connect(self.addClass)
         self.Bdelclass.clicked.connect(self.removeLastClass)
+        
+        self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
+        
+        
+    def changeLearningMode(self, i):
+        self.LearningMode = i
+        if i == 0: # classification
+            self.SegmentButtons.hide()
+            self.ClassificationButtons.show()
+            self.setCanvasTool(canvasTool.drag.name)
+            self.canvas.enableToggleTools = False
+        elif i == 1: # segmentation
+            self.SegmentButtons.show()
+            self.ClassificationButtons.hide()
+            self.setCanvasTool(canvasTool.drag.name)
+            self.canvas.enableToggleTools = True
+        else:
+            self.SegmentButtons.hide()
+            self.ClassificationButtons.hide()
+        self.setWorkingFolder()
         
     def addClass(self):
         self.classList.addClass()
         
     def removeLastClass(self):
-        self.classList.removeClass()
+        self.classList.removeClass()     
         
     def activeClass(self):
         c = self.classList.getActiveClass()
@@ -335,8 +366,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not folder:
             return
         self.trainImagespath = folder
-        self.trainImageLabelspath = self.trainImagespath + "/labels"
-        self.ensureFolder(self.trainImageLabelspath)
         self.train_test_dir = True
         self.setWorkingFolder()
         
@@ -344,11 +373,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         folder = str(QFileDialog.getExistingDirectory(self, "Select Test Image Folder"))
         if not folder:
             return
-        self.testImagespath = folder
-        self.testImageLabelspath = self.testImagespath + "/labels"
-        self.ensureFolder(self.testImageLabelspath)
+        self.testImagespath = folder   
         self.train_test_dir = False
         self.setWorkingFolder()
+        
+    def createLabelFolder(self):
+        if self.trainImagespath is not None:
+            self.trainImageLabelspath = self.trainImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
+            self.ensureFolder(self.trainImageLabelspath)
+        
+        if self.testImagespath is not None:
+            self.testImageLabelspath = self.testImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
+            self.ensureFolder(self.testImageLabelspath)
        
     def switchToTrainFolder(self):
         self.train_test_dir = True
@@ -359,6 +395,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setWorkingFolder()
             
     def setWorkingFolder(self):
+        self.createLabelFolder()
         if self.train_test_dir:
             self.imagepath = self.trainImagespath
             self.labelpath = self.trainImageLabelspath
@@ -405,8 +442,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.image = QPixmap(path[0])
         self.canvas.newImage()
          
-    def setMode(self, mode):
+    def setCanvasMode(self):
         tool = self.sender().objectName()[1:]
+        self.setCanvasTool(tool)
+        
+    def setCanvasTool(self, tool):
         self.canvas.setnewTool(tool)
         self.StatusMode.setText('Current Mode: ' + self.canvas.tool.Text)      
             
@@ -428,7 +468,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
+    
+
     ## deep learning  
+    def loadModel(self):
+        filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
+        if filename:
+            self.dl.LoadModel(filename)
+    def saveModel(self):
+        filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
+        if filename.strip():
+            self.dl.SaveModel(filename)
+    
     def trainModel(self):
         if self.imagepath is None or self.labelpath is None:
             return
@@ -438,9 +489,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.dl.initialized:
             self.dl.initModel(self.classList.getNumberOfClasses())
         self.dl.Train()
-        self.predictContours()
         
     def predictContours(self):
+        if self.testImagespath is None:
+            return
         self.dl.TestImagesPath = self.testImagespath
         self.dl.TestLabelsPath = self.testImageLabelspath
         self.dl.Predict()

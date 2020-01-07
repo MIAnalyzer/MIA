@@ -85,12 +85,22 @@ def LoadLabel(filename, width, height):
     return drawContoursToLabel(label, contours)        
         
         
-def drawContoursToLabel(label, contours):
+def drawContoursToLabel(label, contours, changed_class = -1):
+    if changed_class == 0:
+        changed_class =-1
+    # changed class need some rework
     # split contours
-    bg_contours, target_contours = [], []
+    bg_contours, target_contours, changed_contours = [], [], []
     for c in contours:
-       target = bg_contours if c.classlabel == 0 else target_contours
-       target.append(c)
+        if c.classlabel == 0:
+            target = bg_contours
+        elif c.classlabel == changed_class:
+            target = changed_contours
+        else:
+            target = target_contours
+            
+#       target = bg_contours if c.classlabel == 0 else target_contours
+        target.append(c)
        
     if bg_contours == list():
         label[:] = (255)
@@ -106,26 +116,38 @@ def drawContoursToLabel(label, contours):
             # separate connecting contours
             cv2.drawContours(label, [cnt], 0, (255), 2)
             cv2.drawContours(label, [cnt], 0, (int(c.classlabel)), -1)  
+            
+    for c in changed_contours:
+        cnt = c.points
+        if c.numPoints() > 0: 
+            # separate connecting contours
+            cv2.drawContours(label, [cnt], 0, (255), 2)
+            cv2.drawContours(label, [cnt], 0, (int(c.classlabel)), -1) 
     return label
        
 
-def extractContoursFromLabel(image):
-    image = image.astype(np.uint8)
-#    _, thresh = cv2.threshold(image, 254, 255,  cv2.THRESH_BINARY)
-#    _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+def extractContoursFromLabel(image, changed_class = -1):
+    if changed_class == 0:
+        changed_class =-1
+    # changed class need some rework
+    image = np.squeeze(image).astype(np.uint8)
     image[np.where(image == 255)] = 0
     ret_contours = []
     maxclass = np.max(image)
-#    for c in contours:
-#        #if cv2.contourArea(c)+1 <= (image.shape[0]-1)*(image.shape[1]-1):
-#         ret_contours.append(Contour(0,c))
-    for i in range(maxclass,0,-1):
-        _, thresh = cv2.threshold(image, i-1, 255,  cv2.THRESH_BINARY)
+
+    for i in range(1,maxclass+1):
+        if i != changed_class:  
+            thresh = (image == i).astype(np.uint8)
+            _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if contours is not None:
+                for c in contours:
+                    ret_contours.append(Contour(i,c))
+    if changed_class != -1:
+        thresh = (image == changed_class).astype(np.uint8)
         _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        image[np.where(image == i)] = 0
         if contours is not None:
             for c in contours:
-                ret_contours.append(Contour(i,c))
+                ret_contours.append(Contour(changed_class,c))
 
     return ret_contours
 

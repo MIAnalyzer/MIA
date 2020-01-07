@@ -205,6 +205,12 @@ class DeleteTool(AbstractTool):
         
     
 class ExtendTool(AbstractTool):
+    # this tool potentially need some rework, as it is not precise in all situations
+    # especially it is unclear in which hierarchial order contours are drawn
+    # and covers other contours
+    # now with increasing classnumber the hierarchial order increases
+    # + active class as top tier 
+    
     def __init__(self, canvas):
         super().__init__(canvas)
         self.canvas = canvas
@@ -224,18 +230,18 @@ class ExtendTool(AbstractTool):
         
     def mouseReleaseEvent(self,e):
         if self.sketch is None:
-                return
-        self.canvas.Contours.contours = Contour.extractContoursFromLabel(self.sketch)
+            return
+        self.canvas.Contours.contours = Contour.extractContoursFromLabel(self.sketch, self.canvas.parent.activeClass())
         self.canvas.redrawImage()
         self.sketch = None
                       
     def mousePressEvent(self,e):
         if self.canvas.image is None:
-                return
+            return
         width = self.canvas.image.width()
         height = self.canvas.image.height()
         self.sketch = np.zeros((height, width, 1), np.uint8)
-        Contour.drawContoursToLabel(self.sketch, self.canvas.Contours.contours)
+        Contour.drawContoursToLabel(self.sketch, self.canvas.Contours.contours, self.canvas.parent.activeClass())
 
 
     def Cursor(self):

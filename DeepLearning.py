@@ -8,6 +8,7 @@ Created on Thu Nov  7 13:54:36 2019
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import losses
 from tensorflow.keras.metrics import MeanIoU
+from tensorflow.keras.models import load_model
 
 import cv2
 import glob
@@ -35,7 +36,7 @@ class DeepLearning():
         self.TestImagesPath = None
         self.TestLabelsPath = None
         self.TrainInMemory = True
-        self.ImageScaleFactor = 0.5
+        self.ImageScaleFactor = 0.25
         self.initialized = False
         
         self.Model = None
@@ -44,9 +45,9 @@ class DeepLearning():
         
         # Training settings
         self.MonoChrome = True
-        self.batch_size = 6
-        self.epochs = 2500
-        self.learning_rate = 1e-4
+        self.batch_size = 4
+        self.epochs = 1000
+        self.learning_rate = 1e-5
         
         
     def initModel(self, numClasses = 2):
@@ -72,6 +73,8 @@ class DeepLearning():
         else:
             loss = 'binary_crossentropy'
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
+        
+        ## this needs more investigation for some reasons, fit_generator is much slower than fit
         self.Model.fit_generator(train_generator, steps_per_epoch=len(x)/self.batch_size,verbose=1, callbacks=None, epochs=self.epochs, workers = 20)
 
        
@@ -101,10 +104,22 @@ class DeepLearning():
             if pad != (0,0):
                 image = np.pad(image, ((0, pad[0]), (0, pad[1])),'constant', constant_values=(0, 0))
                
-            image = image[np.newaxis, :, :, np.newaxis].astype('float')/255.
+                
+            # to do -> handle colored images
+            if self.MonoChrome:
+                image = image[np.newaxis, :, :, np.newaxis].astype('float')/255.
+            else:
+                image = image[np.newaxis, :, :, :].astype('float')/255.
             pred = self.Model.predict(image)
             name = os.path.splitext(os.path.basename(images[i]))[0]
-            pred = np.squeeze(np.argmax(pred, axis = 3))
+            if self.NumClasses > 2:
+                pred = np.squeeze(np.argmax(pred, axis = 3))
+            else:
+                pred = np.squeeze(pred)
+                pred[pred>0.5] = 1
+                pred[pred<=0.5] = 0
+                
+            
             pred = pred[0:pred.shape[0]-pad[0],0:pred.shape[1]-pad[1]]
             pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
             cv2.imwrite(os.path.join(self.TestLabelsPath, (name+ ".tif")) , pred)
@@ -119,9 +134,12 @@ class DeepLearning():
         self.initialized = False
     
     def LoadModel(self, modelpath):
-        pass
+        self.Model = load_model (modelpath)
+        if self.Model:
+            self.initialized = True
     
     def SaveModel(self, modelpath):
-        pass
+        if self.initialized:
+            self.Model.save(modelpath)
     
     

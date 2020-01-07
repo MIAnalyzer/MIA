@@ -7,7 +7,7 @@ Created on Mon Nov 11 14:28:06 2019
 
 from tensorflow.keras.layers import Activation, MaxPooling2D,BatchNormalization, Input, Flatten, Dense, Dropout, Conv2D, multiply, add, LeakyReLU, GlobalAveragePooling2D, concatenate, Concatenate, UpSampling2D, Conv2DTranspose, Cropping2D, ZeroPadding2D
 from tensorflow.keras import regularizers
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, Sequential
 import tensorflow.python.keras.backend as K
 import scipy.io
 from tensorflow.keras.applications.resnet50 import ResNet50
@@ -28,7 +28,7 @@ def load_simple_model(num_classes, monochrome = False):
     conv_act = 'relu'
     regularizer = regularizers.l2(1e-4)
     
-   
+
     conv1 = Conv2D(n_filters, (3, 3), activation=conv_act, padding='same', kernel_regularizer = regularizer)(img_input)
 
     conv1 = BatchNormalization()(conv1)  
@@ -86,7 +86,6 @@ def load_simple_model(num_classes, monochrome = False):
     conv10 = Conv2D(outputlayer, (1, 1), activation=out_act_func)(conv9)
     model = Model(inputs=[img_input], outputs=[conv10])
     return model
-
 
 def resnetSegModel(num_classes, monochrome = False):
     if num_classes > 2:
