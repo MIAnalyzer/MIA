@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import cv2
 import numpy as np
+import threading
 
 class canvasTool(Enum):
     drag = 'drag'
@@ -218,31 +219,54 @@ class ExtendTool(AbstractTool):
         self.type = canvasTool.expand
         self.size = 10
         self.sketch = None
+        self.contours = None
+        self.lock = threading.RLock()
+        self.erase = False
         
     def mouseMoveEvent(self, e):
         if self.sketch is None:
             return
-        p0 = self.canvas.mapToScene(e.pos())
-        p = Contour.QPoint2np(p0)
-        cv2.circle(self.sketch, (p[0,0], p[0,1]), self.size, (self.canvas.parent.activeClass()), -1)
-        self.canvas.addcircle(p0, self.size)
+        with self.lock:
+            p0 = self.canvas.mapToScene(e.pos())
+            p = Contour.QPoint2np(p0)
+            
+            x = p[0,0]
+            y = p[0,1]
+            self.canvas.addcircle(p0, self.size)
+            val = 1 if self.erase == False else 0
+            cv2.circle(self.sketch, (x, y), self.size, (val), -1)
 
         
     def mouseReleaseEvent(self,e):
         if self.sketch is None:
             return
-        self.canvas.Contours.contours = Contour.extractContoursFromLabel(self.sketch, self.canvas.parent.activeClass())
+
+        contours = Contour.extractContoursFromImage(self.sketch)
+        
+        for c_old in self.contours:
+            if not Contour.checkIfContourInListOfContours_plain(c_old.points, contours):
+                self.canvas.Contours.deleteContour(c_old)
+                
+        for c_new in contours:
+            label = self.canvas.parent.activeClass()
+            self.canvas.Contours.addContour(Contour.Contour(label, c_new))
+
+            
         self.canvas.redrawImage()
         self.sketch = None
+        self.contours = None
                       
     def mousePressEvent(self,e):
         if self.canvas.image is None:
             return
-        width = self.canvas.image.width()
-        height = self.canvas.image.height()
-        self.sketch = np.zeros((height, width, 1), np.uint8)
-        Contour.drawContoursToLabel(self.sketch, self.canvas.Contours.contours, self.canvas.parent.activeClass())
-
+        if e.button() == Qt.LeftButton:
+            self.contours = self.canvas.Contours.getContoursOfClass_x(self.canvas.parent.activeClass())
+            width = self.canvas.image.width()
+            height = self.canvas.image.height()
+            self.sketch = np.zeros((height, width, 1), np.uint8)
+            Contour.drawContoursToImage(self.sketch, self.contours)
+    
+    
 
     def Cursor(self):
         return Qt.ArrowCursor
