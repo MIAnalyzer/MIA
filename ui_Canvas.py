@@ -203,7 +203,7 @@ class Canvas(QGraphicsView):
     
     def setnewTool(self, tool):
         self.lasttool = self.tool  
-        
+        self.parent.ExtendSettings.hide()
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         if tool == canvasTool.draw.name:
@@ -212,6 +212,7 @@ class Canvas(QGraphicsView):
             self.tool = Tools.AssignTool(self)
         if tool == canvasTool.expand.name:
             self.tool = Tools.ExtendTool(self)
+            self.parent.ExtendSettings.show()
         if tool == canvasTool.delete.name:
             self.tool = Tools.DeleteTool(self)
         if tool == canvasTool.poly.name:

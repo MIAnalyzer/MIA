@@ -8,11 +8,14 @@ import cv2
 import numpy as np
 from PyQt5.QtCore import QPointF, QPoint
 
+FreeFormContour_ID = 123456789
+
 
 
 class Contours():
     def __init__(self):
         self.contours = []
+        self.labeltype = FreeFormContour_ID
     def addContour(self,c):
         #if c not in self.contours:
         if not checkIfContourInListOfContours_labelled(c, self.contours):
@@ -52,6 +55,7 @@ class Contours():
 class Contour():
     def __init__(self, classlabel, points = None):
         self.classlabel = classlabel
+        self.labeltype = FreeFormContour_ID
         self.points = None
         if isinstance(points, QPointF):
             self.points = QPoint2np(points)
@@ -169,11 +173,11 @@ def checkIfContourInListOfContours_labelled(contour, contours):
 def checkIfContourInListOfContours_plain(contour, contours):
     return next((True for elem in contours if (cv2.moments(elem) == cv2.moments(contour) and cv2.boundingRect(elem) == cv2.boundingRect(contour))), False)
 
-
 def saveContours(contours, filename):
     if len(contours) == 0:
         return
     cnts = []
+    cnts.append(contours[0].labeltype)
     for c in contours:
         cnts.append(c.classlabel)
         cnts.append(c.points)
@@ -183,7 +187,9 @@ def loadContours(filename):
     container = np.load(filename)
     data = [container[key] for key in container]
     ret = []
-    for i, arr in enumerate(data):
+    if data[0] != FreeFormContour_ID:
+        return
+    for i, arr in enumerate(data[1:]):
         if i % 2 == 0:
             label = arr
         else:
