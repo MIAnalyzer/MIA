@@ -6,7 +6,7 @@ Created on Tue Oct 22 14:23:06 2019
 """
 import cv2
 import numpy as np
-from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QPointF, QPoint
 
 
 
@@ -14,27 +14,40 @@ class Contours():
     def __init__(self):
         self.contours = []
     def addContour(self,c):
-        self.contours.append(c)
+        #if c not in self.contours:
+        if not checkIfContourInListOfContours_labelled(c, self.contours):
+            self.contours.append(c)
     def deleteContour(self,c):
         self.contours.remove(c)
     def clear(self):
         self.contours.clear()
     def empty(self):
         return not self.contours
-    def numOfContours():
+    def numOfContours(self):
         return len(self.contours)
     def loadContours(self, filename):
         self.contours = loadContours(filename)
     def saveContours(self, filename):
         saveContours(self.contours, filename)
+    def getContoursOfClass_x(self, x):
+        l = []
+        for c in self.contours:
+            if c.classlabel == x:
+                l.append(c)
+        return l        
     def getContour(self, point):
         for c in self.contours: 
             if c.inside(point):
                 return c
-    def getclosestContour(self, point, dist):
+    def getclosestContour(self, point, dist, label = None):
         for c in self.contours: 
-            if c.distance(point) < dist:
-                return c
+            if -c.distance(point) < dist:
+                if label is None:
+                    return c
+                elif label == c.classlabel:
+                    return c
+        return None
+
 
 class Contour():
     def __init__(self, classlabel, points = None):
@@ -64,7 +77,8 @@ class Contour():
             return True
         else:
             return False
-        
+    def getSize(self):
+        return cv2.contourArea(self.points)
     def numPoints(self):
         return len(self.points)
                     
@@ -76,6 +90,14 @@ class Contour():
     def distance(self, point):
         p = QPoint2np(point)
         return cv2.pointPolygonTest(self.points,  (p[0,0], p[0,1]), True) 
+    
+    def getCenter(self):
+        M = cv2.moments(self.points)
+        if M["m00"] == 0:
+            raise Exception('division by zero')
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        return QPoint(cX, cY)
 
         
 ################# helper functions #################
@@ -85,22 +107,12 @@ def LoadLabel(filename, width, height):
     return drawContoursToLabel(label, contours)        
         
         
-def drawContoursToLabel(label, contours, changed_class = -1):
-    if changed_class == 0:
-        changed_class =-1
-    # changed class need some rework
+def drawContoursToLabel(label, contours):
     # split contours
-    bg_contours, target_contours, changed_contours = [], [], []
+    bg_contours, target_contours = [], []
     for c in contours:
-        if c.classlabel == 0:
-            target = bg_contours
-        elif c.classlabel == changed_class:
-            target = changed_contours
-        else:
-            target = target_contours
-            
-#       target = bg_contours if c.classlabel == 0 else target_contours
-        target.append(c)
+       target = bg_contours if c.classlabel == 0 else target_contours
+       target.append(c)
        
     if bg_contours == list():
         label[:] = (255)
@@ -117,39 +129,45 @@ def drawContoursToLabel(label, contours, changed_class = -1):
             cv2.drawContours(label, [cnt], 0, (255), 2)
             cv2.drawContours(label, [cnt], 0, (int(c.classlabel)), -1)  
             
-    for c in changed_contours:
-        cnt = c.points
-        if c.numPoints() > 0: 
-            # separate connecting contours
-            cv2.drawContours(label, [cnt], 0, (255), 2)
-            cv2.drawContours(label, [cnt], 0, (int(c.classlabel)), -1) 
     return label
        
 
-def extractContoursFromLabel(image, changed_class = -1):
-    if changed_class == 0:
-        changed_class =-1
-    # changed class need some rework
+def extractContoursFromLabel(image):
     image = np.squeeze(image).astype(np.uint8)
     image[np.where(image == 255)] = 0
     ret_contours = []
     maxclass = np.max(image)
 
     for i in range(1,maxclass+1):
-        if i != changed_class:  
-            thresh = (image == i).astype(np.uint8)
-            _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if contours is not None:
-                for c in contours:
-                    ret_contours.append(Contour(i,c))
-    if changed_class != -1:
-        thresh = (image == changed_class).astype(np.uint8)
+        thresh = (image == i).astype(np.uint8)
         _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours is not None:
             for c in contours:
-                ret_contours.append(Contour(changed_class,c))
+                ret_contours.append(Contour(i,c))
 
     return ret_contours
+
+def drawContoursToImage(image, contours): 
+    for c in contours:
+        cnt = c.points
+        if c.numPoints() > 0: 
+            cv2.drawContours(image, [cnt], 0, (1), -1)  
+
+
+def extractContoursFromImage(image):
+    image = np.squeeze(image).astype(np.uint8)
+    ret_contours = []
+    _, contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if contours is not None:
+        for c in contours:
+            ret_contours.append(c)
+    return ret_contours
+
+def checkIfContourInListOfContours_labelled(contour, contours):
+    return next((True for elem in contours if (cv2.moments(elem.points) == cv2.moments(contour.points) and cv2.boundingRect(elem.points) == cv2.boundingRect(contour.points))), False)
+
+def checkIfContourInListOfContours_plain(contour, contours):
+    return next((True for elem in contours if (cv2.moments(elem) == cv2.moments(contour) and cv2.boundingRect(elem) == cv2.boundingRect(contour))), False)
 
 
 def saveContours(contours, filename):

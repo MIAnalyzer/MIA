@@ -39,7 +39,7 @@ class MainWindow(object):
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.hlayout.setContentsMargins(0, 0, 0, 0)
         self.hlayout.setSpacing(6)
-        
+        self.centralWidget.setLayout(self.hlayout)
         
         self.vlayout = QVBoxLayout()
         verticalSpacer = QSpacerItem(20, 40)
@@ -241,6 +241,15 @@ class MainWindow(object):
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         self.vlayout.addWidget(line)
+        
+        
+        
+        self.Bresults = QPushButton(self.centralWidget)
+        self.Bresults.setText("Results")
+        self.Bresults.setFlat(True)
+        self.Bresults.setStyleSheet('text-align:left')
+        self.Bresults.setIcon(QIcon('icons/results.png'))
+        self.vlayout.addWidget(self.Bresults)
 
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.vlayout.addItem(verticalSpacer)

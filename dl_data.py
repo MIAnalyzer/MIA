@@ -187,7 +187,7 @@ def getTrainingDataset(imagepath, labelpath):
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
       
-    labels = [x for x in labels if (x.endswith(".tif") or x.endswith(".npy")) or x.endswith(".npz")]
+    labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
     
     image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
     label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
