@@ -148,6 +148,26 @@ class MainWindow(object):
         
         self.vlayout.addWidget(self.SegmentButtons)
         
+        
+        self.ExtendSettingslayout = QHBoxLayout(self.centralWidget)
+        self.CBExtend = QRadioButton(self.centralWidget)
+        self.CBExtend.setText("Expand ")
+        self.CBExtend.setChecked(True)
+        self.CBErase = QRadioButton(self.centralWidget)
+        self.CBErase.setText("Erase  ")
+        self.SSize = QSlider(Qt.Horizontal, self.centralWidget)
+        self.SSize.setMinimum(2)
+        self.SSize.setMaximum(40)
+        self.SSize.setValue(10)
+        self.ExtendSettingslayout.addWidget(self.CBExtend)
+        self.ExtendSettingslayout.addWidget(self.CBErase)
+        self.ExtendSettingslayout.addWidget(self.SSize)
+        self.ExtendSettings = QFrame()
+        self.ExtendSettings.setLayout(self.ExtendSettingslayout)
+        
+        self.vlayout.addWidget(self.ExtendSettings)
+        
+        
         ### classification
         self.CButtonslayout = QHBoxLayout(self.centralWidget)
         self.CButtonslayout.setContentsMargins(0, 0, 0, 0)

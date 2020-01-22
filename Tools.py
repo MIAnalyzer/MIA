@@ -206,11 +206,6 @@ class DeleteTool(AbstractTool):
         
     
 class ExtendTool(AbstractTool):
-    # this tool potentially need some rework, as it is not precise in all situations
-    # especially it is unclear in which hierarchial order contours are drawn
-    # and covers other contours
-    # now with increasing classnumber the hierarchial order increases
-    # + active class as top tier 
     
     def __init__(self, canvas):
         super().__init__(canvas)
@@ -260,6 +255,10 @@ class ExtendTool(AbstractTool):
         if self.canvas.image is None:
             return
         if e.button() == Qt.LeftButton:
+            
+            self.size = self.canvas.parent.SSize.value()
+            self.erase = self.canvas.parent.CBErase.isChecked()
+            
             self.contours = self.canvas.Contours.getContoursOfClass_x(self.canvas.parent.activeClass())
             width = self.canvas.image.width()
             height = self.canvas.image.height()
