@@ -27,15 +27,36 @@ class Window(object):
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
         
-        self.CBSize = QCheckBox("Export Size")
+        
+        
+        self.CBSize = QCheckBox("Export scaled size",self.centralWidget)
         self.CBSize.setChecked(True)
-        self.CBNumber= QCheckBox("Export Number")
-        self.CBNumber.setChecked(True)
         self.vlayout.addWidget(self.CBSize)
-        self.vlayout.addWidget(self.CBNumber)
+        
+        self.hlayout = QHBoxLayout(self.centralWidget)
+        self.BSetScale = QPushButton(self.centralWidget)
+        self.BSetScale.setFlat(True)
+        self.BSetScale.setIcon(QIcon('icons/measure.png'))
+        self.BSetScale.setMaximumSize(28, 28)
+        self.hlayout.addWidget(self.BSetScale)
+        
+        self.LEScale = QLineEdit(self.centralWidget)
+        self.LEScale.setText('1')
+        self.LEScale.setMaximumSize(50, 28)
+        self.LEScale.setStyleSheet("border: None")
+        self.LEScale.setStyleSheet('font:bold')
+        self.LEScale.setAlignment(Qt.AlignRight)
+        self.hlayout.addWidget(self.LEScale)
+        self.LScale = QLabel(self.centralWidget)
+        self.LScale.setText('  pixel per micron')
+        self.hlayout.addWidget(self.LScale)
+        self.vlayout.addItem(self.hlayout)
+        
+
+
         
         self.BExport = QPushButton(self.centralWidget)
-        self.BExport.setText("Export as xls")
+        self.BExport.setText("Export as csv")
         self.BExport.setIcon(QIcon('icons/savemodel.png'))
         self.BExport.setFlat(True)
         self.vlayout.addWidget(self.BExport)
@@ -48,7 +69,18 @@ class ResultsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         self.BExport.clicked.connect(self.saveResults)
+        self.scale = 1
+        self.CBSize.clicked.connect(self.EnableSetScale)
 
+    def EnableSetScale(self):
+        if self.CBSize.isChecked():
+            self.LEScale.setEnabled(True)
+            self.BSetScale.setEnabled(True)
+            self.LScale.setStyleSheet("color: black")
+        else:
+            self.LEScale.setEnabled(False)
+            self.BSetScale.setEnabled(False)
+            self.LScale.setStyleSheet("color: gray")
 
     def saveResults(self):
         if self.parent.testImageLabelspath is None:
@@ -66,20 +98,25 @@ class ResultsWindow(QMainWindow, Window):
             return
         labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
         labels.sort()
-        savesize = self.CBSize.isChecked()
-        savenumber = self.CBNumber.isChecked()
         try:
             with open(filename, 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter = ';')
-                csvWriter.writerow(['number']+['type'] + ['size'])
+                header = ['image name'] + ['object number'] + ['object type'] + ['size']
+                if self.CBSize.isChecked():
+                    header += ['size in microns']
+                csvWriter.writerow(header)
+
                 for i in labels:
                     contours = Contour.loadContours(i)
                     name = os.path.splitext(os.path.basename(i))[0]
-                    csvWriter.writerow([name])
+                    
                     x = 0
                     for c in contours:
                         x += 1
-                        csvWriter.writerow([x] + [c.classlabel] + [c.getSize()])
+                        row = [name] + [x] + [c.classlabel] + [c.getSize()]
+                        if self.CBSize.isChecked():
+                            row += [c.getSize()*self.scale]
+                        csvWriter.writerow(row)
                     csvWriter.writerow([])
         except: 
             self.parent.PopupWarning('Cannot write file (already open?)')

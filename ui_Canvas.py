@@ -31,6 +31,7 @@ class Canvas(QGraphicsView):
         self.Contours = Contours()
         self.activeContour = None
         self.enableToggleTools = True
+        self.FontSize = 18
         
         self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
@@ -94,13 +95,12 @@ class Canvas(QGraphicsView):
         self.activeContour.closeContour()
         if (self.activeContour.isValid()):
             self.Contours.addContour(self.activeContour)
-            try:
-                paint = self.getPainter()
-                paint.drawText(self.activeContour.getCenter(), str(self.Contours.numOfContours()))
-                self.displayedimage.setPixmap(self.image)
-                self.update()
-            except:
-                pass
+            paint = self.getPainter()
+            paint.drawText(self.getLabelNumPosition(self.activeContour) , str(self.Contours.numOfContours()))
+            self.displayedimage.setPixmap(self.image)
+            self.parent.numOfContoursChanged()
+            self.update()
+
         else:
             self.redrawImage()
         self.activeContour = None
@@ -173,19 +173,28 @@ class Canvas(QGraphicsView):
                 path.lineTo(np2QPoint(c.points[0].reshape(2,1)))
                 self.setPainterColor(paint, self.parent.ClassColor(c.classlabel))
                 paint.drawPath(path)
-                try:
-                    paint.drawText(c.getCenter(), str(contournum))
-                except:
-                    pass
+                paint.drawText(self.getLabelNumPosition(c) , str(contournum))
+
              
         self.displayedimage.setPixmap(self.image)
+        self.parent.numOfContoursChanged()
         self.update()
         
+    def getLabelNumPosition(self, contour):
+        pos = contour.getBottomPoint()+QPoint(0,self.FontSize + 10)
+        if pos.y() > self.image.height():
+            pos.setY(self.image.height() - self.FontSize - 5)
+        if pos.x() > self.image.width():
+            pos.setX(self.image.width() - self.FontSize - 5)
+        if pos.x() < 0:
+            pos.setX(5)
+        return pos
+
     def getPainter(self):
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
         p.setPen(QPen(self.parent.ClassColor(self.parent.activeClass()), self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
-        p.setFont(QFont("Fixed",18))
+        p.setFont(QFont("Fixed",self.FontSize))
         return p
         
     def setPainterColor(self, painter, color):

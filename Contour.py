@@ -16,32 +16,50 @@ class Contours():
     def __init__(self):
         self.contours = []
         self.labeltype = FreeFormContour_ID
+        
     def addContour(self,c):
         #if c not in self.contours:
-        if not checkIfContourInListOfContours_labelled(c, self.contours):
+        if not checkIfContourInListOfContours(c, self.contours) and c.isValid():
             self.contours.append(c)
+            
+    def addContours(self,cts):
+        new_cnts = getContoursNotinListOfContours(cts, self.contours)
+        self.contours.extend(new_cnts)
+            
     def deleteContour(self,c):
         self.contours.remove(c)
+        
+    def deleteContours(self, contours):
+        for c in contours:
+            self.deleteContour(c)
+        
     def clear(self):
         self.contours.clear()
+        
     def empty(self):
         return not self.contours
+    
     def numOfContours(self):
         return len(self.contours)
+    
     def loadContours(self, filename):
         self.contours = loadContours(filename)
+        
     def saveContours(self, filename):
         saveContours(self.contours, filename)
+        
     def getContoursOfClass_x(self, x):
         l = []
         for c in self.contours:
             if c.classlabel == x:
                 l.append(c)
         return l        
+    
     def getContour(self, point):
         for c in self.contours: 
             if c.inside(point):
                 return c
+            
     def getclosestContour(self, point, dist, label = None):
         for c in self.contours: 
             if -c.distance(point) < dist:
@@ -57,30 +75,43 @@ class Contour():
         self.classlabel = classlabel
         self.labeltype = FreeFormContour_ID
         self.points = None
+        self.boundingbox = None # for performance issues saved as member var
+        self.moments = None
         if isinstance(points, QPointF):
-            self.points = QPoint2np(points)
+            self.points = [QPoint2np(points)]
         elif isinstance(points, np.ndarray):
             self.points = points
         elif points is None:
             self.points = None
             
     def addPoint(self, point):
-        self.points = np.concatenate([self.points, QPoint2np(point)])
+        self.points = np.concatenate([self.points, [QPoint2np(point)]])
             
     def closeContour(self):
-        self.points = np.concatenate([self.points, self.points[0].reshape(1,2)])
+        self.points = np.concatenate([self.points, self.points[0].reshape(1,1,2)])
         
     def getFirstPoint(self):
-        return np2QPoint(self.points[0])
+        return np2QPoint(self.points[0][0])
     
     def getLastPoint(self):
-        return np2QPoint(self.points[-1])
+        return np2QPoint(self.points[-1][0])
     
     def isValid(self):
-        if cv2.contourArea(self.points) > 1:
+        if len(self.points) > 3 and cv2.contourArea(self.points) > 3:    # <- hard limit no contours smaller 4 pixels allowed
             return True
         else:
             return False
+        
+    def getBoundingBox(self):
+        if self.boundingbox is None:
+            self.boundingbox = cv2.boundingRect(self.points)
+        return self.boundingbox
+    
+    def getMoments(self):
+        if self.moments is None:
+            self.moments = cv2.moments(self.points)
+        return self.moments
+        
     def getSize(self):
         return cv2.contourArea(self.points)
     def numPoints(self):
@@ -90,6 +121,15 @@ class Contour():
         p = QPoint2np(point)
         inside = cv2.pointPolygonTest(self.points,  (p[0,0], p[0,1]), False) 
         return True if inside >= 0 else False
+    
+    def getBottomPoint(self):
+        
+        b = (self.points[self.points[..., 1].argmax()][0])
+        return QPoint(b[0], b[1])
+    
+    def getTopPoint(self):
+        b = (self.points[self.points[..., 1].argmin()][0])
+        return QPoint(b[0], b[1])
     
     def distance(self, point):
         p = QPoint2np(point)
@@ -167,11 +207,16 @@ def extractContoursFromImage(image):
             ret_contours.append(c)
     return ret_contours
 
-def checkIfContourInListOfContours_labelled(contour, contours):
-    return next((True for elem in contours if (cv2.moments(elem.points) == cv2.moments(contour.points) and cv2.boundingRect(elem.points) == cv2.boundingRect(contour.points))), False)
+def checkIfContourInListOfContours(contour, contours):
+    # returns True if contour is contained in contours
+    return next((True for elem in contours if (elem.getMoments() == contour.getMoments() and elem.getBoundingBox() == contour.getBoundingBox())), False)
 
-def checkIfContourInListOfContours_plain(contour, contours):
-    return next((True for elem in contours if (cv2.moments(elem) == cv2.moments(contour) and cv2.boundingRect(elem) == cv2.boundingRect(contour))), False)
+def getContoursNotinListOfContours(contours1, contours2):
+    # returns all contours in contours1 not in contours2
+    c1 = [(x, x.getMoments(), x.getBoundingBox() ) for x in contours1]
+    c2 = [( x.getMoments(), x.getBoundingBox() ) for x in contours2]   
+    return [x[0] for x in c1 if x[1:] not in c2]
+
 
 def saveContours(contours, filename):
     if len(contours) == 0:
@@ -179,8 +224,9 @@ def saveContours(contours, filename):
     cnts = []
     cnts.append(contours[0].labeltype)
     for c in contours:
-        cnts.append(c.classlabel)
-        cnts.append(c.points)
+        if c.isValid():
+            cnts.append(c.classlabel)
+            cnts.append(c.points)
     np.savez(filename, *cnts)
         
 def loadContours(filename):
@@ -193,9 +239,10 @@ def loadContours(filename):
         if i % 2 == 0:
             label = arr
         else:
-            ret.append(Contour(label, arr))
+            c = Contour(label, arr)
+            if c.isValid():
+                ret.append(Contour(label, arr))
     return ret
-
 
 def QPoint2np(p):
     return np.array([(p.x(),p.y())], dtype=np.int32)
