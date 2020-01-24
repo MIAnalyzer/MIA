@@ -15,6 +15,8 @@ import cv2
 import numpy as np
 import threading
 
+import time
+
 class canvasTool(Enum):
     drag = 'drag'
     draw = 'draw'
@@ -237,16 +239,16 @@ class ExtendTool(AbstractTool):
             return
 
         contours = Contour.extractContoursFromImage(self.sketch)
-        
-        for c_old in self.contours:
-            if not Contour.checkIfContourInListOfContours_plain(c_old.points, contours):
-                self.canvas.Contours.deleteContour(c_old)
-                
-        for c_new in contours:
-            label = self.canvas.parent.activeClass()
-            self.canvas.Contours.addContour(Contour.Contour(label, c_new))
 
-            
+        # returns all contours in self.contours not present in countours
+        # fastest way I found so far
+        c1 = [(x, cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in self.contours]
+        c2 = [(cv2.moments(x),cv2.boundingRect(x) ) for x in contours]   
+        changedcontours = [x[0] for x in c1 if x[1:] not in c2]
+     
+        self.canvas.Contours.deleteContours(changedcontours)
+        self.canvas.Contours.addContours([Contour.Contour(self.canvas.parent.activeClass(),c) for c in contours])
+
         self.canvas.redrawImage()
         self.sketch = None
         self.contours = None

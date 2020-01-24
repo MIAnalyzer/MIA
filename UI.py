@@ -387,9 +387,16 @@ class ClassWidget(QWidget):
         self.edit_name = QLineEdit(parent)
         self.edit_name.setText(name)
         self.edit_name.setStyleSheet("QLineEdit { border: None }")
+        
+        self.label_numOfContours = QLabel(parent)
+        self.label_numOfContours.setObjectName('numOfContours_class' + str(self.id))
+        self.label_numOfContours.setText('0')
+        
+        
         self.row.addWidget(self.rb_select)
         self.row.addWidget(self.pb_color)
         self.row.addWidget(self.edit_name)
+        self.row.addWidget(self.label_numOfContours)
         self.setLayout(self.row)
         
         self.pb_color.clicked.connect(self.changeColor)

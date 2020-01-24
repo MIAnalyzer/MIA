@@ -65,9 +65,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         ### windows - should this be moved to UI ?
         self.results = ResultsWindow(self)
-        
-        
-        
+
         
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
@@ -92,7 +90,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.Bresults.clicked.connect(self.showResultsWindow)
         
-        
         self.Baddclass.clicked.connect(self.addClass)
         self.Bdelclass.clicked.connect(self.removeLastClass)
         
@@ -112,6 +109,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setWindowTitle("Warning")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()  
+        
+    def numOfContoursChanged(self):
+        for i in range (self.NumOfClasses()):
+            label = self.findChild(QLabel, 'numOfContours_class' + str(i))
+            label.setText(str(len(self.canvas.Contours.getContoursOfClass_x(i))))
         
     def changeLearningMode(self, i):
         self.LearningMode = i
@@ -145,7 +147,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return self.classList.getClassColor(c)
     
     def NumOfClasses(self):
-        return self.classList.getNumberOfClasses
+        return self.classList.getNumberOfClasses()
         
     def colorChanged(self):
         self.canvas.redrawImage()
@@ -306,7 +308,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.dl.TrainPath = self.imagepath
         self.dl.LabelPath = self.labelpath
         if not self.dl.initialized:
-            self.dl.initModel(self.classList.getNumberOfClasses())
+            self.dl.initModel(self.NumOfClasses())
         self.dl.Train()
         
     def predictContours(self):
