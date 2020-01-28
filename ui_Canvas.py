@@ -44,6 +44,8 @@ class Canvas(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setBackgroundBrush(QBrush(QColor(30, 30, 30)))
         self.setFrameShape(QFrame.NoFrame)
+        
+        self.scale_pixel_per_mm = 1
 
     def mouseMoveEvent(self, e):
         if not self.hasImage():
@@ -68,17 +70,35 @@ class Canvas(QGraphicsView):
         if self.hasImage():
             self.tool.wheelEvent(e)
       
-    def addline(self, p1 ,p2):
-        p = self.getPainter()
+    def addline(self, p1 ,p2, color = None):
+        p = self.getPainter(color)
         p.drawLine(p2, p1)
-        self.displayedimage.setPixmap(self.image)
-        self.update()
+        self.updateImage()
         
-    def addcircle(self, center , radius):
-        p = self.getPainter()
-        p.setBrush(QBrush(self.parent.ClassColor(self.parent.activeClass()), Qt.SolidPattern))
+    def addTriangle(self, point, size, color = None):
+        psize = self.pen_size
+        self.pen_size = 1
+        p = self.getPainter(color)
+        p.setBrush(QBrush(QColor(Qt.white),Qt.SolidPattern))
+        polygon = QPolygonF()
+        polygon.append(point)
+        point2 = QPointF(point.x() + size/2, point.y() - size)
+        polygon.append(point2)
+        point3 = QPointF(point.x() - size/2, point.y() - size)
+        polygon.append(point3)
+        p.drawPolygon(polygon)
+        p.setBrush(QBrush(Qt.NoBrush))
+        self.pen_size = psize
+        self.updateImage()
+        
+    def addcircle(self, center , radius, color = None):
+        p = self.getPainter(color)
+        p.setBrush(QBrush(Qt.SolidPattern))
         p.drawEllipse(center, radius, radius)
-        p.setBrush(QBrush(self.parent.ClassColor(self.parent.activeClass()), Qt.NoBrush))
+        p.setBrush(QBrush(Qt.NoBrush))
+        self.updateImage()
+        
+    def updateImage(self):
         self.displayedimage.setPixmap(self.image)
         self.update()
         
@@ -97,9 +117,8 @@ class Canvas(QGraphicsView):
             self.Contours.addContour(self.activeContour)
             paint = self.getPainter()
             paint.drawText(self.getLabelNumPosition(self.activeContour) , str(self.Contours.numOfContours()))
-            self.displayedimage.setPixmap(self.image)
             self.parent.numOfContoursChanged()
-            self.update()
+            self.updateImage()
 
         else:
             self.redrawImage()
@@ -176,9 +195,8 @@ class Canvas(QGraphicsView):
                 paint.drawText(self.getLabelNumPosition(c) , str(contournum))
 
              
-        self.displayedimage.setPixmap(self.image)
         self.parent.numOfContoursChanged()
-        self.update()
+        self.updateImage()
         
     def getLabelNumPosition(self, contour):
         pos = contour.getBottomPoint()+QPoint(0,self.FontSize + 10)
@@ -190,10 +208,13 @@ class Canvas(QGraphicsView):
             pos.setX(5)
         return pos
 
-    def getPainter(self):
+    def getPainter(self, color = None):
+        
+        if color is None:
+            color = self.parent.ClassColor(self.parent.activeClass())
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
-        p.setPen(QPen(self.parent.ClassColor(self.parent.activeClass()), self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
+        p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         p.setFont(QFont("Fixed",self.FontSize))
         return p
         
@@ -226,6 +247,8 @@ class Canvas(QGraphicsView):
             self.tool = Tools.DeleteTool(self)
         if tool == canvasTool.poly.name:
             self.tool = Tools.PolygonTool(self)
+        if tool == canvasTool.scale.name:
+            self.tool = Tools.ScaleTool(self)
         
         self.setCursor(self.tool.Cursor())
         

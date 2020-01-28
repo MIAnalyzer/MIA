@@ -12,6 +12,7 @@ import csv
 import os
 import glob
 import Contour
+from Tools import canvasTool
 
 class Window(object):
     def setupUi(self, Form):
@@ -42,13 +43,14 @@ class Window(object):
         
         self.LEScale = QLineEdit(self.centralWidget)
         self.LEScale.setText('1')
-        self.LEScale.setMaximumSize(50, 28)
+        self.LEScale.setMaximumSize(100, 28)
         self.LEScale.setStyleSheet("border: None")
         self.LEScale.setStyleSheet('font:bold')
         self.LEScale.setAlignment(Qt.AlignRight)
+        self.LEScale.setEnabled(False)
         self.hlayout.addWidget(self.LEScale)
         self.LScale = QLabel(self.centralWidget)
-        self.LScale.setText('  pixel per micron')
+        self.LScale.setText('  pixel per mm')
         self.hlayout.addWidget(self.LScale)
         self.vlayout.addItem(self.hlayout)
         
@@ -71,6 +73,11 @@ class ResultsWindow(QMainWindow, Window):
         self.BExport.clicked.connect(self.saveResults)
         self.scale = 1
         self.CBSize.clicked.connect(self.EnableSetScale)
+        self.BSetScale.clicked.connect(self.setScale)
+
+    def setScale(self):
+        self.parent.canvas.setnewTool(canvasTool.scale.name)
+        
 
     def EnableSetScale(self):
         if self.CBSize.isChecked():
@@ -103,7 +110,7 @@ class ResultsWindow(QMainWindow, Window):
                 csvWriter = csv.writer(csvfile, delimiter = ';')
                 header = ['image name'] + ['object number'] + ['object type'] + ['size']
                 if self.CBSize.isChecked():
-                    header += ['size in microns']
+                    header += ['size in microns\u00b2']
                 csvWriter.writerow(header)
 
                 for i in labels:
@@ -115,7 +122,7 @@ class ResultsWindow(QMainWindow, Window):
                         x += 1
                         row = [name] + [x] + [c.classlabel] + [c.getSize()]
                         if self.CBSize.isChecked():
-                            row += [c.getSize()*self.scale]
+                            row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
                         csvWriter.writerow(row)
                     csvWriter.writerow([])
         except: 
