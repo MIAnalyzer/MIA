@@ -24,6 +24,7 @@ class canvasTool(Enum):
     delete = 'delete'
     expand = 'extend'
     poly =  'poly'
+    scale =  'scale'
 
 
 class AbstractTool(ABC):
@@ -272,4 +273,52 @@ class ExtendTool(AbstractTool):
     def Cursor(self):
         return Qt.ArrowCursor
     
+
+class ScaleTool(AbstractTool):
     
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Scale"
+        self.type = canvasTool.scale
+        self.size = 15
+        self.color = Qt.black
+        self.num = 0
+        self.p1 = None
+        self.dist_inpixel = 0
+        
+    def mouseMoveEvent(self, e):
+        pass
+
+        
+    def mouseReleaseEvent(self,e):
+        if self.canvas.image is None:
+            return
+        if e.button() == Qt.LeftButton:
+            if self.num == 0:
+                self.p1 = self.canvas.mapToScene(e.pos())
+                self.canvas.addTriangle(self.p1, self.size, self.color)
+                self.num += 1
+            else:  
+                p2 = self.canvas.mapToScene(e.pos())
+                self.canvas.addTriangle(p2, self.size, self.color)
+                dist_inpixel = abs(self.p1.x() - p2.x())
+                dist_inum,ok = QInputDialog.getInt(self.canvas.parent, "Set Scale","enter distance in \u03BCm")
+                if ok and dist_inum > 0:
+                    
+                   self.canvas.scale_pixel_per_mm = dist_inpixel / dist_inum * 1000
+                   self.canvas.parent.results.LEScale.setText(str(int(self.canvas.scale_pixel_per_mm+0.5)))
+                
+                self.canvas.setnewTool(canvasTool.drag.name)
+                self.canvas.redrawImage()
+                self.num = 0
+                
+        
+                      
+    def mousePressEvent(self,e):
+        pass
+    
+    
+
+    def Cursor(self):
+        return Qt.UpArrowCursor
