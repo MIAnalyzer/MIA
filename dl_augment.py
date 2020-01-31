@@ -19,7 +19,7 @@ seq = iaa.Sequential([
     iaa.PadToFixedSize(width=OUTPUTSIZE, height=OUTPUTSIZE),  
     iaa.Fliplr(0.5),
     iaa.Flipud(0.5),
-   sometimes(iaa.PiecewiseAffine(scale=(0.01, 0.05))), 
+    sometimes(iaa.PiecewiseAffine(scale=(0.01, 0.05))), 
     sometimes(iaa.GaussianBlur(sigma=(0, 3.0))),
     sometimes(
             iaa.KeepSizeByResize(

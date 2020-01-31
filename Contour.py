@@ -221,28 +221,51 @@ def getContoursNotinListOfContours(contours1, contours2):
 def saveContours(contours, filename):
     if len(contours) == 0:
         return
-    cnts = []
-    cnts.append(contours[0].labeltype)
-    for c in contours:
-        if c.isValid():
-            cnts.append(c.classlabel)
-            cnts.append(c.points)
+
+    f1 = lambda x: x.classlabel
+    f2 = lambda x: x.points
+    cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2)]   
+    cnts.insert(0,contours[0].labeltype)
     np.savez(filename, *cnts)
         
 def loadContours(filename):
     container = np.load(filename)
     data = [container[key] for key in container]
-    ret = []
+    
     if data[0] != FreeFormContour_ID:
         return
-    for i, arr in enumerate(data[1:]):
-        if i % 2 == 0:
-            label = arr
-        else:
-            c = Contour(label, arr)
-            if c.isValid():
-                ret.append(Contour(label, arr))
+    
+    label = data[1::2]
+    array = data[2::2]
+    ret = [Contour(x,y) for x,y in zip(label,array)]
     return ret
+
+
+#def saveContours(contours, filename):
+#    if len(contours) == 0:
+#        return
+#    cnts = []
+#    cnts.append(contours[0].labeltype)
+#    for c in contours:
+#        if c.isValid():
+#            cnts.append(c.classlabel)
+#            cnts.append(c.points)
+#    np.savez(filename, *cnts)
+#        
+#def loadContours(filename):
+#    container = np.load(filename)
+#    data = [container[key] for key in container]
+#    ret = []
+#    if data[0] != FreeFormContour_ID:
+#        return
+#    for i, arr in enumerate(data[1:]):
+#        if i % 2 == 0:
+#            label = arr
+#        else:
+#            c = Contour(label, arr)
+#            if c.isValid():
+#                ret.append(Contour(label, arr))
+#    return ret
 
 def QPoint2np(p):
     return np.array([(p.x(),p.y())], dtype=np.int32)

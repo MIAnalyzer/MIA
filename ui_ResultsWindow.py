@@ -12,6 +12,7 @@ import csv
 import os
 import glob
 import Contour
+import sys
 from Tools import canvasTool
 
 class Window(object):
@@ -22,13 +23,10 @@ class Window(object):
         self.centralWidget = QWidget(Form)
         self.centralWidget.setFixedSize(250, 80)
 
-
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
-        
-        
         
         self.CBSize = QCheckBox("Export scaled size",self.centralWidget)
         self.CBSize.setChecked(True)
@@ -42,20 +40,17 @@ class Window(object):
         self.hlayout.addWidget(self.BSetScale)
         
         self.LEScale = QLineEdit(self.centralWidget)
-        self.LEScale.setText('1')
+        
         self.LEScale.setMaximumSize(100, 28)
         self.LEScale.setStyleSheet("border: None")
         self.LEScale.setStyleSheet('font:bold')
         self.LEScale.setAlignment(Qt.AlignRight)
-        self.LEScale.setEnabled(False)
+        self.LEScale.setValidator(QIntValidator(1,999999999))
         self.hlayout.addWidget(self.LEScale)
         self.LScale = QLabel(self.centralWidget)
         self.LScale.setText('  pixel per mm')
         self.hlayout.addWidget(self.LScale)
         self.vlayout.addItem(self.hlayout)
-        
-
-
         
         self.BExport = QPushButton(self.centralWidget)
         self.BExport.setText("Export as csv")
@@ -71,11 +66,18 @@ class ResultsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         self.BExport.clicked.connect(self.saveResults)
-        self.scale = 1
         self.CBSize.clicked.connect(self.EnableSetScale)
-        self.BSetScale.clicked.connect(self.setScale)
+        self.BSetScale.clicked.connect(self.setScaleTool)
+        self.LEScale.textEdited.connect(self.setScale)
+        self.LEScale.setText('1')
+        
+    def setScale(self, text):
+        # qtvalidator does not have a status request so we need to validate again
+        if self.LEScale.validator().validate(text,0)[0] == QValidator.Acceptable:
+            self.parent.canvas.setScale(int(text))
 
-    def setScale(self):
+
+    def setScaleTool(self):
         self.parent.canvas.setnewTool(canvasTool.scale.name)
         
 
@@ -90,11 +92,6 @@ class ResultsWindow(QMainWindow, Window):
             self.LScale.setStyleSheet("color: gray")
 
     def saveResults(self):
-        if self.parent.testImageLabelspath is None:
-            self.parent.PopupWarning('Prediction folder not selected')
-            return
-        
-        self.parent.canvas.createLabelFromContours()
         filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
         if not filename.strip():
             return

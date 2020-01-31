@@ -15,6 +15,7 @@ import Tools
 from Contour import *
 from Tools import canvasTool
 import numpy as np
+import cv2
 
 class Canvas(QGraphicsView):
     def __init__(self, parent):
@@ -24,7 +25,7 @@ class Canvas(QGraphicsView):
         self.pen_size = 3
         self.bgcolor = QColor(0,0,0)
         self.image = None
-        self.bufferimage = None
+        self.rawimage = None
         self.zoomstep = 0
         self.tool = Tools.DragTool(self)
         self.lasttool = Tools.DrawTool(self)
@@ -78,8 +79,7 @@ class Canvas(QGraphicsView):
     def addTriangle(self, point, size, color = None):
         psize = self.pen_size
         self.pen_size = 1
-        p = self.getPainter(color)
-        p.setBrush(QBrush(QColor(Qt.white),Qt.SolidPattern))
+        p = self.getPainter(color, True)
         polygon = QPolygonF()
         polygon.append(point)
         point2 = QPointF(point.x() + size/2, point.y() - size)
@@ -87,15 +87,12 @@ class Canvas(QGraphicsView):
         point3 = QPointF(point.x() - size/2, point.y() - size)
         polygon.append(point3)
         p.drawPolygon(polygon)
-        p.setBrush(QBrush(Qt.NoBrush))
         self.pen_size = psize
         self.updateImage()
         
     def addcircle(self, center , radius, color = None):
-        p = self.getPainter(color)
-        p.setBrush(QBrush(Qt.SolidPattern))
+        p = self.getPainter(color, True)
         p.drawEllipse(center, radius, radius)
-        p.setBrush(QBrush(Qt.NoBrush))
         self.updateImage()
         
     def updateImage(self):
@@ -117,8 +114,8 @@ class Canvas(QGraphicsView):
             self.Contours.addContour(self.activeContour)
             paint = self.getPainter()
             paint.drawText(self.getLabelNumPosition(self.activeContour) , str(self.Contours.numOfContours()))
-            self.parent.numOfContoursChanged()
             self.updateImage()
+            self.parent.numOfContoursChanged()
 
         else:
             self.redrawImage()
@@ -142,7 +139,7 @@ class Canvas(QGraphicsView):
         self.displayedimage.pixmap().fill(self.bgcolor)
         
     def newImage(self):
-        self.bufferimage = QPixmap(self.parent.files[self.parent.currentImage])
+        self.rawimage = QPixmap(self.parent.files[self.parent.currentImage])
         self.clearContours()
         self.getContours()
         self.redrawImage()
@@ -151,6 +148,11 @@ class Canvas(QGraphicsView):
         
     def hasImage(self):
         return self.image is not None
+    
+    def setScale(self,scale_ppmm):
+        self.scale_pixel_per_mm = scale_ppmm
+        if int(self.scale_pixel_per_mm+0.5) != int(self.parent.results_form.LEScale.text()):
+            self.parent.results_form.LEScale.setText(str(int(self.scale_pixel_per_mm+0.5)))
         
     def zoom(self):
         width = self.geometry().width()
@@ -162,7 +164,7 @@ class Canvas(QGraphicsView):
     def createLabelFromContours(self):
         if not self.Contours.empty():
             self.Contours.saveContours(self.parent.CurrentLabelFullName())
-              
+
     def getContours(self):
         self.clearContours()
         if os.path.exists(self.parent.CurrentLabelFullName()):
@@ -170,8 +172,8 @@ class Canvas(QGraphicsView):
             self.drawcontours()
     
     def redrawImage(self):
-        if self.bufferimage is not None:
-            self.image = self.bufferimage.copy()
+        if self.rawimage is not None:
+            self.image = self.rawimage.copy()
             self.displayedimage.setPixmap(self.image)
             self.drawcontours()
     
@@ -194,9 +196,8 @@ class Canvas(QGraphicsView):
                 paint.drawPath(path)
                 paint.drawText(self.getLabelNumPosition(c) , str(contournum))
 
-             
-        self.parent.numOfContoursChanged()
         self.updateImage()
+        self.parent.numOfContoursChanged()
         
     def getLabelNumPosition(self, contour):
         pos = contour.getBottomPoint()+QPoint(0,self.FontSize + 10)
@@ -208,12 +209,15 @@ class Canvas(QGraphicsView):
             pos.setX(5)
         return pos
 
-    def getPainter(self, color = None):
-        
+    def getPainter(self, color = None, filled = False,):
         if color is None:
             color = self.parent.ClassColor(self.parent.activeClass())
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
+        if filled == True:
+            p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
+        else:
+            p.setBrush(QBrush(Qt.NoBrush))
         p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         p.setFont(QFont("Fixed",self.FontSize))
         return p
@@ -250,6 +254,7 @@ class Canvas(QGraphicsView):
         if tool == canvasTool.scale.name:
             self.tool = Tools.ScaleTool(self)
         
+        self.parent.StatusMode.setText('Current Mode: ' + self.tool.Text) 
         self.setCursor(self.tool.Cursor())
         
 
