@@ -22,7 +22,9 @@ import DeepLearning
 from ui_Canvas import Canvas
 
 from ui_ResultsWindow import ResultsWindow
-    
+from ui_Training import TrainingWindow
+import cv2 
+import Contour
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
@@ -64,7 +66,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
         
         ### windows - should this be moved to UI ?
-        self.results = ResultsWindow(self)
+        self.results_form = ResultsWindow(self)
+        self.training_form = TrainingWindow(self)
+        self.updateClassList()
 
         
     def setCallbacks(self):
@@ -84,7 +88,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bpoly.clicked.connect(self.setCanvasMode)
         
         self.Btrain.clicked.connect(self.trainModel)
-        self.Bpredict.clicked.connect(self.predictContours)
+        self.Bpredictall.clicked.connect(self.predictAllImages)
+        self.Bpredict.clicked.connect(self.predictImage)
         self.Bloadmodel.clicked.connect(self.loadModel)
         self.Bsavemodel.clicked.connect(self.saveModel)
         
@@ -96,11 +101,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         
     def closeEvent(self, event):
-        self.results.hide()
-        
+        self.results_form.hide()
+        self.training_form.hide()
         
     def showResultsWindow(self):
-        self.results.show()
+        if self.testImageLabelspath is None:
+            self.PopupWarning('Prediction folder not selected')
+            return
+        self.results_form.show()
         
     def PopupWarning(self, message):
         msg = QMessageBox()
@@ -114,6 +122,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
             label.setText(str(len(self.canvas.Contours.getContoursOfClass_x(i))))
+        self.canvas.createLabelFromContours()
         
     def changeLearningMode(self, i):
         self.LearningMode = i
@@ -159,14 +168,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.changeImage()
         
     def nextImage(self):
-        self.canvas.createLabelFromContours()
         self.currentImage += 1
         if (self.currentImage >= self.numofImages):
             self.currentImage = 0
         self.changeImage()
         
     def previousImage(self):
-        self.canvas.createLabelFromContours()
         self.currentImage -= 1
         if (self.currentImage < 0):
             self.currentImage = self.numofImages - 1
@@ -248,7 +255,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.BTrainImageFolder.setStyleSheet('font:normal;text-align:left')
                 self.BTestImageFolder.setStyleSheet('font:bold;text-align:left')
         
-        
     def getFiles(self):
         if self.imagepath is None:
             return
@@ -258,6 +264,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.currentImage = 0
         self.numofImages = len(self.files)
     
+    def updateClassList(self):
+        try:
+            self.training_form.SBClasses.setValue(self.NumOfClasses())
+        except:
+            pass
         
     def loadImage(self):
         path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr('Image Files(*.png *.jpg *.bmp *.tif)'))
@@ -270,7 +281,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def setCanvasTool(self, tool):
         self.canvas.setnewTool(tool)
-        self.StatusMode.setText('Current Mode: ' + self.canvas.tool.Text)      
             
     def keyPressEvent(self, e):
         if e.key() == 32: # space bar
@@ -297,27 +307,35 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if filename:
             self.dl.LoadModel(filename)
     def saveModel(self):
+        if not self.dl.initialized:
+            self.PopupWarning('No model trained')
+            return
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         if filename.strip():
             self.dl.SaveModel(filename)
     
     def trainModel(self):
-        if self.imagepath is None or self.labelpath is None:
+        if self.trainImagespath is None or self.trainImageLabelspath is None:
+            self.PopupWarning('Training folder not selected')
             return
-        self.canvas.createLabelFromContours()
-        self.dl.TrainPath = self.imagepath
-        self.dl.LabelPath = self.labelpath
-        if not self.dl.initialized:
-            self.dl.initModel(self.NumOfClasses())
-        self.dl.Train()
+ 
+        self.training_form.show()
         
-    def predictContours(self):
-        if self.testImagespath is None:
+    def predictAllImages(self):
+        if self.testImagespath is None or self.testImageLabelspath is None:
+            self.PopupWarning('Prediction folder not selected')
             return
-        self.dl.TestImagesPath = self.testImagespath
-        self.dl.TestLabelsPath = self.testImageLabelspath
-        self.dl.Predict()
+
+        self.dl.Predict(self.testImagespath,self.testImageLabelspath)
         self.switchToTestFolder()
+    
+    def predictImage(self):
+        image = cv2.imread(self.files[self.currentImage] , cv2.IMREAD_UNCHANGED)
+        prediction = self.dl.PredictImage(image)
+        cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+        contours = Contour.extractContoursFromLabel(prediction)
+        Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+        self.canvas.newImage()
         
 
 if __name__ == "__main__":

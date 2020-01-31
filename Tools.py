@@ -15,8 +15,6 @@ import cv2
 import numpy as np
 import threading
 
-import time
-
 class canvasTool(Enum):
     drag = 'drag'
     draw = 'draw'
@@ -282,7 +280,7 @@ class ScaleTool(AbstractTool):
         self.Text = "Scale"
         self.type = canvasTool.scale
         self.size = 15
-        self.color = Qt.black
+        self.color = Qt.blue
         self.num = 0
         self.p1 = None
         self.dist_inpixel = 0
@@ -305,9 +303,7 @@ class ScaleTool(AbstractTool):
                 dist_inpixel = abs(self.p1.x() - p2.x())
                 dist_inum,ok = QInputDialog.getInt(self.canvas.parent, "Set Scale","enter distance in \u03BCm")
                 if ok and dist_inum > 0:
-                    
-                   self.canvas.scale_pixel_per_mm = dist_inpixel / dist_inum * 1000
-                   self.canvas.parent.results.LEScale.setText(str(int(self.canvas.scale_pixel_per_mm+0.5)))
+                   self.canvas.setScale(dist_inpixel / dist_inum * 1000)
                 
                 self.canvas.setnewTool(canvasTool.drag.name)
                 self.canvas.redrawImage()
