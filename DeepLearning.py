@@ -10,6 +10,26 @@ from tensorflow.keras import losses
 from tensorflow.keras.metrics import MeanIoU
 from tensorflow.keras.models import load_model
 
+
+import tensorflow as tf
+
+
+
+###### that needs to be set somewhere or detect automatically 
+GPU = 1
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+# Restrict TensorFlow to only use the first GPU
+    try:
+        tf.config.experimental.set_visible_devices(gpus[GPU], 'GPU')
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+        print(tf.config.experimental.get_visible_devices())
+    except RuntimeError as e:
+    # Visible devices must be set before GPUs have been initialized
+        print(e)
+
+
 import cv2
 import glob
 import os
@@ -31,11 +51,14 @@ class dlMode(Enum):
 
 class DeepLearning():
     def __init__(self):
+        
         self.TrainInMemory = True
         self.ImageScaleFactor = 0.25
         self.initialized = False
         
+        self.ModelType = 0
         self.Model = None
+        self.Models = dl_models.Models()
         self.Mode = dlMode.segmentation
         self.NumClasses = 2
         
@@ -46,10 +69,10 @@ class DeepLearning():
         self.learning_rate = 1e-5
         
         
+        
     def initModel(self, numClasses = 2):
         self.NumClasses = numClasses
-        #self.Model = dl_models.resnetSegModel(self.NumClasses, monochrome = self.MonoChrome)
-        self.Model = dl_models.load_simple_model(self.NumClasses, monochrome = self.MonoChrome)
+        self.Model = self.Models.getModel(self.Mode, self.ModelType, self.NumClasses, monochrome = self.MonoChrome)
         self.initialized = True
        
     def Train(self, trainingimages_path, traininglabels_path):
@@ -67,7 +90,8 @@ class DeepLearning():
         if self.NumClasses > 2:
             loss = dl_losses.focal_loss
         else:
-            loss = 'binary_crossentropy'
+#            loss = 'binary_crossentropy'
+            loss = dl_losses.focal_loss_binary
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
         
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
@@ -110,13 +134,18 @@ class DeepLearning():
         if pad != (0,0):
             image = np.pad(image, ((0, pad[0]), (0, pad[1])),'constant', constant_values=(0, 0))
                        
-                        
-        # to do -> handle colored images
-        if self.MonoChrome:
+        if not self.MonoChrome and len(image.shape) == 2:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
+        
+        if len(image.shape) == 2 :
             image = image[np.newaxis, :, :, np.newaxis].astype('float')/255.
-        else:
+        elif len(image.shape) == 3:
             image = image[np.newaxis, :, :, :].astype('float')/255.
             pred = self.Model.predict(image)
+        else:
+            raise ('wrong image format')
+            
+         
             
         pred = self.Model.predict(image)
         if self.NumClasses > 2:
