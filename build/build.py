@@ -41,8 +41,7 @@ def main():
     
     
     command2 = r"python -m PyInstaller --noconfirm DeepCellDetector.spec"
-    command3 = r"dist/DeepCellDetector.exe"
-    command = r"pyi-makespec -F --noconsole --noupx --log-level=WARN -i icons/logo.ico --add-data C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml;./dask --additional-hooks-dir=hooks DeepCellDetector.py"
+    command = r"pyi-makespec -F --noconsole --noupx --log-level=WARN -i ../icons/logo.ico --add-data C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml;./dask --additional-hooks-dir=hooks ../DeepCellDetector.py"
     
 
     with open('test.log', 'wb') as f:  # replace 'w' with 'wb' for Python 3

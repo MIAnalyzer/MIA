@@ -8,12 +8,15 @@ Created on Wed Nov 27 16:38:48 2019
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-import Contour
+
 from abc import ABC, abstractmethod
 from enum import Enum
 import cv2
 import numpy as np
 import threading
+
+
+import utils.Contour as Contour
 
 class canvasTool(Enum):
     drag = 'drag'

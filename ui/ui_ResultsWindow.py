@@ -8,12 +8,15 @@ Created on Mon Jan 20 13:42:08 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+
 import csv
 import os
 import glob
-import Contour
 import sys
-from Tools import canvasTool
+
+import utils.Contour as Contour
+from ui.Tools import canvasTool
+
 
 class Window(object):
     def setupUi(self, Form):
