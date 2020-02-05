@@ -10,12 +10,13 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 import os
-
-import Tools
-from Contour import *
-from Tools import canvasTool
 import numpy as np
 import cv2
+
+import ui.Tools as Tools
+from ui.Tools import canvasTool
+from utils.Contour import *
+
 
 class Canvas(QGraphicsView):
     def __init__(self, parent):

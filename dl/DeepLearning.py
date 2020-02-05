@@ -9,8 +9,6 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import losses
 from tensorflow.keras.metrics import MeanIoU
 from tensorflow.keras.models import load_model
-
-
 import tensorflow as tf
 
 
@@ -29,17 +27,18 @@ if gpus:
     # Visible devices must be set before GPUs have been initialized
         print(e)
 
-
 import cv2
 import glob
 import os
 import numpy as np
 from enum import Enum
-import dl_data
-import dl_models
-import dl_losses
 
-import Contour
+
+import dl.dl_data as dl_data
+import dl.dl_models as dl_models
+import dl.dl_losses as dl_losses
+
+import utils.Contour
 
 
 class dlMode(Enum):
@@ -72,12 +71,17 @@ class DeepLearning():
         
     def initModel(self, numClasses = 2):
         self.NumClasses = numClasses
-        self.Model = self.Models.getModel(self.Mode, self.ModelType, self.NumClasses, monochrome = self.MonoChrome)
-        self.initialized = True
+        try:
+            self.Model = self.Models.getModel(self.Mode, self.ModelType, self.NumClasses, monochrome = self.MonoChrome)
+        except:
+            return False
+        if self.Model:
+            self.initialized = True
+            return True
        
     def Train(self, trainingimages_path, traininglabels_path):
         if not self.initialized or trainingimages_path is None or traininglabels_path is None:
-            return
+            return False
         
         if self.TrainInMemory:
             x,y = dl_data.loadTrainingDataSet(trainingimages_path, traininglabels_path, self.NumClasses, scalefactor=self.ImageScaleFactor, monochrome = self.MonoChrome)
@@ -95,14 +99,17 @@ class DeepLearning():
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
         
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
-        self.Model.fit_generator(train_generator, steps_per_epoch=len(x)/self.batch_size,verbose=1, callbacks=None, epochs=self.epochs, workers = 20)
-
+        try:
+            self.Model.fit_generator(train_generator, steps_per_epoch=len(x)/self.batch_size,verbose=1, callbacks=None, epochs=self.epochs, workers = 20)
+        except:
+            return False
+        return True
        
         
     
     def PredictImages(self, image_path, label_path):    
         if not self.initialized or imagepath is None or labelpath is None:
-            return
+            return False
         
         images = glob.glob(os.path.join(imagepath,'*.*'))
         images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
@@ -119,11 +126,13 @@ class DeepLearning():
             cv2.imwrite(os.path.join(labelpath, (name+ ".tif")) , pred)
             contours = Contour.extractContoursFromLabel(pred)
             Contour.saveContours(contours, os.path.join(labelpath, (name+ ".npz")))
+        return True
             
     def PredictImage(self, image):    
         if not self.initialized or image is None:
-            return
+            return None
 
+        
         ### to do -> ensure matching size, either here or in the model
         width = image.shape[1]
         height = image.shape[0]

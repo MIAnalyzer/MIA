@@ -10,14 +10,16 @@ import os
 import cv2
 import glob
 import numpy as np
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.utils import to_categorical
 import random
 import threading
-import dl_augment
-from Contour import LoadLabel
 
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import to_categorical
 from tensorflow.python.keras.utils.data_utils import Sequence
+
+
+import dl.dl_augment as dl_augment
+from utils.Contour import LoadLabel
 
 
 class TrainingDataGenerator_inMemory(Sequence):

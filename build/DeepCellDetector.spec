@@ -14,8 +14,8 @@ added_files = [
         ]
 
 
-a = Analysis(['DeepCellDetector.py'],
-             pathex=['P:\\abteilung9\\90\\nils\\DeepCellDetector'],
+a = Analysis(['..\\DeepCellDetector.py'],
+             pathex=['P:\\abteilung9\\90\\nils\\DeepCellDetector\\build'],
              binaries=[],
              datas=added_files,
              hiddenimports=collect_submodules('tensorflow_core'),
@@ -41,4 +41,4 @@ exe = EXE(pyz,
           upx=False,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='icons\\logo.ico')
+          console=True , icon='..\\icons\\logo.ico')

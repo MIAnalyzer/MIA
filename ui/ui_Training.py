@@ -183,8 +183,11 @@ class TrainingWindow(QMainWindow, Window):
         
     def Train(self):
         if not self.parent.dl.initialized:
-            self.parent.dl.initModel(self.parent.NumOfClasses())
-        self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath)
+            if not self.parent.dl.initModel(self.parent.NumOfClasses()):
+               self.parent.PopupWarning('Cannot train model (out of recources?)') 
+               return
+        if not self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath):
+            self.parent.PopupWarning('Cannot train model (out of recources?)')
         self.hide()
         
         

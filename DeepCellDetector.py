@@ -6,27 +6,29 @@ Created on Thu Oct 10 13:28:08 2019
 """
 
 
-import sys
-import glob
-import os
-
-
-
-
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-
-from UI import MainWindow
-from Tools import canvasTool
-
-import DeepLearning
-from ui_Canvas import Canvas
-
-from ui_ResultsWindow import ResultsWindow
-from ui_Training import TrainingWindow
+import sys
+import time
+import io
+import traceback
+import glob
+import os
 import cv2 
-import Contour
+
+
+import dl.DeepLearning as DeepLearning
+
+from ui.UI import MainWindow
+from ui.Tools import canvasTool
+from ui.ui_Canvas import Canvas
+from ui.ui_ResultsWindow import ResultsWindow
+from ui.ui_Training import TrainingWindow
+
+import utils.Contour as Contour
+
+LOG_FILENAME = 'log/logfile.log'
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
@@ -291,7 +293,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             classnum = e.key()-48
             if classnum < self.classList.getNumberOfClasses():
                 self.classList.SetClass(e.key()-48)
-    
+
     def CurrentFileName(self):
         if self.files is None:
             return None
@@ -328,18 +330,56 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Prediction folder not selected')
             return
 
-        self.dl.Predict(self.testImagespath,self.testImageLabelspath)
+        if not self.dl.Predict(self.testImagespath,self.testImageLabelspath):
+            self.PopupWarning('No model trained')
+            return
         self.switchToTestFolder()
     
     def predictImage(self):
+        if self.files is None:
+            return
+        self.clear()
         image = cv2.imread(self.files[self.currentImage] , cv2.IMREAD_UNCHANGED)
         prediction = self.dl.PredictImage(image)
+        if prediction is None:
+            self.PopupWarning('No model trained')
+            return
         cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
         contours = Contour.extractContoursFromLabel(prediction)
         Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
         self.canvas.newImage()
         
+        
+    def excepthook(excType, excValue, tracebackobj):
+        
+        timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+        separator = '-' * 80
+        
+        tb = io.StringIO()
+        traceback.print_tb(tracebackobj, None, tb)
+        tb.seek(0)
+        info = tb.read()
+        errmsg = '%s: \n%s' % (str(excType), str(excValue))
+        sections = [separator, timeString, separator, errmsg, separator, info]
+        msg = '\n'.join(sections)
+        print(msg)
+        
+        try:
+            f = open(LOG_FILENAME, "w")
+            f.write(msg)
+            f.close()
+        except IOError:
+            pass
+        
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText('An error occured, a logfile was created with further information. \nPlease forward logfile. \n')
+        msg.setWindowTitle("Error")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+    
 
+sys.excepthook = DeepCellDetectorUI.excepthook
 if __name__ == "__main__":
     app = QCoreApplication.instance()
     if app is None:
