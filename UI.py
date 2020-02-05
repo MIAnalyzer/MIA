@@ -17,7 +17,6 @@ class MainWindow(object):
         
         width = 1600 
         height = 1200
-        
 
         
         Form.setWindowTitle('DeepCellDetector') 
@@ -200,35 +199,50 @@ class MainWindow(object):
         self.Bclear = QPushButton(self.centralWidget)
         self.Bclear.setObjectName("Bclear")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
-        self.Bclear.setText("Clear")
+        self.Bclear.setText("Clear All")
         self.Bclear.setFlat(True)
         self.Bclear.setStyleSheet('text-align:left')
         self.vlayout.addWidget(self.Bclear)    
         
+        
         self.Btrain = QPushButton(self.centralWidget)
         self.Btrain.setObjectName("Btrain")
-        self.Btrain.setText("Train")
+        self.Btrain.setText("Train Model")
         self.Btrain.setIcon(QIcon('icons/train.png'))
         self.Btrain.setFlat(True)
         self.Btrain.setStyleSheet('text-align:left')
         self.vlayout.addWidget(self.Btrain)    
             
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        self.vlayout.addWidget(line)
         
+        self.predictlayout = QHBoxLayout(self.centralWidget)
+        self.Bpredictall = QPushButton(self.centralWidget)
+        self.Bpredictall.setObjectName("Bpredict")
+        self.Bpredictall.setIcon(QIcon('icons/predict.png'))
+        self.Bpredictall.setText("Predict All")
+        self.Bpredictall.setFlat(True)
+        self.Bpredictall.setStyleSheet('text-align:left')
         self.Bpredict = QPushButton(self.centralWidget)
         self.Bpredict.setObjectName("Bpredict")
         self.Bpredict.setIcon(QIcon('icons/predict.png'))
-        self.Bpredict.setText("Predict")
+        self.Bpredict.setText("Predict Current")
         self.Bpredict.setFlat(True)
         self.Bpredict.setStyleSheet('text-align:left')
-        self.vlayout.addWidget(self.Bpredict) 
+        self.predictlayout.addWidget(self.Bpredictall)    
+        self.predictlayout.addWidget(self.Bpredict)
         
+        self.vlayout.addItem(self.predictlayout) 
+        
+        self.lslayout = QHBoxLayout(self.centralWidget)
         self.Bloadmodel = QPushButton(self.centralWidget)
         self.Bloadmodel.setObjectName("Bloadmodel")
         self.Bloadmodel.setIcon(QIcon('icons/loadmodel.png'))
         self.Bloadmodel.setText("Load")
         self.Bloadmodel.setFlat(True)
         self.Bloadmodel.setStyleSheet('text-align:left')
-        self.vlayout.addWidget(self.Bloadmodel) 
         
         self.Bsavemodel = QPushButton(self.centralWidget)
         self.Bsavemodel.setObjectName("Bsavemodel")
@@ -236,7 +250,10 @@ class MainWindow(object):
         self.Bsavemodel.setText("Save")
         self.Bsavemodel.setFlat(True)
         self.Bsavemodel.setStyleSheet('text-align:left')
-        self.vlayout.addWidget(self.Bsavemodel) 
+        self.lslayout.addWidget(self.Bloadmodel)    
+        self.lslayout.addWidget(self.Bsavemodel)
+        
+        self.vlayout.addItem(self.lslayout) 
         
         
         ##############
@@ -324,9 +341,11 @@ class ClassList(QListWidget):
         self.addItem(item)
         id = self.row(item)
         row = ClassWidget(name, id , self.parent)
-        item.setSizeHint(row.minimumSizeHint())
+        # not so nice to hard code size here
+        item.setSizeHint(row.minimumSizeHint() + QSize(100,0) )
         self.setItemWidget(item, row)
         self.resize()
+        self.parent.updateClassList()
         
     def removeClass(self):
         idx = self.count()-1
@@ -337,11 +356,12 @@ class ClassList(QListWidget):
             self.resize()
         if self.getActiveClass() == -1:
             self.SetClass(0)    
+        self.parent.updateClassList()
 
     def resize(self):
         dynamic_height = self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth()
         self.setFixedHeight(min(dynamic_height, 380))
-        #self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth())
+        self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth())
         
     def SetClass(self, i):
         item = self.item(i)

@@ -49,8 +49,6 @@ class TrainingDataGenerator_inMemory(Sequence):
                 
             if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
-            else:
-                mask = mask.astype('bool')
 
             return img, mask
         
@@ -123,8 +121,6 @@ class TrainingDataGenerator_fromDisk(Sequence):
             img = img.astype('float')/255.
             if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
-            else:
-                mask = mask.astype('bool')
 
             return img, mask
         
