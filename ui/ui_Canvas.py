@@ -13,6 +13,7 @@ import os
 import numpy as np
 import cv2
 
+
 import ui.Tools as Tools
 from ui.Tools import canvasTool
 from utils.Contour import *
@@ -34,6 +35,9 @@ class Canvas(QGraphicsView):
         self.activeContour = None
         self.enableToggleTools = True
         self.FontSize = 18
+        self.drawContourNumber = True
+        self.drawSkeleton = False
+        
         
         self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
@@ -111,13 +115,11 @@ class Canvas(QGraphicsView):
         if self.activeContour is None:
             return
         self.activeContour.closeContour()
-        if (self.activeContour.isValid()):
+        if (self.activeContour.isValid(self.Contours.minSize)):
             self.Contours.addContour(self.activeContour)
-            paint = self.getPainter()
-            paint.drawText(self.getLabelNumPosition(self.activeContour) , str(self.Contours.numOfContours()))
+            self.drawcontouraccessories(self.activeContour)
             self.updateImage()
             self.parent.numOfContoursChanged()
-
         else:
             self.redrawImage()
         self.activeContour = None
@@ -139,8 +141,10 @@ class Canvas(QGraphicsView):
         self.displayedimage.setPixmap(QPixmap(width, height))
         self.displayedimage.pixmap().fill(self.bgcolor)
         
-    def newImage(self):
-        self.rawimage = QPixmap(self.parent.files[self.parent.currentImage])
+    def ReloadImage(self):
+        if self.parent.CurrentFilePath() is None:
+            return
+        self.rawimage = QPixmap(self.parent.CurrentFilePath())
         self.clearContours()
         self.getContours()
         self.redrawImage()
@@ -165,12 +169,13 @@ class Canvas(QGraphicsView):
     def createLabelFromContours(self):
         if not self.Contours.empty():
             self.Contours.saveContours(self.parent.CurrentLabelFullName())
-
+        else:
+            self.parent.deleteLabel()
+            
     def getContours(self):
         self.clearContours()
-        if os.path.exists(self.parent.CurrentLabelFullName()):
+        if self.parent.CurrentLabelFullName() is not None and os.path.exists(self.parent.CurrentLabelFullName()):
             self.Contours.loadContours(self.parent.CurrentLabelFullName())
-            self.drawcontours()
     
     def redrawImage(self):
         if self.rawimage is not None:
@@ -181,24 +186,53 @@ class Canvas(QGraphicsView):
     def drawcontours(self):
         if self.image is None:
             return
-        paint = self.getPainter()
-        contournum = 0
+
         for c in self.Contours.contours:  
-            contournum += 1
-            path = QPainterPath()
-            if c.points is not None:
-                for i in range(c.numPoints()):
-                    if i == 0:
-                        path.moveTo(np2QPoint(c.points[i].reshape(2,1)))
-                    else:
-                        path.lineTo(np2QPoint(c.points[i].reshape(2,1)))
-                path.lineTo(np2QPoint(c.points[0].reshape(2,1)))
-                self.setPainterColor(paint, self.parent.ClassColor(c.classlabel))
-                paint.drawPath(path)
-                paint.drawText(self.getLabelNumPosition(c) , str(contournum))
+            self.drawcontour(c)
 
         self.updateImage()
         self.parent.numOfContoursChanged()
+        
+    def drawcontour(self, contour):
+        painter = self.getPainter()
+        path = QPainterPath()
+        if contour.points is not None:
+            for i in range(contour.numPoints()):
+                if i == 0:
+                    path.moveTo(np2QPoint(contour.points[i].reshape(2,1)))
+                else:
+                    path.lineTo(np2QPoint(contour.points[i].reshape(2,1)))
+            path.lineTo(np2QPoint(contour.points[0].reshape(2,1)))
+            color = self.parent.ClassColor(contour.classlabel)
+            self.setPainterColor(painter, color)
+            painter.drawPath(path)
+            self.drawcontouraccessories(contour, painter)
+            
+        
+    def drawcontouraccessories(self, contour, painter = None):
+        color = self.parent.ClassColor(contour.classlabel)
+        if painter is None:
+            painter = self.getPainter(color = color)
+        
+        if self.drawContourNumber:
+            contournumber = self.Contours.getContourNumber(contour)
+            painter.drawText(self.getLabelNumPosition(contour) , str(contournumber))
+            
+        if self.drawSkeleton:
+            skeleton = contour.getSkeleton()         
+            i = 0
+            skelpath = QPainterPath()
+            if skeleton is not None:
+                for c in skeleton:
+                    if i == 0:
+                        skelpath.moveTo(c[0][0], c[0][1])
+                    else:
+                        skelpath.lineTo(c[0][0], c[0][1])
+                    i = i+1
+                col = color.darker(65)
+                self.setPainterColor(painter, col)
+                painter.drawPath(skelpath)
+
         
     def getLabelNumPosition(self, contour):
         pos = contour.getBottomPoint()+QPoint(0,self.FontSize + 10)

@@ -25,10 +25,19 @@ from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
 from ui.ui_ResultsWindow import ResultsWindow
 from ui.ui_Training import TrainingWindow
+from ui.ui_Settings import SettingsWindow
+from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
 
+
+PREDICT_WORMS = False
+PRELOAD_MODEL = 'models/Worm_Prediction_200107.h5'
 LOG_FILENAME = 'log/logfile.log'
+
+
+
+
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
@@ -65,13 +74,28 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.hlayout.addWidget(self.canvas)
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
-        self.classList.SetClass(0)
+        self.classList.setClass(0)
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
+        
+        if PREDICT_WORMS:
+#            try:
+#                self.dl.LoadModel(PRELOAD_MODEL)
+#            except:
+#                pass
+            self.Btrain.setEnabled(False)
+            self.BLoadTrainImages.setEnabled(False)
+            self.Bsavemodel.setEnabled(False)
+            self.Baddclass.setEnabled(False)
+            self.Bdelclass.setEnabled(False)
+            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
+            self.CBLearningMode.setEnabled(False)
         
         ### windows - should this be moved to UI ?
         self.results_form = ResultsWindow(self)
         self.training_form = TrainingWindow(self)
+        self.settings_form = SettingsWindow(self)
+        self.postprocessing_form = PostProcessingWindow(self)
         self.updateClassList()
 
         
@@ -91,22 +115,32 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
         
-        self.Btrain.clicked.connect(self.trainModel)
+        self.Btrain.clicked.connect(self.showTrainingWindow)
         self.Bpredictall.clicked.connect(self.predictAllImages)
         self.Bpredict.clicked.connect(self.predictImage)
         self.Bloadmodel.clicked.connect(self.loadModel)
         self.Bsavemodel.clicked.connect(self.saveModel)
         
         self.Bresults.clicked.connect(self.showResultsWindow)
+        self.BSettings.clicked.connect(self.showSettingsWindow)
+        self.BPostProcessing.clicked.connect(self.showPostProcessingWindow)
         
         self.Baddclass.clicked.connect(self.addClass)
         self.Bdelclass.clicked.connect(self.removeLastClass)
-        
+
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         
+    def showSettingsWindow(self):
+        self.settings_form.show()
+        
+    def showPostProcessingWindow(self):   
+        self.postprocessing_form.show()
+    
     def closeEvent(self, event):
         self.results_form.hide()
         self.training_form.hide()
+        self.postprocessing_form.hide()
+        self.settings_form.hide()
         
     def showResultsWindow(self):
         if self.testImageLabelspath is None:
@@ -167,9 +201,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def clear(self):
         self.canvas.clearContours()
+        self.deleteLabel()
+        self.changeImage()
+    
+    def deleteLabel(self):
         if self.CurrentLabelFullName() and os.path.exists(self.CurrentLabelFullName()):
             os.remove(self.CurrentLabelFullName())
-        self.changeImage()
         
     def nextImage(self):
         self.currentImage += 1
@@ -185,7 +222,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def changeImage(self):
         if self.numofImages > 0:
-            self.canvas.newImage()
+            self.canvas.ReloadImage()
             self.StatusFile.setText(self.CurrentFileName())
         else:
             width = self.canvas.geometry().width()
@@ -277,7 +314,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def loadImage(self):
         path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr('Image Files(*.png *.jpg *.bmp *.tif)'))
         self.canvas.image = QPixmap(path[0])
-        self.canvas.newImage()
+        self.canvas.ReloadImage()
          
     def setCanvasMode(self):
         tool = self.sender().objectName()[1:]
@@ -292,12 +329,17 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if 48 <= e.key() <= 57:
             classnum = e.key()-48
             if classnum < self.classList.getNumberOfClasses():
-                self.classList.SetClass(e.key()-48)
+                self.classList.setClass(e.key()-48)
 
     def CurrentFileName(self):
+        if self.CurrentFilePath() is None:
+            return None
+        return os.path.splitext(os.path.basename(self.CurrentFilePath()))[0]
+    
+    def CurrentFilePath(self):
         if self.files is None:
             return None
-        return os.path.splitext(os.path.basename(self.files[self.currentImage]))[0]
+        return self.files[self.currentImage]
         
     def CurrentLabelFullName(self):
         if self.labelpath is None or self.CurrentFileName() is None:
@@ -318,7 +360,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if filename.strip():
             self.dl.SaveModel(filename)
     
-    def trainModel(self):
+    def showTrainingWindow(self):
         if self.trainImagespath is None or self.trainImageLabelspath is None:
             self.PopupWarning('Training folder not selected')
             return
@@ -336,20 +378,21 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.switchToTestFolder()
     
     def predictImage(self):
-        if self.files is None:
+        if self.CurrentFilePath() is None:
             return
         self.clear()
-        image = cv2.imread(self.files[self.currentImage] , cv2.IMREAD_UNCHANGED)
+        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
         prediction = self.dl.PredictImage(image)
         if prediction is None:
             self.PopupWarning('No model trained')
             return
         cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+        self.getContoursFromPrediction(prediction)
         contours = Contour.extractContoursFromLabel(prediction)
         Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-        self.canvas.newImage()
-        
-        
+        self.canvas.ReloadImage()
+              
+    
     def excepthook(excType, excValue, tracebackobj):
         
         timeString = time.strftime("%Y-%m-%d, %H:%M:%S")

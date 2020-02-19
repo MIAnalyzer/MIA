@@ -42,8 +42,7 @@ class Window(object):
         self.BSetScale.setMaximumSize(28, 28)
         self.hlayout.addWidget(self.BSetScale)
         
-        self.LEScale = QLineEdit(self.centralWidget)
-        
+        self.LEScale = QLineEdit(self.centralWidget) 
         self.LEScale.setMaximumSize(100, 28)
         self.LEScale.setStyleSheet("border: None")
         self.LEScale.setStyleSheet('font:bold')
@@ -105,29 +104,82 @@ class ResultsWindow(QMainWindow, Window):
             return
         labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
         labels.sort()
+        
+        
+        
         try:
             with open(filename, 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter = ';')
                 header = ['image name'] + ['object number'] + ['object type'] + ['size']
                 if self.CBSize.isChecked():
                     header += ['size in microns\u00b2']
+                if self.parent.canvas.drawSkeleton:
+                    header += ['length in pixel']
+                    if self.CBSize.isChecked():
+                        header += ['length in microns']
+                        
                 csvWriter.writerow(header)
-
                 for i in labels:
                     contours = Contour.loadContours(i)
                     name = os.path.splitext(os.path.basename(i))[0]
-                    
+                                    
                     x = 0
                     for c in contours:
                         x += 1
                         row = [name] + [x] + [c.classlabel] + [c.getSize()]
                         if self.CBSize.isChecked():
                             row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
+                        if self.parent.canvas.drawSkeleton:   
+                            length = c.getSkeletonLength()   
+                            row += ['%.0f'%length]
+                            if self.CBSize.isChecked():
+                                row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]
                         csvWriter.writerow(row)
                     csvWriter.writerow([])
         except: 
             self.parent.PopupWarning('Cannot write file (already open?)')
             return
+        
+        
+        
+        
+        
+        
+        
+        
+#        try:
+#            with open(filename, 'w', newline='') as csvfile:
+#                csvWriter = csv.writer(csvfile, delimiter = ';')
+#                header = ['image name'] + ['object number'] + ['object type'] + ['size']
+#                if self.CBSize.isChecked():
+#                    header += ['size in microns\u00b2']
+#                if self.parent.canvas.drawSkeleton:
+#                    header += ['length in pixel']
+#                    if self.CBSize.isChecked():
+#                        header += ['length in microns']
+#                        
+#                csvWriter.writerow(header)
+#
+#                for i in labels:
+#                    contours = Contour.loadContours(i)
+#                    name = os.path.splitext(os.path.basename(i))[0]
+#                    
+#                    x = 0
+#                    for c in contours:
+#                        x += 1
+#                        row = [name] + [x] + [c.classlabel] + [c.getSize()]
+#                        if self.CBSize.isChecked():
+#                            row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
+#                        if self.parent.canvas.drawSkeleton:
+#                            length = c.getSkeletonLength()
+#                            row += [length]
+#                            if self.CBSize.isChecked():
+#                                row += ['%.2f'%(length)/self.parent.canvas.scale_pixel_per_mm/1000]
+#                        csvWriter.writerow(row)
+#                    csvWriter.writerow([])
+#        except: 
+#            self.parent.PopupWarning('Cannot write file (already open?)')
+#            return
                     
         self.hide()
         

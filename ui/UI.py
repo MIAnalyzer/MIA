@@ -45,6 +45,15 @@ class MainWindow(object):
         self.vlayout.addItem(verticalSpacer)
         
         ## vertical layout - buttons
+        self.BSettings = QPushButton(self.centralWidget)
+        self.BSettings.setText('Settings')
+        self.BSettings.setStyleSheet('text-align:left')
+        self.BSettings.setObjectName("BSettings")
+        self.BSettings.setIcon(QIcon('icons/settings.png'))
+        self.BSettings.setFlat(True)
+        self.vlayout.addWidget(self.BSettings)
+        
+        
         self.CBLearningMode = QComboBox(self.centralWidget)
         self.CBLearningMode.addItem("Classification")
         self.CBLearningMode.addItem("Segmentation")
@@ -279,7 +288,13 @@ class MainWindow(object):
         line.setFrameShadow(QFrame.Sunken)
         self.vlayout.addWidget(line)
         
-        
+        self.BPostProcessing = QPushButton(self.centralWidget)
+        self.BPostProcessing.setText('Postprocessing')
+        self.BPostProcessing.setStyleSheet('text-align:left')
+        self.BPostProcessing.setObjectName("BPostProcessing")
+        self.BPostProcessing.setIcon(QIcon('icons/postprocessing.png'))
+        self.BPostProcessing.setFlat(True)
+        self.vlayout.addWidget(self.BPostProcessing)
         
         self.Bresults = QPushButton(self.centralWidget)
         self.Bresults.setText("Results")
@@ -355,7 +370,7 @@ class ClassList(QListWidget):
             self.takeItem(idx)
             self.resize()
         if self.getActiveClass() == -1:
-            self.SetClass(0)    
+            self.setClass(0)    
         self.parent.updateClassList()
 
     def resize(self):
@@ -363,7 +378,7 @@ class ClassList(QListWidget):
         self.setFixedHeight(min(dynamic_height, 380))
         self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth())
         
-    def SetClass(self, i):
+    def setClass(self, i):
         item = self.item(i)
         self.itemWidget(item).rb_select.setChecked(True)
         
