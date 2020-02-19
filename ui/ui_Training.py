@@ -132,7 +132,8 @@ class Window(object):
         self.BTrain.setIcon(QIcon('icons/train.png'))
         self.BTrain.setFlat(True)
         self.BTrain.setText('Start Training')
-        self.BTrain.setStyleSheet('text-align:left')
+        self.BTrain.setStyleSheet('border:1px solid black ')
+#        self.BTrain.setStyleSheet('text-align:left')
         self.vlayout.addWidget(self.BTrain)  
         
         
@@ -143,7 +144,15 @@ class TrainingWindow(QMainWindow, Window):
     def __init__(self, parent ):
         super(TrainingWindow, self).__init__(parent)
         self.parent = parent
-        self.setupUi(self)
+        self.setupUi(self)   
+        
+        self.SBLearningRate.setValue(self.parent.dl.learning_rate)
+        self.CBMono.setChecked(self.parent.dl.MonoChrome)
+        self.SBEpochs.setValue(self.parent.dl.epochs)
+        self.SBScaleFactor.setValue(self.parent.dl.ImageScaleFactor)
+        self.SBBatchSize.setValue(self.parent.dl.batch_size)
+        
+        
         self.SBBatchSize.valueChanged.connect(self.BatchSizeChanged)
         self.CBMono.toggled.connect(self.ColorModeChanged)
         self.CBRGB.toggled.connect(self.ColorModeChanged)
@@ -155,12 +164,6 @@ class TrainingWindow(QMainWindow, Window):
         #self.BAugmentation
         self.BTrain.clicked.connect(self.Train)
         
-        
-        self.SBLearningRate.setValue(0.01)
-        self.CBMono.setChecked(True)
-        self.SBEpochs.setValue(50)
-        self.SBScaleFactor.setValue(0.3)
-        self.SBBatchSize.setValue(4)
         
     def ModelType(self):
         self.parent.dl.ModelType = self.CBModel.currentIndex()

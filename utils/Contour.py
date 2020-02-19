@@ -4,9 +4,11 @@ Created on Tue Oct 22 14:23:06 2019
 
 @author: Koerber
 """
+
 import cv2
 import numpy as np
 from PyQt5.QtCore import QPointF, QPoint
+from skimage import morphology
 
 FreeFormContour_ID = 123456789
 
@@ -15,15 +17,16 @@ FreeFormContour_ID = 123456789
 class Contours():
     def __init__(self):
         self.contours = []
+        self.minSize = 100
         self.labeltype = FreeFormContour_ID
         
     def addContour(self,c):
-        #if c not in self.contours:
-        if not checkIfContourInListOfContours(c, self.contours) and c.isValid():
+        if not checkIfContourInListOfContours(c, self.contours) and c.isValid(self.minSize):
             self.contours.append(c)
             
     def addContours(self,cts):
-        new_cnts = getContoursNotinListOfContours(cts, self.contours)
+        cnts = getContoursNotinListOfContours(cts, self.contours)
+        new_cnts = [ x for x in cnts if x.isValid(self.minSize)]
         self.contours.extend(new_cnts)
             
     def deleteContour(self,c):
@@ -43,7 +46,8 @@ class Contours():
         return len(self.contours)
     
     def loadContours(self, filename):
-        self.contours = loadContours(filename)
+        cnts = loadContours(filename)
+        self.contours = [ x for x in cnts if x.isValid(self.minSize)]
         
     def saveContours(self, filename):
         saveContours(self.contours, filename)
@@ -68,6 +72,10 @@ class Contours():
                 elif label == c.classlabel:
                     return c
         return None
+    
+    def getContourNumber(self, c):
+        return self.contours.index(c)+1
+    
 
 
 class Contour():
@@ -77,6 +85,7 @@ class Contour():
         self.points = None
         self.boundingbox = None # for performance issues saved as member var
         self.moments = None
+        self.skeleton = None
         if isinstance(points, QPointF):
             self.points = [QPoint2np(points)]
         elif isinstance(points, np.ndarray):
@@ -96,8 +105,8 @@ class Contour():
     def getLastPoint(self):
         return np2QPoint(self.points[-1][0])
     
-    def isValid(self):
-        if len(self.points) > 3 and cv2.contourArea(self.points) > 3:    # <- hard limit no contours smaller 4 pixels allowed
+    def isValid(self, minArea = 3):
+        if len(self.points) >= 3 and cv2.contourArea(self.points) > minArea:   
             return True
         else:
             return False
@@ -123,12 +132,19 @@ class Contour():
         return True if inside >= 0 else False
     
     def getBottomPoint(self):
-        
         b = (self.points[self.points[..., 1].argmax()][0])
         return QPoint(b[0], b[1])
     
     def getTopPoint(self):
         b = (self.points[self.points[..., 1].argmin()][0])
+        return QPoint(b[0], b[1])
+    
+    def getLeftPoint(self):
+        b = (self.points[self.points[..., 0].argmin()][0])
+        return QPoint(b[0], b[1])
+    
+    def getRightpPoint(self):
+        b = (self.points[self.points[..., 0].argmax()][0])
         return QPoint(b[0], b[1])
     
     def distance(self, point):
@@ -142,12 +158,59 @@ class Contour():
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
         return QPoint(cX, cY)
+    
+    def getSkeletonLength(self):
+        if self.skeleton is None:
+            self.skeleton = self.getSkeleton()
+        if self.skeleton is None:
+            return 0
+        else:
+            return cv2.arcLength(self.skeleton, False)/2
+    
+    def getSkeleton(self):
+        if self.skeleton is not None:
+            return self.skeleton
+        t = self.points[self.points[..., 1].argmin()][0][1]
+        b = self.points[self.points[..., 1].argmax()][0][1]
+        l = self.points[self.points[..., 0].argmin()][0][0]
+        r = self.points[self.points[..., 0].argmax()][0][0]
+
+        width = r-l
+        height = b-t
+
+        if width < 3 or height < 3:
+            return None
+
+        image = np.zeros((height, width, 1), np.uint8)
+        cv2.drawContours(image, [self.points - (l,t)], 0, (255), -1)
+        blurred = cv2.medianBlur(image, 11)
+
+        skel = morphology.skeletonize(blurred>0,  method='lee')
+        
+        # contour based length measurement
+        _, contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        c = contours[0] + ([l,t])
+        self.skeleton = cv2.approxPolyDP(c, 3, False)
+        
+        return self.skeleton
+    
+        ## pixel based length measurement
+#        diag_kernel = np.array(([-1, 1, -1],	[1, -10, 1],	[-1, 1, -1]), dtype="int")
+#        diac = cv2.filter2D(skel,-1, diag_kernel)
+#        diag_steps = np.count_nonzero(diac)//2 - 1
+#        total = np.count_nonzero(skel)
+#        length = total - diag_steps + diag_steps * np.sqrt(2)
+#        pts = np.where(skel>0) 
+#        x = pts[0] + t
+#        y = pts[1] + l
+#
+#        return x,y
 
         
 ################# helper functions #################
-def LoadLabel(filename, width, height):
+def LoadLabel(filename, height, width):
     contours = loadContours(filename)
-    label = np.zeros((width, height, 1), np.uint8)
+    label = np.zeros((height, width, 1), np.uint8)
     return drawContoursToLabel(label, contours)        
         
         
