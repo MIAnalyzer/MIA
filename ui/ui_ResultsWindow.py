@@ -107,7 +107,8 @@ class ResultsWindow(QMainWindow, Window):
         
         
         
-        try:
+#        try:
+        if True:
             with open(filename, 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter = ';')
                 header = ['image name'] + ['object number'] + ['object type'] + ['size']
@@ -119,9 +120,11 @@ class ResultsWindow(QMainWindow, Window):
                         header += ['length in microns']
                         
                 csvWriter.writerow(header)
-                for i in labels:
-                    contours = Contour.loadContours(i)
-                    name = os.path.splitext(os.path.basename(i))[0]
+                num = len(labels)
+                for i, l in enumerate(labels):
+                    self.parent.setProgress(i/num *100)
+                    contours = Contour.loadContours(l)
+                    name = os.path.splitext(os.path.basename(l))[0]
                                     
                     x = 0
                     for c in contours:
@@ -136,51 +139,14 @@ class ResultsWindow(QMainWindow, Window):
                                 row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]
                         csvWriter.writerow(row)
                     csvWriter.writerow([])
-        except: 
-            self.parent.PopupWarning('Cannot write file (already open?)')
-            return
-        
-        
-        
-        
-        
-        
-        
-        
-#        try:
-#            with open(filename, 'w', newline='') as csvfile:
-#                csvWriter = csv.writer(csvfile, delimiter = ';')
-#                header = ['image name'] + ['object number'] + ['object type'] + ['size']
-#                if self.CBSize.isChecked():
-#                    header += ['size in microns\u00b2']
-#                if self.parent.canvas.drawSkeleton:
-#                    header += ['length in pixel']
-#                    if self.CBSize.isChecked():
-#                        header += ['length in microns']
-#                        
-#                csvWriter.writerow(header)
-#
-#                for i in labels:
-#                    contours = Contour.loadContours(i)
-#                    name = os.path.splitext(os.path.basename(i))[0]
-#                    
-#                    x = 0
-#                    for c in contours:
-#                        x += 1
-#                        row = [name] + [x] + [c.classlabel] + [c.getSize()]
-#                        if self.CBSize.isChecked():
-#                            row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
-#                        if self.parent.canvas.drawSkeleton:
-#                            length = c.getSkeletonLength()
-#                            row += [length]
-#                            if self.CBSize.isChecked():
-#                                row += ['%.2f'%(length)/self.parent.canvas.scale_pixel_per_mm/1000]
-#                        csvWriter.writerow(row)
-#                    csvWriter.writerow([])
+                self.parent.setProgress(100)
 #        except: 
 #            self.parent.PopupWarning('Cannot write file (already open?)')
 #            return
-                    
+        
+        
+        
+                   
         self.hide()
         
 

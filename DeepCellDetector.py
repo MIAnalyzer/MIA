@@ -223,7 +223,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeImage(self):
         if self.numofImages > 0:
             self.canvas.ReloadImage()
-            self.StatusFile.setText(self.CurrentFileName())
+            text = "%d of %i: " % (self.currentImage,self.numofImages) + self.CurrentFileName()
+            self.StatusFile.setText(text)
         else:
             width = self.canvas.geometry().width()
             height = self.canvas.geometry().height()
@@ -345,6 +346,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if self.labelpath is None or self.CurrentFileName() is None:
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
+    
+    def setProgress(self,value):
+        if value < 100:
+            self.StatusProgress.show()
+            self.StatusProgress.setValue(value)
+        else:
+            self.StatusProgress.hide()
+#        self.statusBar().reformat()
+        QApplication.processEvents() 
+            
+    def writeStatus(self,msg):
+        self.Status.setText(msg)
 
 
     ## deep learning  
@@ -352,6 +365,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
         if filename:
             self.dl.LoadModel(filename)
+        self.writeStatus('model loaded')
     def saveModel(self):
         if not self.dl.initialized:
             self.PopupWarning('No model trained')
@@ -372,9 +386,29 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Prediction folder not selected')
             return
 
-        if not self.dl.Predict(self.testImagespath,self.testImageLabelspath):
+        if not self.dl.initialized:
             self.PopupWarning('No model trained')
             return
+        
+        
+        images = glob.glob(os.path.join(self.testImagespath,'*.*'))
+        images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
+        
+        num = len(images)
+        for i in range (len(images)):
+            self.setProgress(i/num *100)
+            if self.dl.MonoChrome:
+                image = cv2.imread(images[i], cv2.IMREAD_GRAYSCALE)
+            else:
+                image = cv2.imread(images[i], cv2.IMREAD_COLOR)
+                
+            pred = self.dl.PredictImage(image)
+            name = os.path.splitext(os.path.basename(images[i]))[0]
+            cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
+            contours = Contour.extractContoursFromLabel(pred)
+            Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
+   
+        self.setProgress(100)
         self.switchToTestFolder()
     
     def predictImage(self):
@@ -387,7 +421,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('No model trained')
             return
         cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
-        self.getContoursFromPrediction(prediction)
         contours = Contour.extractContoursFromLabel(prediction)
         Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
         self.canvas.ReloadImage()

@@ -101,6 +101,7 @@ class DeepLearning():
         else:
 #            loss = 'binary_crossentropy'
             loss = dl_losses.focal_loss_binary
+        # to do implement binary iou
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
         
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
@@ -110,34 +111,11 @@ class DeepLearning():
             return False
         return True
        
-        
-    
-    def PredictImages(self, image_path, label_path):    
-        if not self.initialized or imagepath is None or labelpath is None:
-            return False
-        
-        images = glob.glob(os.path.join(imagepath,'*.*'))
-        images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
-        
-        for i in range (len(images)):
-            print("predicted " + str(i))
-            if self.MonoChrome:
-                image = cv2.imread(images[i], cv2.IMREAD_GRAYSCALE)
-            else:
-                image = cv2.imread(images[i], cv2.IMREAD_COLOR)
-                
-            pred = self.Predict(image)
-            
-            cv2.imwrite(os.path.join(labelpath, (name+ ".tif")) , pred)
-            contours = Contour.extractContoursFromLabel(pred)
-            Contour.saveContours(contours, os.path.join(labelpath, (name+ ".npz")))
-        return True
             
     def PredictImage(self, image):    
         if not self.initialized or image is None:
             return None
 
-        
         ### to do -> ensure matching size, either here or in the model
         width = image.shape[1]
         height = image.shape[0]
@@ -158,8 +136,6 @@ class DeepLearning():
             pred = self.Model.predict(image)
         else:
             raise ('wrong image format')
-            
-         
             
         pred = self.Model.predict(image)
         if self.NumClasses > 2:

@@ -339,10 +339,17 @@ class MainWindow(object):
         self.statusBar().addPermanentWidget(self.StatusFile, stretch = 1)
         Form.setCentralWidget(self.centralWidget)
         
-        self.StatusMode = QLabel(self.centralWidget)
-        self.StatusMode.setText('Current Mode: Drag')
-        self.StatusMode.setObjectName("StatusMode")
-        self.statusBar().addPermanentWidget(self.StatusMode, stretch = 0)
+        self.StatusProgress = QProgressBar(self.centralWidget)
+        self.StatusProgress.setMaximumWidth(350)
+        self.StatusProgress.hide()
+        self.statusBar().addPermanentWidget(self.StatusProgress, stretch = 1)
+        
+        self.Status = QLabel(self.centralWidget)
+        self.Status.setText('Initialized')
+        self.Status.setObjectName("Status")
+        self.statusBar().addPermanentWidget(self.Status, stretch = 0)
+        
+
         
  
 class ClassList(QListWidget):
