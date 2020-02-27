@@ -214,7 +214,7 @@ class ExtendTool(AbstractTool):
     def __init__(self, canvas):
         super().__init__(canvas)
         self.canvas = canvas
-        self.Text = "Extend"
+        self.Text = "Extend/Erase"
         self.type = canvasTool.expand
         self.size = 10
         self.sketch = None
@@ -268,8 +268,18 @@ class ExtendTool(AbstractTool):
             height = self.canvas.image.height()
             self.sketch = np.zeros((height, width, 1), np.uint8)
             Contour.drawContoursToImage(self.sketch, self.contours)
+            
+        elif e.button() == Qt.RightButton:
+            self.canvas.parent.CBExtend.setChecked(True) if self.erase else self.canvas.parent.CBErase.setChecked(True)
+            self.erase = self.canvas.parent.CBErase.isChecked()
     
-    
+    def wheelEvent(self,e):
+        if e.angleDelta().y() > 0:
+            v = self.canvas.parent.SSize.value() + 1
+            self.canvas.parent.SSize.setValue(v)
+        else:
+            v = self.canvas.parent.SSize.value() - 1
+            self.canvas.parent.SSize.setValue(v)
 
     def Cursor(self):
         return Qt.ArrowCursor

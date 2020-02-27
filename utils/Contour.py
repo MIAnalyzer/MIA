@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 from PyQt5.QtCore import QPointF, QPoint
 from skimage import morphology
-
+from skimage.morphology import medial_axis, skeletonize
 FreeFormContour_ID = 123456789
 
 
@@ -181,7 +181,9 @@ class Contour():
         if width < 3 or height < 3:
             return None
 
-        image = np.zeros((height, width, 1), np.uint8)
+        image = np.zeros((height, width), np.uint8)
+#        image = np.zeros((height, width, 1), np.uint8)
+
         cv2.drawContours(image, [self.points - (l,t)], 0, (255), -1)
         blurred = cv2.medianBlur(image, 11)
 
@@ -303,32 +305,6 @@ def loadContours(filename):
     ret = [Contour(x,y) for x,y in zip(label,array)]
     return ret
 
-
-#def saveContours(contours, filename):
-#    if len(contours) == 0:
-#        return
-#    cnts = []
-#    cnts.append(contours[0].labeltype)
-#    for c in contours:
-#        if c.isValid():
-#            cnts.append(c.classlabel)
-#            cnts.append(c.points)
-#    np.savez(filename, *cnts)
-#        
-#def loadContours(filename):
-#    container = np.load(filename)
-#    data = [container[key] for key in container]
-#    ret = []
-#    if data[0] != FreeFormContour_ID:
-#        return
-#    for i, arr in enumerate(data[1:]):
-#        if i % 2 == 0:
-#            label = arr
-#        else:
-#            c = Contour(label, arr)
-#            if c.isValid():
-#                ret.append(Contour(label, arr))
-#    return ret
 
 def QPoint2np(p):
     return np.array([(p.x(),p.y())], dtype=np.int32)

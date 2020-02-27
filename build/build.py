@@ -44,9 +44,9 @@ def main():
     command = r"pyi-makespec -F --noconsole --noupx --log-level=WARN -i ../icons/logo.ico --add-data C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml;./dask --additional-hooks-dir=hooks ../DeepCellDetector.py"
     
 
-    with open('test.log', 'wb') as f:  # replace 'w' with 'wb' for Python 3
+    with open('test.log', 'wb') as f: 
         process = subprocess.Popen(command2, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
-        for line in iter(process.stdout.readline, b''):  # replace '' with b'' for Python 3
+        for line in iter(process.stdout.readline, b''): 
             sys.stdout.write(line.decode(sys.stdout.encoding))
             f.write(line)
         
