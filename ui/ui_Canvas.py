@@ -32,11 +32,13 @@ class Canvas(QGraphicsView):
         self.tool = Tools.DragTool(self)
         self.lasttool = Tools.DrawTool(self)
         self.Contours = Contours()
-        self.activeContour = None
+        self.NewContour = None
         self.enableToggleTools = True
         self.FontSize = 18
+        self.ContourTransparency = 50
         self.drawContourNumber = True
         self.drawSkeleton = False
+        self.sketch = None
         
         
         self.setCursor(Qt.OpenHandCursor)
@@ -76,8 +78,17 @@ class Canvas(QGraphicsView):
         if self.hasImage():
             self.tool.wheelEvent(e)
       
-    def addline(self, p1 ,p2, color = None):
+    def addline(self, p1 ,p2, color = None, dashed = False):
         p = self.getPainter(color)
+        if dashed:
+            pen = p.pen()
+            pen.setStyle(Qt.DashDotDotLine)
+            p.setPen(pen)
+        else:
+            pen = p.pen()
+            pen.setStyle(Qt.SolidLine)
+            p.setPen(pen)
+        
         p.drawLine(p2, p1)
         self.updateImage()
         
@@ -101,28 +112,44 @@ class Canvas(QGraphicsView):
         self.updateImage()
         
     def updateImage(self):
-        self.displayedimage.setPixmap(self.image)
-        self.update()
-        
-    def addPoint2Contour(self, p_image):
-        if (p_image != self.activeContour.getLastPoint()):
-            self.activeContour.addPoint(p_image)
+        if self.image is not None:
+            self.displayedimage.setPixmap(self.image)
+            self.update()
+            
+    def addPoint2NewContour(self, p_image):
+        if (p_image != self.NewContour.getLastPoint()):
+            self.NewContour.addPoint(p_image)
             return True
         else:
             return False
             
-    def finishContour(self):
-        if self.activeContour is None:
+    def prepareNewContour(self):
+        width = self.image.width()
+        height = self.image.height()
+        self.sketch = np.zeros((height, width, 1), np.uint8)
+        drawContoursToImage(self.sketch, self.Contours.getContoursOfClass_x(self.parent.activeClass()))
+    
+    def getFinalContours(self):
+        if self.sketch is None:
             return
-        self.activeContour.closeContour()
-        if (self.activeContour.isValid(self.Contours.minSize)):
-            self.Contours.addContour(self.activeContour)
-            self.drawcontouraccessories(self.activeContour)
-            self.updateImage()
-            self.parent.numOfContoursChanged()
-        else:
-            self.redrawImage()
-        self.activeContour = None
+        contours = extractContoursFromImage(self.sketch)
+        old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
+        # returns all contours in self.contours not present in countours
+        # fastest way I found so far
+        c1 = [(x, cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in old_contours]
+        c2 = [(cv2.moments(x),cv2.boundingRect(x) ) for x in contours]   
+        changedcontours = [x[0] for x in c1 if x[1:] not in c2]
+     
+        self.Contours.deleteContours(changedcontours)
+        self.Contours.addContours([Contour(self.parent.activeClass(),c) for c in contours])
+        self.redrawImage()
+        
+    def finishNewContour(self):
+        if self.NewContour is not None:
+            self.NewContour.closeContour()
+            cv2.drawContours(self.sketch, [self.NewContour.points], 0, (1), -1)  
+        self.getFinalContours()
+        self.NewContour = None
         
     def fitInView(self, scale=True):
         rect = QRectF(self.displayedimage.pixmap().rect())
@@ -182,7 +209,7 @@ class Canvas(QGraphicsView):
             self.image = self.rawimage.copy()
             self.displayedimage.setPixmap(self.image)
             self.drawcontours()
-    
+            
     def drawcontours(self):
         if self.image is None:
             return
@@ -192,7 +219,7 @@ class Canvas(QGraphicsView):
 
         self.updateImage()
         self.parent.numOfContoursChanged()
-        
+                
     def drawcontour(self, contour):
         painter = self.getPainter()
         path = QPainterPath()
@@ -249,16 +276,21 @@ class Canvas(QGraphicsView):
             color = self.parent.ClassColor(self.parent.activeClass())
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
+        color.setAlpha(255)    
+        p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         if filled == True:
             p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
         else:
-            p.setBrush(QBrush(Qt.NoBrush))
-        p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
+            color.setAlpha(self.ContourTransparency)
+            p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
         p.setFont(QFont("Fixed",self.FontSize))
         return p
         
     def setPainterColor(self, painter, color):
+        color.setAlpha(255)
         painter.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
+        color.setAlpha(self.ContourTransparency)
+        painter.setBrush(QBrush(QColor(color),Qt.SolidPattern))
         
     def clearContours(self):
         self.Contours.clear()
@@ -272,6 +304,7 @@ class Canvas(QGraphicsView):
     
     def setnewTool(self, tool):
         self.lasttool = self.tool  
+        self.updateImage()
         self.parent.ExtendSettings.hide()
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
@@ -289,7 +322,7 @@ class Canvas(QGraphicsView):
         if tool == canvasTool.scale.name:
             self.tool = Tools.ScaleTool(self)
         
-        self.parent.StatusMode.setText('Current Mode: ' + self.tool.Text) 
+        self.parent.writeStatus('Current Tool: ' + self.tool.Text) 
         self.setCursor(self.tool.Cursor())
         
 

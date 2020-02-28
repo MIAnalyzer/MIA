@@ -29,6 +29,7 @@ class Window(object):
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.SBminContourSize = QSpinBox(self.centralWidget)
         self.SBminContourSize.setRange(3,999999999)
+        self.SBminContourSize.setToolTip('Set minimum contour size')
         self.LminContourSize = QLabel(self.centralWidget)
         self.LminContourSize.setText('min Size')
         self.hlayout.addWidget(self.SBminContourSize)
@@ -36,6 +37,7 @@ class Window(object):
         self.vlayout.addLayout(self.hlayout)
         
         self.CBCalculateSkeleton = QCheckBox("Show Skeleton",self.centralWidget)
+        self.CBCalculateSkeleton.setToolTip('Calculate the skeleton of each contour')
         self.vlayout.addWidget(self.CBCalculateSkeleton)
         
         

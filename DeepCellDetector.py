@@ -32,7 +32,7 @@ import utils.Contour as Contour
 
 
 PREDICT_WORMS = False
-PRELOAD_MODEL = 'models/Worm_Prediction_200107.h5'
+PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
 
@@ -96,6 +96,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
         self.postprocessing_form = PostProcessingWindow(self)
+        
         self.updateClassList()
 
         
@@ -129,6 +130,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
+        
+        ## menu actions
+        self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
+        self.ASetTestFolder.triggered.connect(self.setTestFolder)
+        self.AExit.triggered.connect(self.close)
+        self.ASettings.triggered.connect(self.showSettingsWindow)
         
     def showSettingsWindow(self):
         self.settings_form.show()

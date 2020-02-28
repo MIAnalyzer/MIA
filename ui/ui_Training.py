@@ -50,12 +50,14 @@ class Window(object):
         self.CBModel = QComboBox(self.centralWidget)
         self.CBModel.addItem("Untrained Model")
         self.CBModel.addItem("Resnet50 Model")
+        self.CBModel.setToolTip('Select model for training')
         self.vlayout.addWidget(self.CBModel)
         
         # row 1
         self.settings0layout = QHBoxLayout(self.centralWidget)
         self.SBClasses = QSpinBox(self.centralWidget)
         self.SBClasses.setRange(1,100)
+        self.SBClasses.setToolTip('Number of classes')
         self.SBClasses.setEnabled(False)
         self.LClasses = QLabel(self.centralWidget)
         self.LClasses.setText('Classes')
@@ -64,6 +66,7 @@ class Window(object):
         
         self.CBRGB = QRadioButton(self.centralWidget)
         self.CBRGB.setText("Color")
+        self.CBRGB.setToolTip('Select if color images are used as input')
         self.settings0layout.addWidget(self.SBClasses)
         self.settings0layout.addWidget(self.LClasses)
         self.settings0layout.addWidget(self.CBRGB)
@@ -73,11 +76,13 @@ class Window(object):
         # row 2
         self.settings1layout = QHBoxLayout(self.centralWidget)
         self.SBBatchSize = QSpinBox(self.centralWidget)
+        self.SBBatchSize.setToolTip('Set batch size')
         self.SBBatchSize.setRange(1,2048)
         
         self.LBatchSize = QLabel(self.centralWidget)
         self.LBatchSize.setText('Batch Size')
         self.SBEpochs = QSpinBox(self.centralWidget)
+        self.SBEpochs.setToolTip('Set number of epochs')
         self.SBEpochs.setRange(1,10000)
         
         self.LEpochs = QLabel(self.centralWidget)
@@ -92,6 +97,7 @@ class Window(object):
         self.settings2layout = QHBoxLayout(self.centralWidget)
         self.SBLearningRate = QAdaptiveDoubleSpinBox (self.centralWidget)
         self.SBLearningRate.setRange(0.000001,1)
+        self.SBLearningRate.setToolTip('Set learning rate')
         self.SBLearningRate.setDecimals(6)
         self.SBLearningRate.setSingleStep(0.1)
         
@@ -99,6 +105,7 @@ class Window(object):
         self.LLearningRate.setText('Learning Rate')
         self.SBScaleFactor = QDoubleSpinBox(self.centralWidget)
         self.SBScaleFactor.setRange(0.1,1)
+        self.SBScaleFactor.setToolTip('Set image reduction factor')
         self.SBScaleFactor.setSingleStep(0.1)
         self.SBScaleFactor.setDecimals(1)
         
@@ -114,12 +121,14 @@ class Window(object):
         self.settings3layout = QHBoxLayout(self.centralWidget)
         self.BSettings = QPushButton(self.centralWidget)
         self.BSettings.setText('Settings')
+        self.BSettings.setToolTip('Open extended training settings')
         self.BSettings.setFlat(True)
         self.BSettings.setIcon(QIcon('icons/augmentation.png'))
         self.BSettings.setStyleSheet('text-align:left')
         self.settings3layout.addWidget(self.BSettings)
         self.vlayout.addLayout(self.settings3layout)
         self.BAugmentation = QPushButton(self.centralWidget)
+        self.BAugmentation.setToolTip('Open image augmentation settings')
         self.BAugmentation.setText('Augmentations')
         self.BAugmentation.setFlat(True)
         self.BAugmentation.setIcon(QIcon('icons/augmentation.png'))
@@ -131,9 +140,9 @@ class Window(object):
         self.BTrain = QPushButton(self.centralWidget)
         self.BTrain.setIcon(QIcon('icons/train.png'))
         self.BTrain.setFlat(True)
+        self.BTrain.setToolTip('Start training with selected parameters')
         self.BTrain.setText('Start Training')
         self.BTrain.setStyleSheet('border:1px solid black ')
-#        self.BTrain.setStyleSheet('text-align:left')
         self.vlayout.addWidget(self.BTrain)  
         
         
