@@ -13,24 +13,24 @@ import tensorflow as tf
 
 
 
-###### that needs to be set somewhere or detect automatically 
-GPU = -1
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-# Restrict TensorFlow to only use the first or second GPU or CPU
-    try:
-        if GPU == -1:
-            # cpu
-            tf.config.experimental.set_visible_devices([], 'GPU')
-        else:
-            tf.config.experimental.set_visible_devices(gpus[GPU], 'GPU')
-        
-        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-        print(tf.config.experimental.get_visible_devices())
-    except RuntimeError as e:
-    # Visible devices must be set before GPUs have been initialized
-        print(e)
+####### that needs to be set somewhere or detect automatically 
+#GPU = -1
+#gpus = tf.config.experimental.list_physical_devices('GPU')
+#if gpus:
+## Restrict TensorFlow to only use the first or second GPU or CPU
+#    try:
+#        if GPU == -1:
+#            # cpu
+#            tf.config.experimental.set_visible_devices([], 'GPU')
+#        else:
+#            tf.config.experimental.set_visible_devices(gpus[GPU], 'GPU')
+#        
+#        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+#        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+#        print(tf.config.experimental.get_visible_devices())
+#    except RuntimeError as e:
+#    # Visible devices must be set before GPUs have been initialized
+#        print(e)
 
 import cv2
 import glob
