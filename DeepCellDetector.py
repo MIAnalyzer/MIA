@@ -31,7 +31,7 @@ from ui.ui_PostProcessing import PostProcessingWindow
 import utils.Contour as Contour
 
 
-PREDICT_WORMS = False
+PREDICT_WORMS = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
@@ -78,18 +78,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
         
-        if PREDICT_WORMS:
-#            try:
-#                self.dl.LoadModel(PRELOAD_MODEL)
-#            except:
-#                pass
-            self.Btrain.setEnabled(False)
-            self.BLoadTrainImages.setEnabled(False)
-            self.Bsavemodel.setEnabled(False)
-            self.Baddclass.setEnabled(False)
-            self.Bdelclass.setEnabled(False)
-            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
-            self.CBLearningMode.setEnabled(False)
+
         
         ### windows - should this be moved to UI ?
         self.results_form = ResultsWindow(self)
@@ -98,6 +87,21 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.postprocessing_form = PostProcessingWindow(self)
         
         self.updateClassList()
+        
+        if PREDICT_WORMS:
+            self.settings_form.CBgpu.setCurrentIndex(1)
+            self.settings_form.CBgpu.setEnabled(False)
+            try:
+                self.dl.LoadModel(PRELOAD_MODEL)
+            except:
+                pass
+            self.Btrain.setEnabled(False)
+            self.BLoadTrainImages.setEnabled(False)
+            self.Bsavemodel.setEnabled(False)
+            self.Baddclass.setEnabled(False)
+            self.Bdelclass.setEnabled(False)
+            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
+            self.CBLearningMode.setEnabled(False)
 
         
     def setCallbacks(self):
@@ -210,6 +214,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.clearContours()
         self.deleteLabel()
         self.changeImage()
+        QApplication.processEvents()
     
     def deleteLabel(self):
         if self.CurrentLabelFullName() and os.path.exists(self.CurrentLabelFullName()):
@@ -360,7 +365,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.StatusProgress.setValue(value)
         else:
             self.StatusProgress.hide()
-#        self.statusBar().reformat()
         QApplication.processEvents() 
             
     def writeStatus(self,msg):

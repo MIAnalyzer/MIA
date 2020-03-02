@@ -9,12 +9,12 @@ Created on Wed Feb 19 13:43:02 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-
+import tensorflow as tf
 
 class Window(object):
     def setupUi(self, Form):
         width = 150
-        height= 100
+        height= 130
         Form.setWindowTitle('Settings') 
         Form.setStyleSheet("background-color: rgb(250, 250, 250)")
 
@@ -26,6 +26,17 @@ class Window(object):
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
+        
+        
+        self.CBgpu = QComboBox(self.centralWidget)
+
+        devices = tf.config.experimental.list_physical_devices()
+        self.CBgpu.addItem("default")
+        for dev in devices:
+            self.CBgpu.addItem(dev.name)                  
+        self.CBgpu.addItem("all gpus")
+        self.vlayout.addWidget(self.CBgpu)     
+        
         
         
         self.CBContourNumbers = QCheckBox("Show Contour Numbers",self.centralWidget)
@@ -84,7 +95,33 @@ class SettingsWindow(QMainWindow, Window):
         self.SBPenSize.valueChanged.connect(self.setPenSize)
         self.SBFontSize.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
+        self.CBgpu.currentIndexChanged.connect(self.setGPU)
         
+        self.CBgpu.setCurrentIndex(0)
+        
+    def setGPU(self):
+        # finds cpu and gpu
+        devices = tf.config.experimental.list_physical_devices()
+        gpus = tf.config.experimental.list_physical_devices('GPU') 
+        dev = self.CBgpu.currentIndex() - 1 
+        if devices:
+            try:
+                if dev == -1:
+                    # tensorflow decides 
+                    tf.config.experimental.set_visible_devices(gpus, 'GPU')
+                elif dev >= len(devices):
+                    # currently unsupported
+                    self.parent.PopupWarning('Use of multiple GPUs currently not supported')
+                elif devices[dev].device_type == 'CPU':
+                    # set cpu
+                    tf.config.experimental.set_visible_devices([], 'GPU')
+                else:
+                    # set gpu
+                    tf.config.experimental.set_visible_devices(devices[dev], 'GPU')
+
+            except RuntimeError as e:
+                # Visible devices must be set before GPUs have been initialized
+                self.parent.PopupWarning('GPU settings only take effect upon program start')
         
     def showContourNumbers(self):
         self.parent.canvas.drawContourNumber = self.CBContourNumbers.isChecked()
