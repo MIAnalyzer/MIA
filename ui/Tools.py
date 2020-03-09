@@ -290,7 +290,7 @@ class ScaleTool(AbstractTool):
         self.Text = "Scale"
         self.type = canvasTool.scale
         self.size = 15
-        self.color = Qt.blue
+        self.color = QColor(0,0,255)
         self.num = 0
         self.p1 = None
         self.dist_inpixel = 0
@@ -313,7 +313,7 @@ class ScaleTool(AbstractTool):
                 dist_inpixel = abs(self.p1.x() - p2.x())
                 dist_inum,ok = QInputDialog.getInt(self.canvas.parent, "Set Scale","enter distance in \u03BCm")
                 if ok and dist_inum > 0:
-                   self.canvas.setScale(dist_inpixel / dist_inum * 1000)
+                    self.canvas.setScale(dist_inpixel / dist_inum * 1000)
                 
                 self.canvas.setnewTool(canvasTool.drag.name)
                 self.canvas.redrawImage()

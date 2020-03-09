@@ -12,12 +12,15 @@ from PyQt5.QtCore import *
 import random
 
 
+
 class MainWindow(object):
     def setupUi(self, Form):
+       
+        screen_resolution = QDesktopWidget().screenGeometry()
         
-        width = 1600 
-        height = 1200
-
+        height = screen_resolution.height() - 150
+        width = height * 4/3
+        
         
         Form.setWindowTitle('DeepCellDetector') 
         Form.setWindowIcon(QIcon('icons/logo.png'))
@@ -206,7 +209,7 @@ class MainWindow(object):
         self.CBErase.setText("Erase  ")
         self.CBErase.setToolTip('Toggle  to erase tool')
         self.SSize = QSlider(Qt.Horizontal, self.centralWidget)
-        self.SSize.setMinimum(2)
+        self.SSize.setMinimum(1)
         self.SSize.setMaximum(40)
         self.SSize.setValue(10)
         self.SSize.setToolTip('Set marker size')
