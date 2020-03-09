@@ -182,8 +182,10 @@ class Canvas(QGraphicsView):
         return self.image is not None
     
     def setScale(self,scale_ppmm):
+        if scale_ppmm <= 0:
+            return
         self.scale_pixel_per_mm = scale_ppmm
-        if int(self.scale_pixel_per_mm+0.5) != int(self.parent.results_form.LEScale.text()):
+        if not self.parent.results_form.LEScale.text() or int(self.scale_pixel_per_mm+0.5) != int(self.parent.results_form.LEScale.text()):
             self.parent.results_form.LEScale.setText(str(int(self.scale_pixel_per_mm+0.5)))
         
     def zoom(self):

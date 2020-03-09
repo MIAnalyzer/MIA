@@ -191,9 +191,10 @@ class Contour():
         
         # contour based length measurement
         _, contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        c = contours[0] + ([l,t])
-        self.skeleton = cv2.approxPolyDP(c, 3, False)
         
+        c = contours[np.argmax([len(l) for l in contours])] + ([l,t])
+        self.skeleton = cv2.approxPolyDP(c, 3, False)
+
         return self.skeleton
     
         ## pixel based length measurement

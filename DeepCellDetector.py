@@ -32,6 +32,7 @@ import utils.Contour as Contour
 
 
 PREDICT_WORMS = True
+PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
@@ -91,10 +92,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if PREDICT_WORMS:
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
-            try:
-                self.dl.LoadModel(PRELOAD_MODEL)
-            except:
-                pass
+            if PRELOAD:
+                try:
+                    self.dl.LoadModel(PRELOAD_MODEL)
+                except:
+                    pass
             self.Btrain.setEnabled(False)
             self.BLoadTrainImages.setEnabled(False)
             self.Bsavemodel.setEnabled(False)
