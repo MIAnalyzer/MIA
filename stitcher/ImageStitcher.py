@@ -17,6 +17,231 @@ import imutils
 import glob
 import os
 
+
+
+class Window(object):
+    def setupUi(self, Form):
+        width = 400
+        height= 200
+        Form.setWindowTitle('Manual Shift') 
+        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        
+        Form.setFixedSize(width, height)
+        self.centralWidget = QWidget(Form)
+        self.centralWidget.setFixedSize(width, height)
+        
+        self.mainhlayout = QHBoxLayout(self.centralWidget)
+        self.centralWidget.setLayout(self.mainhlayout)
+        
+        ### image1 ###
+        submainvlayout = QVBoxLayout(self.centralWidget)
+        submainvlayout.setSpacing(10)
+        ## title
+        self.I1_title = QLabel(self.centralWidget)
+        self.I1_title.setText('Image 1')
+        self.I1_title.setStyleSheet("font-weight: bold; color: green")
+        self.I1_title.setContentsMargins(0,0,0,5)
+        submainvlayout.addWidget(self.I1_title, stretch = 1,alignment= Qt.AlignHCenter)
+        
+        ## move horizontal ##
+        h1layout = QHBoxLayout(self.centralWidget)
+        self.I1_horznum = QSpinBox(self.centralWidget)
+        self.I1_horznum.setFixedWidth(50)
+        self.I1_horzslide = QSlider(Qt.Horizontal, self.centralWidget)
+        h1layout.addWidget(self.I1_horznum,stretch=2)
+        h1layout.addWidget(self.I1_horzslide,stretch=3)
+        h1layout.setSpacing(5)
+        h1layout.setContentsMargins(0,0,20,0)
+        submainvlayout.addLayout(h1layout, stretch = 5)
+        
+        ## rotate + move vertical ##
+        # rotate #
+        h2layout = QHBoxLayout(self.centralWidget)
+        v2layout = QVBoxLayout(self.centralWidget)
+        self.I1_rotdial = QDial(self.centralWidget)
+        h3layout = QHBoxLayout(self.centralWidget) 
+        self.I1_rotnum = QSpinBox(self.centralWidget)
+        self.I1_rotnum.setFixedWidth(50)
+        spacer = QSpacerItem(1, 1)
+        h3layout.addItem(spacer)
+        h3layout.addWidget(self.I1_rotnum)
+        spacer = QSpacerItem(1, 1)
+        h3layout.addItem(spacer)       
+        v2layout.addWidget(self.I1_rotdial)
+        v2layout.addLayout(h3layout)
+        h2layout.addLayout(v2layout, stretch=3)
+        
+        # move vertical #
+        v3layout = QVBoxLayout(self.centralWidget)
+        self.I1_vertslide = QSlider(Qt.Vertical, self.centralWidget)
+        self.I1_vertnum = QSpinBox(self.centralWidget)
+        self.I1_vertnum.setFixedWidth(50)
+        v3layout.addWidget(self.I1_vertslide, alignment= Qt.AlignHCenter)
+        v3layout.addWidget(self.I1_vertnum)
+        v3layout.setSpacing(5)
+        h2layout.addLayout(v3layout, stretch = 1)
+        h2layout.setSpacing(10)
+        submainvlayout.addLayout(h2layout, stretch = 10)
+        
+        self.mainhlayout.addItem(submainvlayout)
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.VLine)
+        self.mainhlayout.addWidget(line)
+        
+        ### image2 ###
+        submainvlayout = QVBoxLayout(self.centralWidget)
+        submainvlayout.setSpacing(10)
+        ## title
+        self.I2_title = QLabel(self.centralWidget)
+        self.I2_title.setText('Image 2')
+        self.I2_title.setStyleSheet("font-weight: bold; color: red")
+        self.I2_title.setContentsMargins(0,0,0,5)
+        submainvlayout.addWidget(self.I2_title, stretch = 1,alignment= Qt.AlignHCenter)
+        
+        ## move horizontal ##
+        h1layout = QHBoxLayout(self.centralWidget)
+        self.I2_horznum = QSpinBox(self.centralWidget)
+        self.I2_horznum.setFixedWidth(50)
+        self.I2_horzslide = QSlider(Qt.Horizontal, self.centralWidget)
+        h1layout.addWidget(self.I2_horznum,stretch=2)
+        h1layout.addWidget(self.I2_horzslide,stretch=3)
+        h1layout.setSpacing(5)
+        h1layout.setContentsMargins(0,0,20,0)
+        submainvlayout.addLayout(h1layout, stretch = 5)
+        
+        ## rotate + move vertical ##
+        # rotate #
+        h2layout = QHBoxLayout(self.centralWidget)
+        v2layout = QVBoxLayout(self.centralWidget)
+        self.I2_rotdial = QDial(self.centralWidget)
+        h3layout = QHBoxLayout(self.centralWidget) 
+        self.I2_rotnum = QSpinBox(self.centralWidget)
+        self.I2_rotnum.setFixedWidth(50)
+        spacer = QSpacerItem(1, 1)
+        h3layout.addItem(spacer)
+        h3layout.addWidget(self.I2_rotnum)
+        spacer = QSpacerItem(1, 1)
+        h3layout.addItem(spacer)       
+        v2layout.addWidget(self.I2_rotdial)
+        v2layout.addLayout(h3layout)
+        h2layout.addLayout(v2layout, stretch=3)
+        
+        # move vertical #
+        v3layout = QVBoxLayout(self.centralWidget)
+        self.I2_vertslide = QSlider(Qt.Vertical, self.centralWidget)
+        self.I2_vertnum = QSpinBox(self.centralWidget)
+        self.I2_vertnum.setFixedWidth(50)
+        v3layout.addWidget(self.I2_vertslide, alignment= Qt.AlignHCenter)
+        v3layout.addWidget(self.I2_vertnum)
+        v3layout.setSpacing(5)
+        h2layout.addLayout(v3layout, stretch = 1)
+        h2layout.setSpacing(10)
+        submainvlayout.addLayout(h2layout, stretch = 10)
+        
+        self.mainhlayout.addItem(submainvlayout)
+
+        
+
+class ManualWindow(QMainWindow, Window):
+    def __init__(self, parent ):
+        super(ManualWindow, self).__init__(parent)
+        self.parent = parent
+        self.setupUi(self)
+    
+    def initValues(self):
+        self.I1_horznum.setRange(0,self.parent.image1.shape[1])  
+        self.I1_horznum.setValue(self.parent.x1_shift)
+        self.I1_vertnum.setRange(0,self.parent.image1.shape[0])
+        self.I1_vertnum.setValue(self.parent.y1_shift)
+        
+        self.I2_horznum.setRange(0,self.parent.image2.shape[1])
+        self.I2_horznum.setValue(self.parent.x2_shift)
+        self.I2_vertnum.setRange(0,self.parent.image2.shape[0])
+        self.I2_vertnum.setValue(self.parent.y2_shift)
+        
+        
+        self.I1_horzslide.setMinimum(0)
+        self.I1_horzslide.setMaximum(self.parent.image1.shape[1])
+        self.I1_horzslide.setValue(self.parent.x1_shift)
+        self.I1_vertslide.setMinimum(0)
+        self.I1_vertslide.setMaximum(self.parent.image1.shape[0])
+        self.I1_vertslide.setValue(self.parent.y1_shift)
+        self.I1_vertslide.setInvertedAppearance(True)
+        
+        self.I2_horzslide.setMinimum(0)
+        self.I2_horzslide.setMaximum(self.parent.image2.shape[1])
+        self.I2_horzslide.setValue(self.parent.x2_shift)
+        self.I2_vertslide.setMinimum(0)
+        self.I2_vertslide.setMaximum(self.parent.image2.shape[0])
+        self.I2_vertslide.setValue(self.parent.y2_shift)
+        self.I2_vertslide.setInvertedAppearance(True)
+        
+        
+        self.I1_rotdial.setMinimum(0)
+        self.I1_rotdial.setMaximum(180)
+        self.I1_rotdial.setValue(90)
+        self.I1_rotnum.setRange(0,180)  
+        self.I1_rotnum.setValue(90)
+
+        self.I2_rotdial.setMinimum(0)
+        self.I2_rotdial.setMaximum(180)
+        self.I2_rotdial.setValue(90)
+        self.I2_rotnum.setRange(0,180)  
+        self.I2_rotnum.setValue(90)
+
+
+        self.I1_horznum.valueChanged.connect(self.shift_1x)
+        self.I1_horzslide.sliderMoved.connect(self.shift_1x_slider)
+        self.I1_vertnum.valueChanged.connect(self.shift_1y)
+        self.I1_vertslide.sliderMoved.connect(self.shift_1y_slider)
+        self.I1_rotnum.valueChanged.connect(self.rot_1)
+        self.I1_rotdial.sliderMoved.connect(self.rot_1_slider)
+        
+        self.I2_horznum.valueChanged.connect(self.shift_2x)
+        self.I2_horzslide.sliderMoved.connect(self.shift_2x_slider)
+        self.I2_vertnum.valueChanged.connect(self.shift_2y)
+        self.I2_vertslide.sliderMoved.connect(self.shift_2y_slider)
+        self.I2_rotnum.valueChanged.connect(self.rot_2)
+        self.I2_rotdial.sliderMoved.connect(self.rot_2_slider)
+    
+        
+    def shift_1x(self):
+        self.parent.shift_1x(self.I1_horznum.value())
+        self.I1_horzslide.setValue(self.I1_horznum.value())
+    def shift_1x_slider(self):
+        self.I1_horznum.setValue(self.I1_horzslide.value())
+    def shift_1y(self):
+        self.parent.shift_1y(self.I1_vertnum.value())
+        self.I1_vertslide.setValue(self.I1_vertnum.value())
+    def shift_1y_slider(self):    
+        self.I1_vertnum.setValue(self.I1_vertslide.value())
+    def rot_1(self):
+        self.parent.rotate1(self.I1_rotnum.value())
+        self.I1_rotdial.setValue(self.I1_rotnum.value())
+    def rot_1_slider(self):
+        self.I1_rotnum.setValue(self.I1_rotdial.value())
+        
+    def shift_2x(self):
+        self.parent.shift_2x(self.I2_horznum.value())
+        self.I2_horzslide.setValue(self.I2_horznum.value())
+    def shift_2x_slider(self):
+        self.I2_horznum.setValue(self.I2_horzslide.value())
+    def shift_2y(self):
+        self.parent.shift_2y(self.I2_vertnum.value())
+        self.I2_vertslide.setValue(self.I2_vertnum.value())
+    def shift_2y_slider(self):
+        self.I2_vertnum.setValue(self.I2_vertslide.value())
+    def rot_2(self):
+        self.parent.rotate2(self.I2_rotnum.value())
+        self.I2_rotdial.setValue(self.I2_rotnum.value())
+    def rot_2_slider(self):
+        self.I2_rotnum.setValue(self.I2_rotdial.value())
+        
+        
+        
+        
+        
+
 class ImageStitcher(QWidget):
     def __init__(self):
         super(ImageStitcher, self).__init__()
@@ -46,7 +271,6 @@ class ImageStitcher(QWidget):
         self.FinishButton.setEnabled(False)
         layout2.addWidget(self.ManualRButton)
         layout2.addWidget(self.FinishButton)
-        
 
         
         self.SaveImage = QPushButton(self)
@@ -60,6 +284,7 @@ class ImageStitcher(QWidget):
         layout.addLayout(layout2)
         layout.addWidget(self.SaveImage)
         
+        self.manushift = ManualWindow(self)
         
         self.show()    
         self.image1 = None
@@ -71,10 +296,17 @@ class ImageStitcher(QWidget):
         self.y2_shift = 0
         self.rot1 = 0
         self.rot2 = 0
+        screen_resolution = QDesktopWidget().screenGeometry()
+        self.maxheight = screen_resolution.height() - 200
+        self.maxwidth = screen_resolution.width() - 200
+        self.onlyonce = False
 
         
-    def closeEvent(self, event):
+    def closeEvent(self, event): 
+        self.manushift.hide()
         cv2.destroyAllWindows()
+
+        
         
     def RegisterAll(self):
         # searches for all images in folder that end with _a.tif and _b.tif or _A.tif and _B.tif and performs their registration
@@ -104,7 +336,7 @@ class ImageStitcher(QWidget):
             return
         if len(filenames) != 2:
             if self.OkCancelPopup('Please select 2 image files'):
-                self.start()
+                self.startRegistration()
             else:
                 return            
             
@@ -123,7 +355,8 @@ class ImageStitcher(QWidget):
             
     def saveImage(self, image):
         filename = QFileDialog.getSaveFileName(self, "Save Registered Image", '', "Image File (*.tif)")[0]
-        cv2.imwrite(filename, self.RegisteredImage)
+        if filename:
+            cv2.imwrite(filename, self.RegisteredImage)
     
     def shift_1y(self,x):
         self.y1_shift = x
@@ -160,10 +393,10 @@ class ImageStitcher(QWidget):
         
         
         if self.rot1 != 0:
-            image1 = imutils.rotate(self.image1, self.rot1)
+            image1 = imutils.rotate_bound(self.image1, self.rot1)
 
         if self.rot2 != 0:
-            image2 = imutils.rotate(self.image2, self.rot2)
+            image2 = imutils.rotate_bound(self.image2, self.rot2)
         
         h1 = image1.shape[0]
         h2 = image2.shape[0]
@@ -214,25 +447,19 @@ class ImageStitcher(QWidget):
         
           
     def ManualRegistration(self):
-        
-        cv2.namedWindow( "trackbar")
-        cv2.createTrackbar("1 in y", "trackbar", 0, self.image1.shape[0], self.shift_1y)
-        cv2.createTrackbar("1 in x", "trackbar", 0, self.image1.shape[1], self.shift_1x)
-        cv2.createTrackbar("2 in y", "trackbar", 0, self.image2.shape[0], self.shift_2y)
-        cv2.createTrackbar("2 in x", "trackbar", 0, self.image2.shape[1], self.shift_2x)
-        cv2.setTrackbarPos("1 in y", "trackbar", self.y1_shift)
-        cv2.setTrackbarPos("1 in x", "trackbar", self.x1_shift)
-        cv2.setTrackbarPos("2 in y", "trackbar", self.y2_shift)
-        cv2.setTrackbarPos("2 in x", "trackbar", self.x2_shift)
-        
-        cv2.createTrackbar("rotate1", "trackbar", 0, 180, self.rotate1)
-        cv2.setTrackbarPos("rotate1", "trackbar", 90)
-        cv2.createTrackbar("rotate2", "trackbar", 0, 180, self.rotate2)
-        cv2.setTrackbarPos("rotate2", "trackbar", 90)
+        self.manushift.initValues()
+        self.manushift.show()
         self.shiftManual()
     
     def SemiAutoRegister(self):
-        spot = self.selectCommonRoi()
+        if self.onlyonce or self.OkCancelPopup('Select ROI present in both images. Press \'Enter\' to finish or \'c\' to cancel.'):
+            spot = self.selectCommonRoi()
+            self.onlyonce = True
+        else:
+            return  
+        
+        if spot[0] == spot[1] == spot[2] == spot[3] == 0:
+            return
         self.RegisteredImage = self.Register(spot)
         self.ShowResult()
         
@@ -242,10 +469,10 @@ class ImageStitcher(QWidget):
         combined[0:self.image1.shape[0],0:self.image1.shape[1]] = self.image1
         combined[0:self.image2.shape[0],self.image1.shape[1]:self.image1.shape[1]+self.image2.shape[1]] = self.image2
         
-        width = 1601
-        height = 1201
+        width = self.maxwidth + 1
+        height = self.maxheight + 1 
         factor = 1 + 1/9
-        while width > 1600 or height > 1200:
+        while width > self.maxwidth or height > self.maxheight:
             factor *= 0.9
             width  = combined.shape[1] * factor
             height = combined.shape[0] * factor
@@ -254,7 +481,7 @@ class ImageStitcher(QWidget):
         # should not matter
         image_resized = cv2.resize(combined, (int(width), int(height)), interpolation=cv2.INTER_NEAREST)
         ret_us = cv2.selectROI("Select common ROI", image_resized, showCrosshair = False)
-
+               
         ret = (int(ret_us[0] / factor), int(ret_us[1] / factor), int(ret_us[3] / factor), int(ret_us[3] / factor))
         
 
@@ -287,7 +514,7 @@ class ImageStitcher(QWidget):
         width = image.shape[1]
         height = image.shape[0]
         
-        while width > 1600 or height > 1200:
+        while width > self.maxwidth or height > self.maxheight:
             width = width * 0.9
             height = height *0.9
         
@@ -329,28 +556,28 @@ class ImageStitcher(QWidget):
             im2_y = 0
             y_begin = im1_y
             y_end = height2
-            resheight = im1_y + height1
         else:
             im1_y = 0
             im2_y = y1 - y2
             y_begin = im2_y
             y_end = height2
-            resheight = im2_y + height2
+
         if x2 > x1:
             im1_x = x2 - x1
             im2_x = 0
             x_begin = im1_x
             x_end = width2
-            reswidth = im1_x + width1
         else:
             im1_x = 0
             im2_x = x1 - x2
             x_begin = im2_x
             x_end = width1
-            reswidth = im2_x + width2
+
             
-            
+        reswidth = max(im2_x + width2,im1_x + width1)  
+        resheight = max(im2_y + height2,im1_y + height1) 
         result = np.zeros((resheight, reswidth), np.uint16)
+
         result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
         result[im2_y:im2_y+height2,im2_x:im2_x+width2] = (self.image2 + result[im2_y:im2_y+height2,im2_x:im2_x+width2])
         result[y_begin:y_end,x_begin:x_end] = result[y_begin:y_end,x_begin:x_end] / 2
