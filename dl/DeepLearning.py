@@ -13,25 +13,6 @@ import tensorflow as tf
 
 
 
-####### that needs to be set somewhere or detect automatically 
-#GPU = -1
-#gpus = tf.config.experimental.list_physical_devices('GPU')
-#if gpus:
-## Restrict TensorFlow to only use the first or second GPU or CPU
-#    try:
-#        if GPU == -1:
-#            # cpu
-#            tf.config.experimental.set_visible_devices([], 'GPU')
-#        else:
-#            tf.config.experimental.set_visible_devices(gpus[GPU], 'GPU')
-#        
-#        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-#        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
-#        print(tf.config.experimental.get_visible_devices())
-#    except RuntimeError as e:
-#    # Visible devices must be set before GPUs have been initialized
-#        print(e)
-
 import cv2
 import glob
 import os
@@ -133,11 +114,11 @@ class DeepLearning():
             image = image[np.newaxis, :, :, np.newaxis].astype('float')/255.
         elif len(image.shape) == 3:
             image = image[np.newaxis, :, :, :].astype('float')/255.
-            pred = self.Model.predict(image)
         else:
             raise ('wrong image format')
-            
-        pred = self.Model.predict(image)
+
+        # convert_to_tensor is not necessary but improves performance because it avoids retracing
+        pred = self.Model.predict(tf.convert_to_tensor(image,np.float32))
         if self.NumClasses > 2:
             pred = np.squeeze(np.argmax(pred, axis = 3))
         else:

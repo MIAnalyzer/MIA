@@ -10,20 +10,21 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
-import time
+
 import io
 import traceback
 import glob
 import os
 import cv2 
-
+import multiprocessing
+import concurrent.futures
 
 import dl.DeepLearning as DeepLearning
 
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
-from ui.ui_ResultsWindow import ResultsWindow
+from ui.ui_Results import ResultsWindow
 from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
@@ -32,7 +33,7 @@ import utils.Contour as Contour
 
 
 PREDICT_WORMS = True
-PRELOAD = True
+PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
@@ -54,6 +55,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.testImageLabelspath = None
         self.train_test_dir = True
         self.LearningMode = 1
+        
+        self.progresstick = 10
+        self.progress = 0
+        self.maxworker = multiprocessing.cpu_count() // 2
         
         self.files = None
         self.currentImage = 0
@@ -237,7 +242,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeImage(self):
         if self.numofImages > 0:
             self.canvas.ReloadImage()
-            text = "%d of %i: " % (self.currentImage,self.numofImages) + self.CurrentFileName()
+            text = "%d of %i: " % (self.currentImage+1,self.numofImages) + self.CurrentFileName()
             self.StatusFile.setText(text)
         else:
             width = self.canvas.geometry().width()
@@ -361,13 +366,26 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
+    def initProgress(self, ticks):
+        assert(ticks != 0)
+        self.progresstick = 1/ticks *100
+        self.progress = 0
+        self.setProgress(0)
+        
+    def addProgress(self):
+        self.progress += self.progresstick
+        self.setProgress(self.progress)
+    
+    def ProgressFinished(self):
+        self.setProgress(100)
+    
     def setProgress(self,value):
         if value < 100:
             self.StatusProgress.show()
             self.StatusProgress.setValue(value)
         else:
             self.StatusProgress.hide()
-        QApplication.processEvents() 
+        QApplication.processEvents()
             
     def writeStatus(self,msg):
         self.Status.setText(msg)
@@ -403,35 +421,42 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('No model trained')
             return
         
-        
         images = glob.glob(os.path.join(self.testImagespath,'*.*'))
         images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
-        
-        num = len(images)
-        for i in range (len(images)):
-            self.setProgress(i/num *100)
-            if self.dl.MonoChrome:
-                image = cv2.imread(images[i], cv2.IMREAD_GRAYSCALE)
-            else:
-                image = cv2.imread(images[i], cv2.IMREAD_COLOR)
-                
-            pred = self.dl.PredictImage(image)
-            name = os.path.splitext(os.path.basename(images[i]))[0]
-            cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
-            contours = Contour.extractContoursFromLabel(pred)
-            Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
-   
-        self.setProgress(100)
+
+        self.initProgress(len(images))
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
+            executor.map(self.predictSingleImageFromStack,images)
+
+        self.ProgressFinished()
         self.switchToTestFolder()
+        
+    def predictSingleImageFromStack(self, imagepath):
+        if self.dl.MonoChrome:
+            image = cv2.imread(imagepath, cv2.IMREAD_GRAYSCALE)
+        else:
+            image = cv2.imread(imagepath, cv2.IMREAD_COLOR)
+                   
+        pred = self.dl.PredictImage(image)
+        name = os.path.splitext(os.path.basename(imagepath))[0]
+        cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
+        contours = Contour.extractContoursFromLabel(pred)
+        Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
+        self.addProgress()
+        
     
     def predictImage(self):
         if self.CurrentFilePath() is None:
+            return
+        if not self.dl.initialized:
+            self.PopupWarning('No model trained')
             return
         self.clear()
         image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
         prediction = self.dl.PredictImage(image)
         if prediction is None:
-            self.PopupWarning('No model trained')
+            self.PopupWarning('Cannot load image')
             return
         cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
         contours = Contour.extractContoursFromLabel(prediction)
