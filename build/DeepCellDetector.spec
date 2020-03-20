@@ -8,9 +8,11 @@ from PyInstaller.utils.hooks import collect_submodules
 
 added_files = [
         ('C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml', './dask'),
-		('C:/cudnn-10.1-windows10-x64-v7.6.3.30/cuda/bin/cudnn64_7.dll', '.')
+		('C:/cudnn-10.1-windows10-x64-v7.6.3.30/cuda/bin/cudnn64_7.dll', '.'),
+		('./add/msvcp140.dll', '.'),
+		('./add/msvcp140_1.dll', '.')
 #		('P:/abteilung9/90/nils/DeepCellDetector/icons', 'icons'),
-#       ('P:/abteilung9/90/nils/DeepCellDetector/icons/*.png', 'icons')
+#		('P:/abteilung9/90/nils/DeepCellDetector/icons/*.png', './icons')
         ]
 
 
