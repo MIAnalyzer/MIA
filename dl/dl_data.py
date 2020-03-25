@@ -30,32 +30,29 @@ class TrainingDataGenerator_inMemory(Sequence):
         self.labels = labels
         self.batch_size = batch_size
         self.numClasses = numclasses
-        
         self.indices = list(range(0,images.shape[0]))
         self.numImages = len(self.indices)
         random.shuffle(self.indices)
-        self.cnt = 0
-
     
     def __len__(self):
         return int(np.ceil(self.numImages / float(self.batch_size)))
 
     def __getitem__(self, idx):
         with self.lock:
-            batch_images = self.images[self.indices[self.cnt:self.cnt+self.batch_size]]
-            batch_masks = self.labels[self.indices[self.cnt:self.cnt+self.batch_size]]
-            self.cnt += self.batch_size
-            
+            batch_start = idx * self.batch_size
+            batch_end = min(batch_start + self.batch_size, self.numImages)
+
+            batch_images = self.images[self.indices[batch_start:batch_end]]
+            batch_masks = self.labels[self.indices[batch_start:batch_end]]
+
             img, mask = dl_augment.augment(batch_images,batch_masks)             
             img = img.astype('float')/255.        
                 
             if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
-
             return img, mask
         
     def on_epoch_end(self):
-        self.cnt=0
         random.shuffle(self.indices)
 
 
@@ -70,11 +67,10 @@ class TrainingDataGenerator_fromDisk(Sequence):
         self.numClasses = numclasses
         self.scalefactor = scalefactor
         
-        
         self.indices = list(range(0,len(self.images)))
         self.numImages = len(self.images)
         random.shuffle(self.indices)
-        self.cnt = 0
+
 
     
     def __len__(self):
@@ -84,14 +80,14 @@ class TrainingDataGenerator_fromDisk(Sequence):
         with self.lock:
             batch_images = []
             batch_masks = []
-            for i in range(self.cnt, self.cnt+self.batch_size):
-                if i >= self.numImages:
-                    break
+            batch_start = idx * self.batch_size
+            batch_end = min(batch_start + self.batch_size, self.numImages)
+            for i in range(batch_start, batch_end):
                 if self.channels == 1:
                     train_img = cv2.imread(self.images[self.indices[i]], cv2.IMREAD_GRAYSCALE).astype('uint8')    
                 else:
                     train_img = cv2.imread(self.images[self.indices[i]], cv2.IMREAD_COLOR).astype('uint8')
-                
+
                 #train_mask = cv2.imread(self.labels[self.indices[i]], cv2.IMREAD_GRAYSCALE).astype('uint8')
                 train_mask = LoadLabel(self.labels[self.indices[i]], train_img.shape[0], train_img.shape[1])
                 
@@ -118,16 +114,14 @@ class TrainingDataGenerator_fromDisk(Sequence):
 
             
             img, mask = dl_augment.augment(batch_images, batch_masks)
-            self.cnt+=self.batch_size
+
             
             img = img.astype('float')/255.
             if self.numClasses > 2:
                 mask = to_categorical(mask, num_classes=self.numClasses)
-
             return img, mask
         
     def on_epoch_end(self):
-        self.cnt=0
         random.shuffle(self.indices)
     
     

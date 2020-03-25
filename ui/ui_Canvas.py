@@ -156,13 +156,21 @@ class Canvas(QGraphicsView):
         if not rect.isNull():
             self.setSceneRect(rect)
             if self.hasImage():
-                unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
-                self.scale(1 / unity.width(), 1 / unity.height())
                 viewrect = self.viewport().rect()
                 scenerect = self.transform().mapRect(rect)
                 factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
                 self.zoomstep = 0
+
+    def zoomfactor(self):
+        if not self.hasImage():
+            return None
+        rect = QRectF(self.displayedimage.pixmap().rect()) 
+        viewrect = self.viewport().rect()
+        scenerect = self.transform().mapRect(rect)
+        w = scenerect.width() / rect.width()
+        h = scenerect.height() / rect.height()
+        return (w,h)
 
     def reset(self, width, height):
         self.displayedimage.setPixmap(QPixmap(width, height))
@@ -325,8 +333,10 @@ class Canvas(QGraphicsView):
             self.tool = Tools.ScaleTool(self)
         
         self.parent.writeStatus('Current Tool: ' + self.tool.Text) 
-        self.setCursor(self.tool.Cursor())
+        self.updateCursor()
         
+    def updateCursor(self):
+        self.setCursor(self.tool.Cursor())
 
     def toggleDrag(self):
         if not self.enableToggleTools:
