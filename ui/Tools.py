@@ -229,46 +229,41 @@ class ExtendTool(AbstractTool):
         self.canvas = canvas
         self.Text = "Extend/Erase"
         self.type = canvasTool.expand
-        self.size = 10
-        self.extending = False
+        self.inprogress = False
         self.lock = threading.RLock()
-        self.erase = False
         
     def mouseMoveEvent(self, e):
         if self.canvas.sketch is None:
             return
         with self.lock:
             # if e.button() == Qt.LeftButton: is not working here for some reasons
-            if self.extending:
+            if self.inprogress:
                 p0 = self.canvas.mapToScene(e.pos())
                 p = Contour.QPoint2np(p0)
-                
                 x = p[0,0]
                 y = p[0,1]
-                self.canvas.addcircle(p0, self.size)
-                val = 1 if self.erase == False else 0
-                cv2.circle(self.canvas.sketch, (x, y), self.size, (val), -1)
+                self.canvas.addcircle(p0, self.canvas.parent.SSize.value())
+                val = 1 if self.canvas.parent.CBErase.isChecked() == False else 0
+                cv2.circle(self.canvas.sketch, (x, y), self.canvas.parent.SSize.value(), (val), -1)
 
         
     def mouseReleaseEvent(self,e):
         if e.button() == Qt.LeftButton:
             self.canvas.finishNewContour()
-            self.extending = False
+            self.inprogress = False
 
                       
     def mousePressEvent(self,e):
         if self.canvas.image is None:
             return
-        if e.button() == Qt.LeftButton:
-            
+        if e.button() == Qt.LeftButton:  
             self.size = self.canvas.parent.SSize.value()
-            self.erase = self.canvas.parent.CBErase.isChecked()
             self.canvas.prepareNewContour()
-            self.extending = True
-            
+            self.inprogress = True
+       
         elif e.button() == Qt.RightButton:
-            self.canvas.parent.CBExtend.setChecked(True) if self.erase else self.canvas.parent.CBErase.setChecked(True)
-            self.erase = self.canvas.parent.CBErase.isChecked()
+            self.canvas.parent.CBExtend.setChecked(True) if self.canvas.parent.CBErase.isChecked() else self.canvas.parent.CBErase.setChecked(True)
+            self.canvas.setCursor(self.Cursor())
     
     def wheelEvent(self,e):
         if e.angleDelta().y() > 0:
@@ -277,9 +272,28 @@ class ExtendTool(AbstractTool):
         else:
             v = self.canvas.parent.SSize.value() - 1
             self.canvas.parent.SSize.setValue(v)
+        self.size = self.canvas.parent.SSize.value()
+        self.canvas.setCursor(self.Cursor())
+
+    def createCursor(self):
+        size = (2*self.canvas.parent.SSize.value() + self.canvas.pen_size) * self.canvas.zoomfactor()[0]
+        icon = QPixmap(size+1,size+1)
+        icon.fill(Qt.transparent)
+        p = QPainter(icon)
+        color = self.canvas.parent.ClassColor()
+        if self.canvas.parent.CBErase.isChecked():
+            p.setBrush(QBrush(Qt.NoBrush))
+            p.setPen(QPen(color,Qt.SolidLine))
+        else:
+            p.setBrush(QBrush(color,Qt.SolidPattern))
+            p.setPen(QPen(Qt.NoPen))
+            
+        p.drawEllipse(0, 0, size, size)
+        p.end()
+        return QCursor(icon, -1, -1)
 
     def Cursor(self):
-        return Qt.ArrowCursor
+        return self.createCursor()
     
 
 class ScaleTool(AbstractTool):

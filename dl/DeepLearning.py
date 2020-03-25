@@ -11,7 +11,7 @@ from tensorflow.keras.metrics import MeanIoU
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-
+import math
 
 import cv2
 import glob
@@ -38,7 +38,7 @@ class DeepLearning():
     def __init__(self):
         
         self.TrainInMemory = True
-        self.ImageScaleFactor = 0.25
+        self.ImageScaleFactor = 0.3
         self.initialized = False
         
         self.ModelType = 0
@@ -80,14 +80,14 @@ class DeepLearning():
         if self.NumClasses > 2:
             loss = dl_losses.focal_loss
         else:
-#            loss = 'binary_crossentropy'
+            #loss = 'binary_crossentropy'
             loss = dl_losses.focal_loss_binary
         # to do implement binary iou
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
         
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
         try:
-            self.Model.fit_generator(train_generator, steps_per_epoch=len(x)/self.batch_size,verbose=1, callbacks=None, epochs=self.epochs, workers = 20)
+            self.Model.fit(train_generator,verbose=1, callbacks=None, epochs=self.epochs, workers = 5)
         except:
             return False
         return True
@@ -109,6 +109,8 @@ class DeepLearning():
                        
         if not self.MonoChrome and len(image.shape) == 2:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
+        if self.MonoChrome and image.shape[2] > 1:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
         
         if len(image.shape) == 2 :
             image = image[np.newaxis, :, :, np.newaxis].astype('float')/255.

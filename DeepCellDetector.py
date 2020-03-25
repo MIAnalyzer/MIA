@@ -30,10 +30,10 @@ from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
+import time
 
-
-PREDICT_WORMS = True
-PRELOAD = False
+PREDICT_WORMS = False
+PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
@@ -141,6 +141,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
+        self.CBExtend.clicked.connect(self.updateCursor)
+        self.CBErase.clicked.connect(self.updateCursor)
         
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
@@ -208,15 +210,26 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         assert(c >= 0)
         return c
     
-    def ClassColor(self, c):
-        return self.classList.getClassColor(c)
+    def ClassColor(self, c = None):
+        if c is None:
+            c = self.activeClass()
+        color = self.classList.getClassColor(c)
+        color.setAlpha(255)
+        return color
     
     def NumOfClasses(self):
         return self.classList.getNumberOfClasses()
         
-    def colorChanged(self):
+    def classcolorChanged(self):
         self.canvas.redrawImage()
-        
+        self.updateCursor()
+
+    def classChanged(self):
+        self.updateCursor()
+
+    def updateCursor(self):
+        self.canvas.updateCursor()
+
     def clear(self):
         self.canvas.clearContours()
         self.deleteLabel()

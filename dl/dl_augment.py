@@ -39,7 +39,7 @@ seq = iaa.Sequential([
 
 def augment(image, label):
     x,y = seq(images=image, segmentation_maps=label)
-    #seq.show_grid([x[0], y[0]*255], cols=8, rows=1)
+	 #seq.show_grid([x[0], y[0]*255], cols=8, rows=1)
     return np.asarray(x),np.asarray(y)
     
     

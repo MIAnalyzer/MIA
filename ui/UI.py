@@ -506,6 +506,7 @@ class ClassWidget(QWidget):
         self.setLayout(self.row)
         
         self.pb_color.clicked.connect(self.changeColor)
+        self.rb_select.toggled.connect(self.selectClass)
     
     def setButtonColor(self, color):
         self.color = color
@@ -517,8 +518,10 @@ class ClassWidget(QWidget):
         color = QColorDialog.getColor()
         if color.isValid():
             self.setButtonColor(color)
-            self.parent.colorChanged()
+            self.parent.classcolorChanged()
 
+    def selectClass(self):
+        self.parent.classChanged()
         
         
         
