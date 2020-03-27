@@ -25,7 +25,7 @@ import dl.dl_models as dl_models
 import dl.dl_losses as dl_losses
 
 import utils.Contour
-
+import multiprocessing
 
 class dlMode(Enum):
     classification = 1
@@ -40,6 +40,7 @@ class DeepLearning():
         self.TrainInMemory = True
         self.ImageScaleFactor = 0.3
         self.initialized = False
+        self.worker = multiprocessing.cpu_count() // 2
         
         self.ModelType = 0
         self.Model = None
@@ -86,10 +87,11 @@ class DeepLearning():
         self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=self.NumClasses)])   
         
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
-        try:
-            self.Model.fit(train_generator,verbose=1, callbacks=None, epochs=self.epochs, workers = 5)
-        except:
-            return False
+        #try:
+        if True:
+            self.Model.fit(train_generator,verbose=1, callbacks=None, epochs=self.epochs, workers = self.worker)
+        #except:
+        #    return False
         return True
        
             

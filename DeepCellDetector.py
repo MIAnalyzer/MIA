@@ -20,7 +20,6 @@ import multiprocessing
 import concurrent.futures
 
 import dl.DeepLearning as DeepLearning
-
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
@@ -44,6 +43,7 @@ LOG_FILENAME = 'log/logfile.log'
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
+
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -66,7 +66,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
-        
+
         self.dl = DeepLearning.DeepLearning()
         # init canvas
         self.hlayout.removeWidget(self.canvas)
@@ -83,7 +83,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.classList.setClass(0)
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
-        
 
         
         ### windows - should this be moved to UI ?
@@ -110,7 +109,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
             self.CBLearningMode.setEnabled(False)
 
-        
+
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
         self.BLoadTrainImages.clicked.connect(self.setTrainFolder)
@@ -505,14 +504,4 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
     
-
 sys.excepthook = DeepCellDetectorUI.excepthook
-if __name__ == "__main__":
-    app = QCoreApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-        
-    dcdui = DeepCellDetectorUI()
-
-#    sys.exit(app.exec_())
-    app.exec_()

@@ -19,11 +19,16 @@ from tensorflow.python.keras.utils.data_utils import Sequence
 
 
 import dl.dl_augment as dl_augment
+import dl.dl_utils as dl_tils
 from utils.Contour import LoadLabel
+
+# that moves to deeplearning
+GETWEIGHTMAP = True
 
 
 class TrainingDataGenerator_inMemory(Sequence):
-    def __init__(self, images, labels, batch_size,numclasses):
+    # use parent class as parameter and get rid of all others
+    def __init__(self, images, labels, batch_size, numclasses):
         self.batch_size = batch_size
         self.lock = threading.Lock()
         self.images = images
@@ -45,6 +50,10 @@ class TrainingDataGenerator_inMemory(Sequence):
             batch_images = self.images[self.indices[batch_start:batch_end]]
             batch_masks = self.labels[self.indices[batch_start:batch_end]]
 
+            #if GETWEIGHTMAP:
+            # to do 
+            #    weights = dl_tils.createWeightedBorderMapFromLabel(batch_masks)
+
             img, mask = dl_augment.augment(batch_images,batch_masks)             
             img = img.astype('float')/255.        
                 
@@ -57,6 +66,7 @@ class TrainingDataGenerator_inMemory(Sequence):
 
 
 class TrainingDataGenerator_fromDisk(Sequence):
+    # use parent class as parameter and get rid of all others
     def __init__(self, images_path, labels_path, batch_size, numclasses, scalefactor=1, monochrome = False):
         self.batch_size = batch_size
         self.lock = threading.Lock()
@@ -108,13 +118,15 @@ class TrainingDataGenerator_fromDisk(Sequence):
                 train_mask = train_mask.reshape(height, width, 1)
                 train_img = train_img.reshape(height, width, self.channels)
 
-                
+                if GETWEIGHTMAP:
+                    weights = dl_tils.createWeightedBorderMapFromLabel(train_mask)
+                    train_mask = np.concatenate((train_mask, weights), axis = 2)
+
                 batch_images.append(train_img)
                 batch_masks.append(train_mask)
 
             
             img, mask = dl_augment.augment(batch_images, batch_masks)
-
             
             img = img.astype('float')/255.
             if self.numClasses > 2:
@@ -165,6 +177,7 @@ def loadTrainingDataSet(imagepath, labelpath, numclasses, scalefactor=1, monochr
         # concat
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
+
         img[i] = train_img
         mask[i] = train_mask
 
