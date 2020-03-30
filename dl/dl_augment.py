@@ -9,7 +9,7 @@ Created on Wed Nov 13 13:12:11 2019
 import imgaug.augmenters as iaa
 import numpy as np
 
-import cv2
+#import cv2
 
 
 OUTPUTSIZE = 256    # this size determines the training image size

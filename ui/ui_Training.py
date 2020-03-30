@@ -156,15 +156,13 @@ class TrainingWindow(QMainWindow, Window):
         self.setupUi(self)   
         
         self.SBLearningRate.setValue(self.parent.dl.learning_rate)
-        self.CBMono.setChecked(self.parent.dl.MonoChrome)
+        self.CBMono.setChecked(True)
         self.SBEpochs.setValue(self.parent.dl.epochs)
         self.SBScaleFactor.setValue(self.parent.dl.ImageScaleFactor)
         self.SBBatchSize.setValue(self.parent.dl.batch_size)
         
         
         self.SBBatchSize.valueChanged.connect(self.BatchSizeChanged)
-        self.CBMono.toggled.connect(self.ColorModeChanged)
-        self.CBRGB.toggled.connect(self.ColorModeChanged)
         self.SBEpochs.valueChanged.connect(self.EpochsChanged)
         self.SBLearningRate.valueChanged.connect(self.LRChanged)
         self.SBScaleFactor.valueChanged.connect(self.ScaleFactorChanged)
@@ -180,9 +178,6 @@ class TrainingWindow(QMainWindow, Window):
     def BatchSizeChanged(self):
         self.parent.dl.batch_size = self.SBBatchSize.value()
         
-    def ColorModeChanged(self):
-        self.parent.dl.MonoChrome = self.CBMono.isChecked()
-        
     def EpochsChanged(self):
         self.parent.dl.epochs = self.SBEpochs.value()
         
@@ -195,7 +190,7 @@ class TrainingWindow(QMainWindow, Window):
         
     def Train(self):
         if not self.parent.dl.initialized:
-            if not self.parent.dl.initModel(self.parent.NumOfClasses()):
+            if not self.parent.dl.initModel(self.parent.NumOfClasses(), self.CBMono.isChecked()):
                self.parent.PopupWarning('Cannot train model (out of recources?)') 
                return
         if not self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath):

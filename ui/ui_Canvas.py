@@ -161,6 +161,7 @@ class Canvas(QGraphicsView):
                 factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
                 self.zoomstep = 0
+                self.parent.updateCursor()
 
     def zoomfactor(self):
         if not self.hasImage():

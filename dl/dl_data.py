@@ -23,7 +23,7 @@ import dl.dl_utils as dl_tils
 from utils.Contour import LoadLabel
 
 # that moves to deeplearning
-GETWEIGHTMAP = True
+GETWEIGHTMAP = False
 
 
 class TrainingDataGenerator_inMemory(Sequence):
@@ -138,7 +138,7 @@ class TrainingDataGenerator_fromDisk(Sequence):
     
     
     
-def loadTrainingDataSet(imagepath, labelpath, numclasses, scalefactor=1, monochrome = False):
+def loadTrainingDataSet(imagepath, labelpath, scalefactor=1, monochrome = False):
    
     images, labels = getTrainingDataset(imagepath, labelpath)
    
