@@ -437,7 +437,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
 
         self.initProgress(len(images))
-
+        print('start')
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
             executor.map(self.predictSingleImageFromStack,images)
 
@@ -445,11 +445,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.switchToTestFolder()
         
     def predictSingleImageFromStack(self, imagepath):
-        if self.dl.MonoChrome:
-            image = cv2.imread(imagepath, cv2.IMREAD_GRAYSCALE)
-        else:
-            image = cv2.imread(imagepath, cv2.IMREAD_COLOR)
-                   
+        image = cv2.imread(imagepath, cv2.IMREAD_UNCHANGED)
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
         cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
