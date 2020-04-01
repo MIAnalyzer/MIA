@@ -41,17 +41,6 @@ seq = iaa.Sequential([
 
 def augment(image, label): 
     x,y = seq(images=image, segmentation_maps=label)
-    # only transient
-    y = [i[...,0] for i in y]
-
-    ##seq.show_grid([x[0], y[0]*255], cols=8, rows=1)
-    ##seq.show_grid([x2[0], l2[0]*255], cols=8, rows=1)
-    #s = y[0]
-    #cv2.imshow( "Display window", s[...,0]*255 ); 
-    #cv2.waitKey(0)
-    #cv2.imshow( "Display window", s[...,1]*15 ); 
-    #cv2.waitKey(0)
-
     return np.asarray(x),np.asarray(y)
     
     

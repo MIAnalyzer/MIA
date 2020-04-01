@@ -145,10 +145,7 @@ class Window(object):
         self.BTrain.setStyleSheet('border:1px solid black ')
         self.vlayout.addWidget(self.BTrain)  
         
-        
-    
-    
-    
+
 class TrainingWindow(QMainWindow, Window):
     def __init__(self, parent ):
         super(TrainingWindow, self).__init__(parent)
@@ -171,7 +168,15 @@ class TrainingWindow(QMainWindow, Window):
         #self.BAugmentation
         self.BTrain.clicked.connect(self.Train)
         
-        
+    def show(self):
+        if not self.parent.dl.initialized():
+            self.CBMono.setEnabled(True)
+            self.CBRGB.setEnabled(True)
+        else:
+            self.CBMono.setEnabled(False)
+            self.CBRGB.setEnabled(False)
+        super(TrainingWindow, self).show()
+
     def ModelType(self):
         self.parent.dl.ModelType = self.CBModel.currentIndex()
         
@@ -187,9 +192,8 @@ class TrainingWindow(QMainWindow, Window):
     def ScaleFactorChanged(self):
         self.parent.dl.ImageScaleFactor = self.SBScaleFactor.value()
   
-        
     def Train(self):
-        if not self.parent.dl.initialized:
+        if not self.parent.dl.initialized():
             if not self.parent.dl.initModel(self.parent.NumOfClasses(), self.CBMono.isChecked()):
                self.parent.PopupWarning('Cannot train model (out of recources?)') 
                return
