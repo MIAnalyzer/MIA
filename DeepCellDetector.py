@@ -331,7 +331,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def getFiles(self):
         if self.imagepath is None:
             return
-        exts = ['*.png', '*.jpg', '*.tif']
+        exts = ['*.png', '*.bmp', '*.jpg', '*.tif']
         self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
         self.files.sort()
         self.currentImage = 0
@@ -410,8 +410,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.dl.LoadModel(filename)
         self.writeStatus('model loaded')
     def saveModel(self):
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         if filename.strip():
@@ -429,8 +429,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Prediction folder not selected')
             return
 
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
         
         images = glob.glob(os.path.join(self.testImagespath,'*.*'))
@@ -457,8 +457,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def predictImage(self):
         if self.CurrentFilePath() is None:
             return
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
         self.clear()
         image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)

@@ -19,24 +19,20 @@ from tensorflow.python.keras.utils.data_utils import Sequence
 
 
 import dl.dl_augment as dl_augment
-import dl.dl_utils as dl_tils
+import dl.dl_utils as dl_utils
 from utils.Contour import LoadLabel
-
-# that moves to deeplearning
-GETWEIGHTMAP = False
 
 
 class TrainingDataGenerator_inMemory(Sequence):
-    # use parent class as parameter and get rid of all others
-    def __init__(self, images, labels, batch_size, numclasses):
-        self.batch_size = batch_size
+    def __init__(self, parent, images, labels):
+        self.batch_size = parent.batch_size
         self.lock = threading.Lock()
         self.images = images
         self.labels = labels
-        self.batch_size = batch_size
-        self.numClasses = numclasses
+        self.numClasses = parent.NumClasses()
         self.indices = list(range(0,images.shape[0]))
         self.numImages = len(self.indices)
+        self.getWeightMap = parent.useWeightedDistanceMap
         random.shuffle(self.indices)
     
     def __len__(self):
@@ -50,15 +46,26 @@ class TrainingDataGenerator_inMemory(Sequence):
             batch_images = self.images[self.indices[batch_start:batch_end]]
             batch_masks = self.labels[self.indices[batch_start:batch_end]]
 
-            #if GETWEIGHTMAP:
+            #if self.getWeightMap:
             # to do 
-            #    weights = dl_tils.createWeightedBorderMapFromLabel(batch_masks)
+            #    weights = dl_utils.createWeightedBorderMapFromLabel(batch_masks)
 
-            img, mask = dl_augment.augment(batch_images,batch_masks)             
-            img = img.astype('float')/255.        
-                
+            img, mask = dl_augment.augment(batch_images,batch_masks)            
+            img = img.astype('float') /255.        
+
             if self.numClasses > 2:
-                mask = to_categorical(mask, num_classes=self.numClasses)
+                if self.getWeightMap:                 
+                    label = mask[...,0]
+                    weights = mask[...,1]
+                    label = to_categorical(label, num_classes=self.numClasses)
+                    mask = np.concatenate((label, weights[...,np.newaxis]), axis = 3) 
+                else:
+                    mask = to_categorical(mask, num_classes=self.numClasses)
+            else:
+                mask = mask.astype('float')
+
+            #if self.numClasses > 2:
+            #    mask = to_categorical(mask, num_classes=self.numClasses)
             return img, mask
         
     def on_epoch_end(self):
@@ -66,23 +73,19 @@ class TrainingDataGenerator_inMemory(Sequence):
 
 
 class TrainingDataGenerator_fromDisk(Sequence):
-    # use parent class as parameter and get rid of all others
-    def __init__(self, images_path, labels_path, batch_size, numclasses, scalefactor=1, monochrome = False):
-        self.batch_size = batch_size
+    def __init__(self, parent, images_path, labels_path):
+        self.batch_size = parent.batch_size
         self.lock = threading.Lock()
         self.images = images_path
         self.labels = labels_path
-        self.batch_size = batch_size
-        self.channels = 1 if monochrome is True else 3
-        self.numClasses = numclasses
-        self.scalefactor = scalefactor
-        
+        self.channels = 1 if parent.MonoChrome() is True else 3
+        self.numClasses = parent.NumClasses()
+        self.scalefactor = parent.ImageScaleFactor
         self.indices = list(range(0,len(self.images)))
         self.numImages = len(self.images)
+        self.getWeightMap = parent.useWeightedDistanceMap
         random.shuffle(self.indices)
 
-
-    
     def __len__(self):
         return int(np.ceil(self.numImages / float(self.batch_size)))
 
@@ -118,19 +121,26 @@ class TrainingDataGenerator_fromDisk(Sequence):
                 train_mask = train_mask.reshape(height, width, 1)
                 train_img = train_img.reshape(height, width, self.channels)
 
-                if GETWEIGHTMAP:
-                    weights = dl_tils.createWeightedBorderMapFromLabel(train_mask)
-                    train_mask = np.concatenate((train_mask, weights), axis = 2)
+                if self.getWeightMap:
+                    weights = dl_utils.createWeightedBorderMapFromLabel(train_mask[np.newaxis,...])
+                    train_mask = np.concatenate((train_mask, weights[0,...]), axis = 2)
 
                 batch_images.append(train_img)
                 batch_masks.append(train_mask)
 
-            
             img, mask = dl_augment.augment(batch_images, batch_masks)
-            
+
             img = img.astype('float')/255.
             if self.numClasses > 2:
-                mask = to_categorical(mask, num_classes=self.numClasses)
+                if self.getWeightMap:                 
+                    label = mask[...,0]
+                    weights = mask[...,1]
+                    label = to_categorical(label, num_classes=self.numClasses)
+                    mask = np.concatenate((label, weights[...,np.newaxis]), axis = 3) 
+                else:
+                    mask = to_categorical(mask, num_classes=self.numClasses)
+            else:
+                mask = mask.astype('float')
             return img, mask
         
     def on_epoch_end(self):
@@ -138,7 +148,7 @@ class TrainingDataGenerator_fromDisk(Sequence):
     
     
     
-def loadTrainingDataSet(imagepath, labelpath, scalefactor=1, monochrome = False):
+def loadTrainingDataSet(imagepath, labelpath, calculateweightmaps, scalefactor=1, monochrome = False):
    
     images, labels = getTrainingDataset(imagepath, labelpath)
    
@@ -152,7 +162,8 @@ def loadTrainingDataSet(imagepath, labelpath, scalefactor=1, monochrome = False)
     # now: all images are resized to the size of the first image 
     # Alternatively: all images could be padded to the largest image size
     img = np.zeros((len(images), height, width, channels)).astype('uint8')
-    mask = np.zeros((len(images), height, width, 1)).astype('uint8')
+    addchannel = 1 if calculateweightmaps else 0
+    mask = np.zeros((len(images), height, width, 1 + addchannel)).astype('uint8')
     
     
     for i in range (len(images)):
@@ -176,11 +187,13 @@ def loadTrainingDataSet(imagepath, labelpath, scalefactor=1, monochrome = False)
 
         # concat
         train_mask = train_mask.reshape(height, width, 1)
+        if calculateweightmaps:
+            weights = dl_utils.createWeightedBorderMapFromLabel(train_mask[np.newaxis,...])
+            train_mask = np.concatenate((train_mask, weights[0,...]), axis = 2)
         train_img = train_img.reshape(height, width, channels)
 
         img[i] = train_img
         mask[i] = train_mask
-
 
         
     return img, mask

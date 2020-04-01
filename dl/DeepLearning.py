@@ -23,6 +23,8 @@ from enum import Enum
 import dl.dl_data as dl_data
 import dl.dl_models as dl_models
 import dl.dl_losses as dl_losses
+import dl.dl_metrics as dl_metrics
+
 
 import utils.Contour
 import multiprocessing
@@ -38,8 +40,8 @@ class DeepLearning():
     def __init__(self):
         
         self.TrainInMemory = True
+        self.useWeightedDistanceMap = True
         self.ImageScaleFactor = 0.3
-        self.initialized = False
         self.worker = multiprocessing.cpu_count() // 2
         
         self.ModelType = 0
@@ -57,34 +59,44 @@ class DeepLearning():
     def initModel(self, numClasses, MonoChrome):
         try:
             self.Model = self.Models.getModel(self.Mode, self.ModelType, numClasses, monochrome = MonoChrome)
+            return self.initialized()
         except:
             return False
-        if self.Model:
-            self.initialized = True
-            return True
        
     def Train(self, trainingimages_path, traininglabels_path):
-        if not self.initialized or trainingimages_path is None or traininglabels_path is None:
+        if not self.initialized() or trainingimages_path is None or traininglabels_path is None:
             return False
 
-        NumClasses = self.Model.output_shape[3]
-        MonoChrome = True if self.Model.input_shape[3] == 1 else False
         if self.TrainInMemory:
-            x,y = dl_data.loadTrainingDataSet(trainingimages_path, traininglabels_path, scalefactor=self.ImageScaleFactor, monochrome = MonoChrome)
-            train_generator = dl_data.TrainingDataGenerator_inMemory(x,y, batch_size = self.batch_size, numclasses = NumClasses)
+            x,y = dl_data.loadTrainingDataSet(trainingimages_path, traininglabels_path, self.useWeightedDistanceMap, scalefactor=self.ImageScaleFactor, monochrome = self.MonoChrome())
+            train_generator = dl_data.TrainingDataGenerator_inMemory(self,x,y)
         else:
             x,y = dl_data.getTrainingDataset(trainingimages_path, traininglabels_path)
-            train_generator = dl_data.TrainingDataGenerator_fromDisk(x,y, batch_size = self.batch_size, numclasses = NumClasses, scalefactor=self.ImageScaleFactor, monochrome = MonoChrome)
+            train_generator = dl_data.TrainingDataGenerator_fromDisk(self,x,y)
 
 
         adam = Adam(lr=self.learning_rate)
-        if NumClasses > 2:
-            loss = dl_losses.focal_loss
+        if self.NumClasses() > 2:
+            # add more?
+            if self.useWeightedDistanceMap:
+                loss = dl_losses.focal_loss_weighted
+                metrics = []
+                #metrics=[dl_metrics.mean_iou_weighted]
+            else:
+                loss = dl_losses.focal_loss
+                metrics = []
+                #metrics=[dl_metrics.mean_iou]
         else:
-            #loss = 'binary_crossentropy'
-            loss = dl_losses.focal_loss_binary
+            if self.useWeightedDistanceMap:
+                loss = dl_losses.focal_loss_binary_weighted
+                metrics = []
+                #metrics=[dl_metrics.Mean_iou_weighted]
+            else:
+                loss = dl_losses.focal_loss_binary
+                metrics = []
+                #metrics=[dl_metrics.mean_iou_binary_weighted]
         # to do implement binary iou
-        self.Model.compile(optimizer=adam, loss=loss, metrics=[MeanIoU(num_classes=NumClasses)])   
+        self.Model.compile(optimizer=adam, loss=loss, metrics=metrics)   
 
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
@@ -96,28 +108,21 @@ class DeepLearning():
        
             
     def PredictImage(self, image):    
-        if not self.initialized or image is None:
+        if not self.initialized() or image is None:
             return None
-        MonoChrome = True if self.Model.input_shape[3] == 1 else False
 
         ### to do -> ensure matching size, either here or in the model
         width = image.shape[1]
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.ImageScaleFactor), int(height*self.ImageScaleFactor)))
-        split_factor = 16
-        pad = (split_factor - image.shape[0] % split_factor, split_factor - image.shape[1] % split_factor)
-        pad = (pad[0] % split_factor, pad[1] % split_factor)            
-        if pad != (0,0):
-            image = np.pad(image, ((0, pad[0]), (0, pad[1])),'constant', constant_values=(0, 0))
-                       
-        
+
         if len(image.shape) == 2:
-            if not MonoChrome:
+            if not self.MonoChrome():
                 image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
             else:
                 image = image[..., np.newaxis]
         elif len(image.shape) == 3:
-            if MonoChrome and image.shape[2] > 1:
+            if self.MonoChrome() and image.shape[2] > 1:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
                 # atm I dont know if bgr2gray squeezes
                 if len(image.shape) == 2:
@@ -125,11 +130,16 @@ class DeepLearning():
         else:
             raise ('wrong image format')
 
+        split_factor = 16
+        pad = (split_factor - image.shape[0] % split_factor, split_factor - image.shape[1] % split_factor)
+        pad = (pad[0] % split_factor, pad[1] % split_factor)            
+        if pad != (0,0):
+            image = np.pad(image, ((0, pad[0]), (0, pad[1]), (0,0)),'constant', constant_values=(0, 0))
+
         image = image[np.newaxis, ...].astype('float')/255.
-        NumClasses = self.Model.output_shape[3]
         # convert_to_tensor is not necessary but improves performance because it avoids retracing
         pred = self.Model.predict(tf.convert_to_tensor(image,np.float32))
-        if NumClasses > 2:
+        if self.NumClasses() > 2:
             pred = np.squeeze(np.argmax(pred, axis = 3))
         else:
             pred = np.squeeze(pred)
@@ -140,21 +150,30 @@ class DeepLearning():
         pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return pred
 
-        
+    def NumClasses(self):
+        if not self.initialized():
+            raise ('model not initialized')
+        return self.Model.output_shape[3]
     
+    def MonoChrome(self):        
+        if not self.initialized():
+            raise ('model not initialized')
+        return True if self.Model.input_shape[3] == 1 else False
+
+    def initialized(self):
+        return True if self.Model else False
+
     def setMode(self, mode):
         self.Mode = mode
             
     def Reset(self):
-        self.initialized = False
+        self.Model = None
     
     def LoadModel(self, modelpath):
         self.Model = load_model (modelpath)
-        if self.Model:
-            self.initialized = True
     
     def SaveModel(self, modelpath):
-        if self.initialized:
+        if self.initialized():
             self.Model.save(modelpath)
     
     
