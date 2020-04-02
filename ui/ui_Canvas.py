@@ -144,10 +144,11 @@ class Canvas(QGraphicsView):
         self.Contours.addContours([Contour(self.parent.activeClass(),c) for c in contours])
         self.redrawImage()
         
-    def finishNewContour(self):
+    def finishNewContour(self, delete = False):
         if self.NewContour is not None:
             self.NewContour.closeContour()
-            cv2.drawContours(self.sketch, [self.NewContour.points], 0, (1), -1)  
+            i = 0 if delete else 1
+            cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1)  
         self.getFinalContours()
         self.NewContour = None
         
@@ -316,7 +317,7 @@ class Canvas(QGraphicsView):
     def setnewTool(self, tool):
         self.lasttool = self.tool  
         self.updateImage()
-        self.parent.ExtendSettings.hide()
+        self.tool.HideSettings()
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         if tool == canvasTool.draw.name:
@@ -325,7 +326,6 @@ class Canvas(QGraphicsView):
             self.tool = Tools.AssignTool(self)
         if tool == canvasTool.expand.name:
             self.tool = Tools.ExtendTool(self)
-            self.parent.ExtendSettings.show()
         if tool == canvasTool.delete.name:
             self.tool = Tools.DeleteTool(self)
         if tool == canvasTool.poly.name:
@@ -333,6 +333,7 @@ class Canvas(QGraphicsView):
         if tool == canvasTool.scale.name:
             self.tool = Tools.ScaleTool(self)
         
+        self.tool.ShowSettings()
         self.parent.writeStatus('Current Tool: ' + self.tool.Text) 
         self.updateCursor()
         

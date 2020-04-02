@@ -52,6 +52,12 @@ class AbstractTool(ABC):
     def Cursor(self):
         pass
 
+    def ShowSettings(self):
+        pass
+
+    def HideSettings(self):
+        pass
+
 
     
     
@@ -120,16 +126,26 @@ class DrawTool(AbstractTool):
             self.canvas.addPoint2NewContour(p2)
 #            if (self.canvas.NewContour.isValid()):
 #                self.canvas.addline(p1,p2)
-            self.canvas.finishNewContour()
+            self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
                 
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             if self.canvas.NewContour is None:
                 self.canvas.prepareNewContour()
                 self.canvas.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
+
+        if e.button() == Qt.RightButton:
+            self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+            self.canvas.setCursor(self.Cursor())
        
     def Cursor(self):
         return Qt.ArrowCursor
+
+    def ShowSettings(self):
+        self.canvas.parent.DrawSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.DrawSettings.hide()
     
     
 class PolygonTool(AbstractTool):
@@ -156,7 +172,10 @@ class PolygonTool(AbstractTool):
                 p2 = self.canvas.NewContour.getFirstPoint()
                 self.canvas.addPoint2NewContour(p2)
                 self.canvas.addline(p1,p2)
-                self.canvas.finishNewContour()
+                self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
+            else:
+                self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+                self.canvas.setCursor(self.Cursor())
         elif e.button() == Qt.LeftButton:
             if self.canvas.NewContour is None:
                 self.canvas.prepareNewContour()
@@ -172,6 +191,12 @@ class PolygonTool(AbstractTool):
 
     def Cursor(self):
         return Qt.ArrowCursor
+
+    def ShowSettings(self):
+        self.canvas.parent.DrawSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.DrawSettings.hide()
     
 class AssignTool(AbstractTool):
     def __init__(self, canvas):
@@ -276,6 +301,8 @@ class ExtendTool(AbstractTool):
         self.canvas.setCursor(self.Cursor())
 
     def createCursor(self):
+        if not self.canvas.hasImage():
+            return Qt.ArrowCursor
         size = (2*self.canvas.parent.SSize.value() + self.canvas.pen_size) * self.canvas.zoomfactor()[0]
         icon = QPixmap(size+1,size+1)
         icon.fill(Qt.transparent)
@@ -295,6 +322,11 @@ class ExtendTool(AbstractTool):
     def Cursor(self):
         return self.createCursor()
     
+    def ShowSettings(self):
+        self.canvas.parent.ExtendSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.ExtendSettings.hide()
 
 class ScaleTool(AbstractTool):
     

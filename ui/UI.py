@@ -200,6 +200,22 @@ class MainWindow(object):
         
         self.vlayout.addWidget(self.SegmentButtons)
         
+
+        self.DrawSettingslayout = QHBoxLayout(self.centralWidget)
+        self.CBAddShape = QRadioButton(self.centralWidget)
+        self.CBAddShape.setText("Add ")
+        self.CBAddShape.setChecked(True)
+        self.CBAddShape.setToolTip('Toggle to add shape')
+        self.CBDelShape = QRadioButton(self.centralWidget)
+        self.CBDelShape.setText("Delete  ")
+        self.CBDelShape.setToolTip('Toggle  to delete shape')
+        self.DrawSettingslayout.addWidget(self.CBAddShape)
+        self.DrawSettingslayout.addWidget(self.CBDelShape)
+        self.DrawSettings = QFrame()
+        self.DrawSettings.setLayout(self.DrawSettingslayout)
+        self.DrawSettings.hide()
+        self.vlayout.addWidget(self.DrawSettings)
+
         self.ExtendSettingslayout = QHBoxLayout(self.centralWidget)
         self.CBExtend = QRadioButton(self.centralWidget)
         self.CBExtend.setText("Expand ")
@@ -218,7 +234,7 @@ class MainWindow(object):
         self.ExtendSettingslayout.addWidget(self.SSize)
         self.ExtendSettings = QFrame()
         self.ExtendSettings.setLayout(self.ExtendSettingslayout)
-        
+        self.ExtendSettings.hide()
         self.vlayout.addWidget(self.ExtendSettings)
         
         
