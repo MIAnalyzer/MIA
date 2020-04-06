@@ -40,7 +40,7 @@ class DeepLearning():
     def __init__(self):
         
         self.TrainInMemory = True
-        self.useWeightedDistanceMap = True
+        self.useWeightedDistanceMap = False
         self.ImageScaleFactor = 0.3
         self.worker = multiprocessing.cpu_count() // 2
         

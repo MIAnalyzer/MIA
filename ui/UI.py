@@ -66,7 +66,7 @@ class MainWindow(object):
         
         
         self.hlayout = QHBoxLayout(self.centralWidget)
-        self.hlayout.setContentsMargins(0, 0, 0, 0)
+        self.hlayout.setContentsMargins(3, 3, 3, 3)
         self.hlayout.setSpacing(6)
         self.centralWidget.setLayout(self.hlayout)
         
@@ -84,6 +84,7 @@ class MainWindow(object):
         self.BSettings.setObjectName("BSettings")
         self.BSettings.setIcon(QIcon('icons/settings.png'))
         self.BSettings.setFlat(True)
+
         self.vlayout.addWidget(self.BSettings)
         
         
