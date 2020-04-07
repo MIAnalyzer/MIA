@@ -38,6 +38,18 @@ def focal_loss_binary_weighted(ytrue, ypred, gamma=2, alpha = .25):
     ytrue = ytrue[...,:-1]
     return focal_loss_binary(ytrue, ypred, weightmap, gamma, alpha)
 
+def focal_loss_function(binary, weighted):
+    if binary:
+        if weighted:
+            return focal_loss_binary_weighted
+        else:
+            return focal_loss_binary
+    else:
+        if weighted:
+            return focal_loss_weighted
+        else:
+            return focal_loss
+
 
 # for loading models trained with custom loss
 get_custom_objects()['focal_loss'] = focal_loss
