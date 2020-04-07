@@ -9,22 +9,8 @@ Created on Wed Feb 19 13:43:00 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from ui.ui_utils import LabelledSpinBox
 
-class LabelledSpinBox(QWidget):
-    def __init__(self,labeltext, parent):
-        super(LabelledSpinBox, self).__init__(parent)
-
-        layout = QHBoxLayout()
-        self.SpinBox = QSpinBox(parent)
-        layout.addWidget(self.SpinBox)
-        self.Label = QLabel(parent)
-        self.Label.setText(labeltext)
-        layout.addWidget(self.Label)
-        self.setLayout(layout)
-
-    def setToolTip(self, tooltip):
-        self.Label.setToolTip(tooltip)
-        self.SpinBox.setToolTip(tooltip)
 
 
 class Window(object):
@@ -60,10 +46,10 @@ class Window(object):
 
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(1)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(1, 1, 1, 1)
         sizelayout = QHBoxLayout(self.centralWidget)
         sizelayout.setSpacing(0)
-        sizelayout.setContentsMargins(0, 0, 0, 0)
+        sizelayout.setContentsMargins(1, 1, 1, 1)
         self.SBModelInputSize_x = LabelledSpinBox(' Input width', self.centralWidget)
         self.SBModelInputSize_x.setToolTip('Set model input width')
         self.SBModelInputSize_x.SpinBox.setRange(1,1024)

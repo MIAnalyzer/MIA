@@ -62,9 +62,7 @@ class MainWindow(object):
         self.AboutMenu.setStyleSheet("QMenu:item:selected { background:#3399ff; color:white;}")
         
         self.setMenuBar(self.menubar)
-        
-        
-        
+
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.hlayout.setContentsMargins(3, 3, 3, 3)
         self.hlayout.setSpacing(6)
@@ -209,7 +207,7 @@ class MainWindow(object):
         self.CBAddShape.setToolTip('Toggle to add shape')
         self.CBDelShape = QRadioButton(self.centralWidget)
         self.CBDelShape.setText("Delete  ")
-        self.CBDelShape.setToolTip('Toggle  to delete shape')
+        self.CBDelShape.setToolTip('Toggle to delete shape')
         self.DrawSettingslayout.addWidget(self.CBAddShape)
         self.DrawSettingslayout.addWidget(self.CBDelShape)
         self.DrawSettings = QFrame()
