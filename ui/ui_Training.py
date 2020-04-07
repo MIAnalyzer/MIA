@@ -10,28 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_Augment import AugmentWindow
 from ui.ui_TrainSettings import TrainSettingsWindow
-
-class QAdaptiveDoubleSpinBox(QDoubleSpinBox):
-    # implementation of QDoubleSpinBox with adaptive step size,
-    # will be obsolete in future as QAbstractSpinBox::AdaptiveDecimalStepType is supported with qt 9.12 (not in python for now)
-    def __init__(self, parent):
-        super(QAdaptiveDoubleSpinBox, self).__init__(parent)
-        self.epsilon = 1e-8
-        
-    def stepBy(self,steps):
-        value = self.value()
-        
-        if steps < 0:
-            self.setSingleStep(value/2)
-        else:
-            self.setSingleStep(value)
-
-        QDoubleSpinBox.stepBy(self,steps)
-        
-    def textFromValue(self, value):
-        return QLocale().toString(round(value, 6), 'f', QLocale.FloatingPointShortest)
-
-
+from ui.ui_utils import QAdaptiveDoubleSpinBox
 
 
 class Window(object):
