@@ -29,7 +29,7 @@ class Window(object):
 
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
-        self.CBMemory.setChecked(True)
+        
 
         self.vlayout.addWidget(self.CBMemory)
         self.vlayout.addWidget(self.LossGroup())
@@ -57,7 +57,6 @@ class Window(object):
         layout.addLayout(hlayout)
         self.CBDitanceMap = QCheckBox("Separate contours",self.centralWidget)
         self.CBDitanceMap.setToolTip('Check to separate adjacent contours')
-        self.CBDitanceMap.setChecked(True)
         layout.addWidget(self.CBDitanceMap)
 
         groupBox.setLayout(layout)
@@ -125,7 +124,7 @@ class Window(object):
         layout.addWidget(self.SBEveryx)
 
         groupBox.setLayout(layout)
-
+        groupBox.setEnabled(False)
         return groupBox
 
 
@@ -135,3 +134,17 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
+        self.CBMemory.setChecked(self.parent.parent.dl.TrainInMemory)
+        self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
+
+        self.CBMemory.clicked.connect(self.InMemoryChanged)
+        self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
+
+
+    def InMemoryChanged(self):
+        self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
+
+    def ShapeSeparationChanged(self):
+        self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
+
+

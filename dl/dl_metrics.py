@@ -42,3 +42,17 @@ def mean_iou(y_true, y_pred):
 def mean_iou_weighted(y_true, y_pred):
     y_true = y_true[...,:-1]
     return mean_iou(y_true, y_pred)
+
+
+def iou_function(binary, weighted):
+    return [] # <- not running atm
+    if binary:
+        if weighted:
+            return [mean_iou_binary_weighted]
+        else:
+            return [mean_iou_binary]
+    else:
+        if weighted:
+            return [mean_iou_weighted]
+        else:
+            return [mean_iou]

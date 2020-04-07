@@ -34,7 +34,14 @@ class dlMode(Enum):
     segmentation = 2
     # add more: tracking, 3Dsegmentation
 
+class dlLoss(Enum):
+    focal = 1
 
+class dlMetric(Enum):
+    iou = 1
+
+class dlOptim(Enum):
+    adam = 1
 
 class DeepLearning():
     def __init__(self):
@@ -53,7 +60,10 @@ class DeepLearning():
         self.batch_size = 4
         self.epochs = 100
         self.learning_rate = 1e-5
-        
+
+        self.Loss = dlLoss.focal
+        self.Metric = dlMetric.iou
+        self.Optimizer = dlOptim.adam
         
         
     def initModel(self, numClasses, MonoChrome):
@@ -74,30 +84,7 @@ class DeepLearning():
             x,y = dl_data.getTrainingDataset(trainingimages_path, traininglabels_path)
             train_generator = dl_data.TrainingDataGenerator_fromDisk(self,x,y)
 
-
-        adam = Adam(lr=self.learning_rate)
-        if self.NumClasses() > 2:
-            # add more?
-            if self.useWeightedDistanceMap:
-                loss = dl_losses.focal_loss_weighted
-                metrics = []
-                #metrics=[dl_metrics.mean_iou_weighted]
-            else:
-                loss = dl_losses.focal_loss
-                metrics = []
-                #metrics=[dl_metrics.mean_iou]
-        else:
-            if self.useWeightedDistanceMap:
-                loss = dl_losses.focal_loss_binary_weighted
-                metrics = []
-                #metrics=[dl_metrics.Mean_iou_weighted]
-            else:
-                loss = dl_losses.focal_loss_binary
-                metrics = []
-                #metrics=[dl_metrics.mean_iou_binary_weighted]
-        # to do implement binary iou
-        self.Model.compile(optimizer=adam, loss=loss, metrics=metrics)   
-
+        self.Model.compile(optimizer=self.__getOptimizer(), loss=self.__getLoss(), metrics=self.__getMetrics())  
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
         try:
@@ -160,6 +147,16 @@ class DeepLearning():
             raise ('model not initialized')
         return True if self.Model.input_shape[3] == 1 else False
 
+    def parameterFit(self, nclasses, mono):
+        if not self.initialized():
+            return False    
+        if nclasses == 2:
+            nclasses = 1
+        if nclasses == self.NumClasses() and mono == self.MonoChrome():
+            return True       
+        else:
+            return False
+
     def initialized(self):
         return True if self.Model else False
 
@@ -176,4 +173,15 @@ class DeepLearning():
         if self.initialized():
             self.Model.save(modelpath)
     
-    
+    def __getLoss(self):
+        if self.Loss == dlLoss.focal:
+            return dl_losses.focal_loss_function(binary = self.NumClasses() <= 2, weighted = self.useWeightedDistanceMap)
+
+    def __getMetrics(self):
+        if self.Metric == dlMetric.iou:
+            return dl_metrics.iou_function(binary = self.NumClasses() <= 2, weighted = self.useWeightedDistanceMap)
+
+    def __getOptimizer(self):
+        if self.Optimizer == dlOptim.adam:
+            optim = Adam(lr=self.learning_rate)
+        return optim

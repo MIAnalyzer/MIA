@@ -169,9 +169,11 @@ class TrainingWindow(QMainWindow, Window):
         if not self.parent.dl.initialized():
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)
+            self.CBModel.setEnabled(True)
         else:
             self.CBMono.setEnabled(False)
             self.CBRGB.setEnabled(False)
+            self.CBModel.setEnabled(False)
         super(TrainingWindow, self).show()
 
     def ModelType(self):
@@ -185,12 +187,13 @@ class TrainingWindow(QMainWindow, Window):
         
     def LRChanged(self):
         self.parent.dl.learning_rate = self.SBLearningRate.value()
+        self.settings_form.SBlr.SpinBox.setValue(self.SBLearningRate.value())
         
     def ScaleFactorChanged(self):
         self.parent.dl.ImageScaleFactor = self.SBScaleFactor.value()
   
     def Train(self):
-        if not self.parent.dl.initialized():
+        if not self.parent.dl.initialized() or not self.parent.dl.parameterFit(self.parent.NumOfClasses(), self.CBMono.isChecked()):
             if not self.parent.dl.initModel(self.parent.NumOfClasses(), self.CBMono.isChecked()):
                self.parent.PopupWarning('Cannot train model (out of recources?)') 
                return
