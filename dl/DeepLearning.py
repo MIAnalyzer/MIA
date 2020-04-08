@@ -24,7 +24,7 @@ import dl.dl_data as dl_data
 import dl.dl_models as dl_models
 import dl.dl_losses as dl_losses
 import dl.dl_metrics as dl_metrics
-
+import dl.dl_training_record as dl_training_record
 
 import utils.Contour
 import multiprocessing
@@ -87,8 +87,9 @@ class DeepLearning():
         self.Model.compile(optimizer=self.__getOptimizer(), loss=self.__getLoss(), metrics=self.__getMetrics())  
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
+        callbacks = [dl_training_record.TrainingRecording(self)]
         try:
-            self.Model.fit(train_generator,verbose=1, callbacks=None, epochs=self.epochs, workers = self.worker)
+            self.Model.fit(train_generator,verbose=1, callbacks=callbacks, epochs=self.epochs, workers = self.worker)
         except:
             return False
         return True
