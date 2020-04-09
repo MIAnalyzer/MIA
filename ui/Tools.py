@@ -23,7 +23,7 @@ class canvasTool(Enum):
     draw = 'draw'
     assign = 'assign'
     delete = 'delete'
-    expand = 'extend'
+    extend = 'extend'
     poly =  'poly'
     scale =  'scale'
 
@@ -253,7 +253,7 @@ class ExtendTool(AbstractTool):
         super().__init__(canvas)
         self.canvas = canvas
         self.Text = "Extend/Erase"
-        self.type = canvasTool.expand
+        self.type = canvasTool.extend
         self.inprogress = False
         self.lock = threading.RLock()
         
