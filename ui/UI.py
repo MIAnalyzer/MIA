@@ -267,17 +267,35 @@ class MainWindow(object):
         line.setFrameShadow(QFrame.Sunken)
         self.vlayout.addWidget(line)
 
-            
+        
+        self.ralayout = QHBoxLayout(self.centralWidget)
+        self.Bautoseg = QPushButton(self.centralWidget)
+        self.Bautoseg.setObjectName("Bautoseg")
+        self.Bautoseg.setIcon(QIcon('icons/autoseg.png'))
+        self.Bautoseg.setToolTip('autosegment image')
+        self.Bautoseg.setText("Auto Segment")
+        self.Bautoseg.setFlat(True)
+        self.Bautoseg.setStyleSheet('text-align:left')    
+
         self.Bclear = QPushButton(self.centralWidget)
         self.Bclear.setObjectName("Bclear")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
-        self.Bclear.setText("Clear All")
+        self.Bclear.setText("Clear Image")
         self.Bclear.setToolTip('Reset image')
         self.Bclear.setFlat(True)
         self.Bclear.setStyleSheet('text-align:left')
-        self.vlayout.addWidget(self.Bclear)    
+
+
+        self.ralayout.addWidget(self.Bautoseg)    
+        self.ralayout.addWidget(self.Bclear)    
+        self.vlayout.addItem(self.ralayout) 
         
-        
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        self.vlayout.addWidget(line)
+
+        self.trlayout = QHBoxLayout(self.centralWidget)
         self.Btrain = QPushButton(self.centralWidget)
         self.Btrain.setObjectName("Btrain")
         self.Btrain.setText("Train Model")
@@ -285,12 +303,20 @@ class MainWindow(object):
         self.Btrain.setIcon(QIcon('icons/train.png'))
         self.Btrain.setFlat(True)
         self.Btrain.setStyleSheet('text-align:left')
-        self.vlayout.addWidget(self.Btrain)    
+                
+        self.Bresetmodel = QPushButton(self.centralWidget)
+        self.Bresetmodel.setObjectName("Bresetmodel")
+        self.Bresetmodel.setIcon(QIcon('icons/resetmodel.png'))
+        self.Bresetmodel.setToolTip('reset trained model')
+        self.Bresetmodel.setText("Reset")
+        self.Bresetmodel.setFlat(True)
+        self.Bresetmodel.setStyleSheet('text-align:left')
+
+        self.trlayout.addWidget(self.Btrain)    
+        self.trlayout.addWidget(self.Bresetmodel)    
+        self.vlayout.addItem(self.trlayout) 
             
-        line = QFrame(self.centralWidget)
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        self.vlayout.addWidget(line)
+
         
         self.predictlayout = QHBoxLayout(self.centralWidget)
         self.Bpredictall = QPushButton(self.centralWidget)
@@ -333,6 +359,9 @@ class MainWindow(object):
         
         self.vlayout.addItem(self.lslayout) 
         
+
+        
+
         
         ##############
         self.classList = ClassList(self)
@@ -456,10 +485,10 @@ class ClassList(QListWidget):
         self.parent.updateClassList()
 
     def resize(self):
-        dynamic_height = self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth()
-        self.setFixedHeight(min(dynamic_height, 380))
-        self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth())
-        
+        dynamic_height = min(self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth(), 380)
+        self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), dynamic_height)
+
+
     def setClass(self, i):
         item = self.item(i)
         self.itemWidget(item).rb_select.setChecked(True)
