@@ -25,6 +25,7 @@ import dl.dl_models as dl_models
 import dl.dl_losses as dl_losses
 import dl.dl_metrics as dl_metrics
 import dl.dl_training_record as dl_training_record
+import dl.dl_hed as dl_hed
 
 import utils.Contour
 import multiprocessing
@@ -50,6 +51,7 @@ class DeepLearning():
         self.useWeightedDistanceMap = False
         self.ImageScaleFactor = 0.3
         self.worker = multiprocessing.cpu_count() // 2
+        self.hed = dl_hed.HED_Segmentation()
         
         self.ModelType = 0
         self.Model = None
@@ -137,6 +139,14 @@ class DeepLearning():
         pred = pred.astype('uint8')
         pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return pred
+
+    def AutoSegment(self, image):    
+        if image is None:
+            return None
+
+        pred = self.hed.applyHED(image)
+        _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        return thresh
 
     def NumClasses(self):
         if not self.initialized():

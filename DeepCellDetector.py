@@ -131,6 +131,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bpredict.clicked.connect(self.predictImage)
         self.Bloadmodel.clicked.connect(self.loadModel)
         self.Bsavemodel.clicked.connect(self.saveModel)
+        self.Bautoseg.clicked.connect(self.autoSegment)
+        self.Bresetmodel.clicked.connect(self.resetModel)
         
         self.Bresults.clicked.connect(self.showResultsWindow)
         self.BSettings.clicked.connect(self.showSettingsWindow)
@@ -402,13 +404,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def writeStatus(self,msg):
         self.Status.setText(msg)
 
-
     ## deep learning  
     def loadModel(self):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
         if filename:
             self.dl.LoadModel(filename)
         self.writeStatus('model loaded')
+
     def saveModel(self):
         if not self.dl.initialized():
             self.PopupWarning('No model trained/loaded')
@@ -416,6 +418,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         if filename.strip():
             self.dl.SaveModel(filename)
+
+    def resetModel(self):
+        self.dl.Reset()
     
     def showTrainingWindow(self):
         if self.trainImagespath is None or self.trainImageLabelspath is None:
@@ -467,6 +472,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Cannot load image')
             return
         cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+        contours = Contour.extractContoursFromLabel(prediction)
+        Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+        self.canvas.ReloadImage()
+
+    def autoSegment(self):
+        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+        prediction = self.dl.AutoSegment(image)
         contours = Contour.extractContoursFromLabel(prediction)
         Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
         self.canvas.ReloadImage()

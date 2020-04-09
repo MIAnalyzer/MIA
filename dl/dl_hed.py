@@ -1,0 +1,49 @@
+
+
+import cv2
+
+# see https://github.com/opencv/opencv/blob/master/samples/dnn/edge_detection.py
+
+class CropLayer(object):
+    def __init__(self, params, blobs):
+        self.xstart = 0
+        self.xend = 0
+        self.ystart = 0
+        self.yend = 0
+ 
+    # Our layer receives two inputs. We need to crop the first input blob
+    # to match a shape of the second one (keeping batch size and number of channels)
+    def getMemoryShapes(self, inputs):
+        inputShape, targetShape = inputs[0], inputs[1]
+        batchSize, numChannels = inputShape[0], inputShape[1]
+        height, width = targetShape[2], targetShape[3]
+ 
+        self.ystart = (inputShape[2] - targetShape[2]) // 2
+        self.xstart = (inputShape[3] - targetShape[3]) // 2
+        self.yend = self.ystart + height
+        self.xend = self.xstart + width
+ 
+        return [[batchSize, numChannels, height, width]]
+ 
+    def forward(self, inputs):
+        return [inputs[0][:,:,self.ystart:self.yend,self.xstart:self.xend]]
+
+
+class HED_Segmentation():
+    def __init__(self):
+        cv2.dnn_registerLayer('Crop', CropLayer)
+        proto = './hed/deploy.prototxt'
+        model = './hed/hed_pretrained_bsds.caffemodel'
+        self.net = cv2.dnn.readNet(proto, model)
+
+    def applyHED(self, image):
+        if len(image.shape) == 2 or image.shape[2] == 1:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
+        height, width = image.shape[:2]
+        blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(width, height),mean=(104.00698793, 116.66876762, 122.67891434),swapRB=False, crop=False)
+        self.net.setInput(blob)
+        hed = self.net.forward()
+        hed = cv2.resize(hed[0, 0], (width, height))
+        hed = (255 * hed).astype("uint8")
+        return hed
+

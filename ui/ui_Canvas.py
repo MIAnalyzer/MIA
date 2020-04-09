@@ -41,7 +41,7 @@ class Canvas(QGraphicsView):
         self.sketch = None
         
         
-        self.setCursor(Qt.OpenHandCursor)
+        #self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
         self.scene = QGraphicsScene(self)
         self.scene.addItem(self.displayedimage)

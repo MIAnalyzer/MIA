@@ -190,7 +190,7 @@ class Contour():
         skel = morphology.skeletonize(blurred>0,  method='lee')
         
         # contour based length measurement
-        _, contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         c = contours[np.argmax([len(l) for l in contours])] + ([l,t])
         self.skeleton = cv2.approxPolyDP(c, 3, False)
@@ -247,10 +247,9 @@ def extractContoursFromLabel(image):
     image[np.where(image == 255)] = 0
     ret_contours = []
     maxclass = np.max(image)
-
     for i in range(1,maxclass+1):
         thresh = (image == i).astype(np.uint8)
-        _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours is not None:
             for c in contours:
                 ret_contours.append(Contour(i,c))
@@ -267,7 +266,7 @@ def drawContoursToImage(image, contours):
 def extractContoursFromImage(image):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
-    _, contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours is not None:
         for c in contours:
             ret_contours.append(c)
