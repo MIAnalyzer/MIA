@@ -9,7 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from ui.ui_utils import ClassList, ClassWidget
+from ui.ui_utils import ClassList, ClassWidget, DCDButton
 
 
 class MainWindow(object):
@@ -74,11 +74,8 @@ class MainWindow(object):
         
         
         ## vertical layout - buttons
-        self.BSettings = QPushButton(self.centralWidget)
-        self.BSettings.setText('Settings')
-        self.BSettings.setStyleSheet('text-align:left')
+        self.BSettings = DCDButton(self.centralWidget, 'Settings')
         self.BSettings.setToolTip('Open settings sindow')
-        self.BSettings.setObjectName("BSettings")
         self.BSettings.setIcon(QIcon('icons/settings.png'))
         self.BSettings.setFlat(True)
 
@@ -100,84 +97,68 @@ class MainWindow(object):
         bheight = 28
         
         self.TrainImagelayout = QHBoxLayout(self.centralWidget)
-        self.BLoadTrainImages = QPushButton(self.centralWidget)
-        self.BLoadTrainImages.setObjectName("BLoadTrainImages")
+        self.BLoadTrainImages = DCDButton(self.centralWidget)
         self.BLoadTrainImages.setToolTip('Set folder with training images')
         self.BLoadTrainImages.setMaximumSize(bwidth, bheight)
         self.BLoadTrainImages.setIcon(QIcon('icons/load.png'))
-        self.BLoadTrainImages.setFlat(True)
-        self.BTrainImageFolder = QPushButton(self.centralWidget)
-        self.BTrainImageFolder.setText("Set Training Image Folder")
-        self.BTrainImageFolder.setObjectName("BTrainImageFolder")
+
+        self.BTrainImageFolder = DCDButton(self.centralWidget, "Set Training Image Folder")
         self.BTrainImageFolder.setToolTip('Training image folder')
-        self.BTrainImageFolder.setFlat(True)
-        self.BTrainImageFolder.setStyleSheet('text-align:left')
         self.BTrainImageFolder.setEnabled(False)
         self.TrainImagelayout.addWidget(self.BLoadTrainImages)
         self.TrainImagelayout.addWidget(self.BTrainImageFolder)
         self.vlayout.addItem(self.TrainImagelayout)
         
         self.TestImagelayout = QHBoxLayout(self.centralWidget)
-        self.BLoadTestImages = QPushButton(self.centralWidget)
-        self.BLoadTestImages.setObjectName("BLoadTestImages")
+        self.BLoadTestImages = DCDButton(self.centralWidget)
         self.BLoadTestImages.setMaximumSize(bwidth, bheight)
         self.BLoadTestImages.setToolTip('Set folder with prediction images')
         self.BLoadTestImages.setIcon(QIcon('icons/load.png'))
-        self.BLoadTestImages.setFlat(True)
-        self.BTestImageFolder = QPushButton(self.centralWidget)
-        self.BTestImageFolder.setText("Set Test Image Folder")
-        self.BTestImageFolder.setObjectName("BTestImageFolder")
-        self.BTestImageFolder.setFlat(True)
+
+        self.BTestImageFolder = DCDButton(self.centralWidget,"Set Test Image Folder")
         self.BTestImageFolder.setToolTip('Prediction image folder')
-        self.BTestImageFolder.setStyleSheet('text-align:left')
         self.BTestImageFolder.setEnabled(False)
         self.TestImagelayout.addWidget(self.BLoadTestImages)
         self.TestImagelayout.addWidget(self.BTestImageFolder)
         self.vlayout.addItem(self.TestImagelayout)
         
-        
-        
+
         ### segmentation
         self.SButtonslayout = QHBoxLayout(self.centralWidget)
         self.SButtonslayout.setContentsMargins(0, 0, 0, 0)
-        self.Bdrag = QPushButton(self.centralWidget)
+        self.Bdrag = DCDButton(self.centralWidget)
         self.Bdrag.setToolTip('Select drag tool')
+        self.Bdrag.setObjectName('drag')
         self.Bdrag.setMaximumSize(bwidth, bheight)
-        self.Bdrag.setObjectName("Bdrag")
         self.Bdrag.setIcon(QIcon('icons/drag.png'))
-        self.Bdrag.setFlat(True)
         self.SButtonslayout.addWidget(self.Bdrag)
 
-        self.Bdraw = QPushButton(self.centralWidget)
+        self.Bdraw = DCDButton(self.centralWidget)
         self.Bdraw.setMaximumSize(bwidth, bheight)
+        self.Bdraw.setObjectName('draw')
         self.Bdraw.setToolTip('Select drawing tool')
-        self.Bdraw.setObjectName("Bdraw")
         self.Bdraw.setIcon(QIcon('icons/draw.png'))
-        self.Bdraw.setFlat(True)
         self.SButtonslayout.addWidget(self.Bdraw)
         
-        self.Bpoly = QPushButton(self.centralWidget)
+        self.Bpoly = DCDButton(self.centralWidget)
         self.Bpoly.setMaximumSize(bwidth, bheight)
-        self.Bpoly.setObjectName("Bpoly")
+        self.Bpoly.setObjectName('poly')
         self.Bpoly.setToolTip('Select polygon tool')
         self.Bpoly.setIcon(QIcon('icons/poly.png'))
-        self.Bpoly.setFlat(True)
         self.SButtonslayout.addWidget(self.Bpoly)
 
-        self.Bassign = QPushButton(self.centralWidget)
+        self.Bassign = DCDButton(self.centralWidget)
         self.Bassign.setMaximumSize(bwidth, bheight)
-        self.Bassign.setObjectName("Bassign")
-        self.Bassign.setToolTip('Select assgin class tool')
+        self.Bassign.setObjectName('assign')
+        self.Bassign.setToolTip('Select assign class tool')
         self.Bassign.setIcon(QIcon('icons/assign.png'))
-        self.Bassign.setFlat(True)
         self.SButtonslayout.addWidget(self.Bassign)
         
-        self.Bextend = QPushButton(self.centralWidget)
+        self.Bextend = DCDButton(self.centralWidget)
         self.Bextend.setMaximumSize(bwidth, bheight)
-        self.Bextend.setObjectName("Bexpand")
+        self.Bextend.setObjectName('extend')
         self.Bextend.setToolTip('Select extend/erase tool')
         self.Bextend.setIcon(QIcon('icons/expand.png'))
-        self.Bextend.setFlat(True)
         self.SButtonslayout.addWidget(self.Bextend)
         
         line = QFrame(self.centralWidget)
@@ -185,12 +166,11 @@ class MainWindow(object):
         line.setFrameShadow(QFrame.Sunken)
         self.vlayout.addWidget(line)
         
-        self.Bdelete = QPushButton(self.centralWidget)
+        self.Bdelete = DCDButton(self.centralWidget)
         self.Bdelete.setMaximumSize(bwidth, bheight)
-        self.Bdelete.setObjectName("Bdelete")
+        self.Bdelete.setObjectName('delete')
         self.Bdelete.setToolTip('Select delete shape tool')
         self.Bdelete.setIcon(QIcon('icons/delete.png'))
-        self.Bdelete.setFlat(True)
         self.SButtonslayout.addWidget(self.Bdelete)
 
         self.SegmentButtons = QFrame()
@@ -239,20 +219,16 @@ class MainWindow(object):
         ### classification
         self.CButtonslayout = QHBoxLayout(self.centralWidget)
         self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
-        self.BsetClass = QPushButton(self.centralWidget)
+        self.BsetClass = DCDButton(self.centralWidget)
         self.BsetClass.setMaximumSize(bwidth, bheight)
-        self.BsetClass.setObjectName("BsetClass")
         self.BsetClass.setToolTip('Set active class')
         self.BsetClass.setIcon(QIcon('icons/setclass.png'))
-        self.BsetClass.setFlat(True)
         self.CButtonslayout.addWidget(self.BsetClass)
 
-        self.BassignClass = QPushButton(self.centralWidget)
+        self.BassignClass = DCDButton(self.centralWidget)
         self.BassignClass.setMaximumSize(bwidth, bheight)
-        self.BassignClass.setObjectName("BassignClass")
         self.BassignClass.setToolTip('Assign current class')
         self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
-        self.BassignClass.setFlat(True)
         self.CButtonslayout.addWidget(self.BassignClass)
         
         self.ClassificationButtons = QFrame()
@@ -268,21 +244,15 @@ class MainWindow(object):
 
         
         self.ralayout = QHBoxLayout(self.centralWidget)
-        self.Bautoseg = QPushButton(self.centralWidget)
+        self.Bautoseg = DCDButton(self.centralWidget, "Auto Segment")
         self.Bautoseg.setObjectName("Bautoseg")
         self.Bautoseg.setIcon(QIcon('icons/autoseg.png'))
         self.Bautoseg.setToolTip('autosegment image')
-        self.Bautoseg.setText("Auto Segment")
-        self.Bautoseg.setFlat(True)
-        self.Bautoseg.setStyleSheet('text-align:left')    
+   
 
-        self.Bclear = QPushButton(self.centralWidget)
-        self.Bclear.setObjectName("Bclear")
+        self.Bclear = DCDButton(self.centralWidget, "Clear Image")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
-        self.Bclear.setText("Clear Image")
         self.Bclear.setToolTip('Reset image')
-        self.Bclear.setFlat(True)
-        self.Bclear.setStyleSheet('text-align:left')
 
 
         self.ralayout.addWidget(self.Bautoseg)    
@@ -295,21 +265,14 @@ class MainWindow(object):
         self.vlayout.addWidget(line)
 
         self.trlayout = QHBoxLayout(self.centralWidget)
-        self.Btrain = QPushButton(self.centralWidget)
-        self.Btrain.setObjectName("Btrain")
-        self.Btrain.setText("Train Model")
+        self.Btrain = DCDButton(self.centralWidget, "Train Model")
         self.Btrain.setToolTip('Open training window')
         self.Btrain.setIcon(QIcon('icons/train.png'))
-        self.Btrain.setFlat(True)
-        self.Btrain.setStyleSheet('text-align:left')
+
                 
-        self.Bresetmodel = QPushButton(self.centralWidget)
-        self.Bresetmodel.setObjectName("Bresetmodel")
+        self.Bresetmodel = DCDButton(self.centralWidget, "Reset Model")
         self.Bresetmodel.setIcon(QIcon('icons/resetmodel.png'))
         self.Bresetmodel.setToolTip('reset trained model')
-        self.Bresetmodel.setText("Reset")
-        self.Bresetmodel.setFlat(True)
-        self.Bresetmodel.setStyleSheet('text-align:left')
 
         self.trlayout.addWidget(self.Btrain)    
         self.trlayout.addWidget(self.Bresetmodel)    
@@ -318,47 +281,29 @@ class MainWindow(object):
 
         
         self.predictlayout = QHBoxLayout(self.centralWidget)
-        self.Bpredictall = QPushButton(self.centralWidget)
-        self.Bpredictall.setObjectName("Bpredict")
+        self.Bpredictall = DCDButton(self.centralWidget, "Predict All")
         self.Bpredictall.setIcon(QIcon('icons/predict.png'))
         self.Bpredictall.setToolTip('Predict all images in prediction folder')
-        self.Bpredictall.setText("Predict All")
-        self.Bpredictall.setFlat(True)
-        self.Bpredictall.setStyleSheet('text-align:left')
-        self.Bpredict = QPushButton(self.centralWidget)
-        self.Bpredict.setObjectName("Bpredict")
+        self.Bpredict = DCDButton(self.centralWidget, "Predict Current")
         self.Bpredict.setIcon(QIcon('icons/predict.png'))
         self.Bpredict.setToolTip('Predict current image')
-        self.Bpredict.setText("Predict Current")
-        self.Bpredict.setFlat(True)
-        self.Bpredict.setStyleSheet('text-align:left')
         self.predictlayout.addWidget(self.Bpredictall)    
         self.predictlayout.addWidget(self.Bpredict)
         
         self.vlayout.addItem(self.predictlayout) 
         
         self.lslayout = QHBoxLayout(self.centralWidget)
-        self.Bloadmodel = QPushButton(self.centralWidget)
-        self.Bloadmodel.setObjectName("Bloadmodel")
+        self.Bloadmodel = DCDButton(self.centralWidget, "Load Model")
         self.Bloadmodel.setIcon(QIcon('icons/loadmodel.png'))
         self.Bloadmodel.setToolTip('Load trained model')
-        self.Bloadmodel.setText("Load")
-        self.Bloadmodel.setFlat(True)
-        self.Bloadmodel.setStyleSheet('text-align:left')
         
-        self.Bsavemodel = QPushButton(self.centralWidget)
-        self.Bsavemodel.setObjectName("Bsavemodel")
+        self.Bsavemodel = DCDButton(self.centralWidget, "Save Model")
         self.Bsavemodel.setIcon(QIcon('icons/savemodel.png'))
         self.Bsavemodel.setToolTip('Save current model')
-        self.Bsavemodel.setText("Save")
-        self.Bsavemodel.setFlat(True)
-        self.Bsavemodel.setStyleSheet('text-align:left')
         self.lslayout.addWidget(self.Bloadmodel)    
         self.lslayout.addWidget(self.Bsavemodel)
         
         self.vlayout.addItem(self.lslayout) 
-        
-
         
 
         
@@ -369,17 +314,15 @@ class MainWindow(object):
         self.vlayout.addWidget(self.classList)
         
         self.add_del_layout = QHBoxLayout(self.centralWidget)
-        self.Baddclass = QPushButton(self.centralWidget)
-        self.Baddclass.setText("+")
+        self.Baddclass = DCDButton(self.centralWidget, "+")
         self.Baddclass.setToolTip('Add a new class')
-        self.Baddclass.setFlat(True)
         self.Baddclass.setMaximumHeight(bheight)
+        self.Baddclass.setStyleSheet('text-align:center')
         self.add_del_layout.addWidget(self.Baddclass)
-        self.Bdelclass = QPushButton(self.centralWidget)
-        self.Bdelclass.setText("-")
-        self.Bdelclass.setFlat(True)
+        self.Bdelclass = DCDButton(self.centralWidget, "-")
         self.Bdelclass.setToolTip('Delete class')
         self.Bdelclass.setMaximumHeight(bheight)
+        self.Bdelclass.setStyleSheet('text-align:center')
         self.add_del_layout.addWidget(self.Bdelclass)
         self.vlayout.addItem(self.add_del_layout)
         line = QFrame(self.centralWidget)
@@ -387,19 +330,13 @@ class MainWindow(object):
         line.setFrameShadow(QFrame.Sunken)
         self.vlayout.addWidget(line)
         
-        self.BPostProcessing = QPushButton(self.centralWidget)
-        self.BPostProcessing.setText('Postprocessing')
-        self.BPostProcessing.setStyleSheet('text-align:left')
+        self.BPostProcessing = DCDButton(self.centralWidget, "Postprocessing")
         self.BPostProcessing.setObjectName("BPostProcessing")
         self.BPostProcessing.setIcon(QIcon('icons/postprocessing.png'))
         self.BPostProcessing.setToolTip('Open postprocessing window')
-        self.BPostProcessing.setFlat(True)
         self.vlayout.addWidget(self.BPostProcessing)
         
-        self.Bresults = QPushButton(self.centralWidget)
-        self.Bresults.setText("Results")
-        self.Bresults.setFlat(True)
-        self.Bresults.setStyleSheet('text-align:left')
+        self.Bresults = DCDButton(self.centralWidget, "Results")
         self.Bresults.setIcon(QIcon('icons/results.png'))
         self.Bresults.setToolTip('Open results window')
         self.vlayout.addWidget(self.Bresults)
@@ -408,17 +345,13 @@ class MainWindow(object):
         self.vlayout.addItem(verticalSpacer)
         
         self.nextprev_layout = QHBoxLayout(self.centralWidget)
-        self.Bprev = QPushButton(self.centralWidget)
-        self.Bprev.setObjectName("Bprev")
-        self.Bprev.setText("<")
-        self.Bprev.setFlat(True)
+        self.Bprev = DCDButton(self.centralWidget, "<")
+        self.Bprev.setStyleSheet('text-align:center')
         self.Bprev.setToolTip('Previous window')
         self.nextprev_layout.addWidget(self.Bprev)
-        self.Bnext = QPushButton(self.centralWidget)
-        self.Bnext.setObjectName("Bnext")
-        self.Bnext.setText(">")
+        self.Bnext = DCDButton(self.centralWidget, ">")
+        self.Bnext.setStyleSheet('text-align:center')
         self.Bnext.setToolTip('Next window')
-        self.Bnext.setFlat(True)
         self.nextprev_layout.addWidget(self.Bnext)
         self.vlayout.addItem(self.nextprev_layout)
         

@@ -352,7 +352,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.ReloadImage()
          
     def setCanvasMode(self):
-        tool = self.sender().objectName()[1:]
+        tool = self.sender().objectName()
         self.setCanvasTool(tool)
         
     def setCanvasTool(self, tool):

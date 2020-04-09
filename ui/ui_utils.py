@@ -70,12 +70,19 @@ class LabelledAdaptiveDoubleSpinBox(QWidget):
         self.Label.setToolTip(tooltip)
         self.SpinBox.setToolTip(tooltip)
 
-
+class DCDButton(QPushButton):
+    def __init__(self, parent, text=None):
+        super(DCDButton, self).__init__(parent)
+        self.parent = parent
+        if text:
+            self.setText(text)
+            self.setStyleSheet('text-align:left')
+        self.setFlat(True)
 
 
 class ClassList(QListWidget):
     def __init__(self, parent):
-        super(ClassList, self).__init__(parent.centralWidget)
+        super(ClassList, self).__init__(parent)
         self.parent = parent
         self.setSelectionMode(QAbstractItemView.NoSelection)
 
@@ -129,7 +136,7 @@ class ClassList(QListWidget):
 class ClassWidget(QWidget):
     ButtonGroup = QButtonGroup()
     def __init__(self, name, id, parent):
-        super(ClassWidget, self).__init__(parent.centralWidget)
+        super(ClassWidget, self).__init__(parent)
         self.id = id
         self.parent = parent
         r = random.randint(0,255)
