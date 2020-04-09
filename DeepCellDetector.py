@@ -18,6 +18,7 @@ import os
 import cv2 
 import multiprocessing
 import concurrent.futures
+from contextlib import contextmanager
 
 import dl.DeepLearning as DeepLearning
 from ui.UI import MainWindow
@@ -408,8 +409,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def loadModel(self):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
         if filename:
-            self.dl.LoadModel(filename)
-        self.writeStatus('model loaded')
+            with self.wait_cursor():
+                self.dl.LoadModel(filename)
+                self.writeStatus('model loaded')
 
     def saveModel(self):
         if not self.dl.initialized():
@@ -417,10 +419,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         if filename.strip():
-            self.dl.SaveModel(filename)
+            with self.wait_cursor():
+                self.dl.SaveModel(filename)
+                self.writeStatus('model saved')
 
     def resetModel(self):
         self.dl.Reset()
+        self.writeStatus('model reset')
     
     def showTrainingWindow(self):
         if self.trainImagespath is None or self.trainImageLabelspath is None:
@@ -437,19 +442,20 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.dl.initialized():
             self.PopupWarning('No model trained/loaded')
             return
-        
-        images = glob.glob(os.path.join(self.testImagespath,'*.*'))
-        images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
+        with self.wait_cursor():
+            images = glob.glob(os.path.join(self.testImagespath,'*.*'))
+            images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
 
-        self.initProgress(len(images))
-        print('start')
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
-            executor.map(self.predictSingleImageFromStack,images)
+            self.initProgress(len(images))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
+                executor.map(self.predictSingleImageFromStack,images)
 
-        self.ProgressFinished()
-        self.switchToTestFolder()
+            self.ProgressFinished()
+            self.switchToTestFolder()
+            self.writeStatus(str(len(images)) + ' images predicted')
         
     def predictSingleImageFromStack(self, imagepath):
+        # in worker thread
         image = cv2.imread(imagepath, cv2.IMREAD_UNCHANGED)
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
@@ -465,25 +471,36 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.dl.initialized():
             self.PopupWarning('No model trained/loaded')
             return
-        self.clear()
-        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
-        prediction = self.dl.PredictImage(image)
-        if prediction is None:
-            self.PopupWarning('Cannot load image')
-            return
-        cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
-        contours = Contour.extractContoursFromLabel(prediction)
-        Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-        self.canvas.ReloadImage()
+        with self.wait_cursor():
+            self.clear()
+            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            prediction = self.dl.PredictImage(image)
+            if prediction is None:
+                self.PopupWarning('Cannot load image')
+                return
+            cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+            contours = Contour.extractContoursFromLabel(prediction)
+            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            self.canvas.ReloadImage()
+            self.writeStatus('image predicted')
 
     def autoSegment(self):
-        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
-        prediction = self.dl.AutoSegment(image)
-        contours = Contour.extractContoursFromLabel(prediction)
-        Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-        self.canvas.ReloadImage()
+        with self.wait_cursor():
+            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            prediction = self.dl.AutoSegment(image)
+            contours = Contour.extractContoursFromLabel(prediction)
+            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            self.canvas.ReloadImage()
               
-    
+    ############################
+    @contextmanager
+    def wait_cursor(self):
+        try:
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            yield
+        finally:
+            QApplication.restoreOverrideCursor()
+
     def excepthook(excType, excValue, tracebackobj):
         
         timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
