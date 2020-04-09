@@ -101,49 +101,51 @@ class ResultsWindow(QMainWindow, Window):
         if not filename.strip():
             return
         
-        images = glob.glob(os.path.join(self.parent.testImagespath,'*.*'))
-        labels = glob.glob(os.path.join(self.parent.testImageLabelspath,'*.*'))
+        with self.parent.wait_cursor():
+            images = glob.glob(os.path.join(self.parent.testImagespath,'*.*'))
+            labels = glob.glob(os.path.join(self.parent.testImageLabelspath,'*.*'))
 
-        labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
+            labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
         
-        image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
-        label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
+            image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
+            label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
         
-        intersection = list(set(image_names).intersection(label_names))
-        if intersection == list():
-            self.parent.PopupWarning('No predicted files')
-            return
+            intersection = list(set(image_names).intersection(label_names))
+            if intersection == list():
+                self.parent.PopupWarning('No predicted files')
+                return
 
-        labels = [each for each in labels if os.path.splitext(os.path.basename(each))[0] in intersection]
-        labels.sort()  
+            labels = [each for each in labels if os.path.splitext(os.path.basename(each))[0] in intersection]
+            labels.sort()  
         
         
-        try:
-            with open(filename, 'w', newline='') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter = ';')
-                header = ['image name'] + ['object number'] + ['object type'] + ['size']
-                if self.CBSize.isChecked():
-                    header += ['size in microns\u00b2']
-                if self.parent.canvas.drawSkeleton:
-                    header += ['length in pixel']
+            try:
+                with open(filename, 'w', newline='') as csvfile:
+                    csvWriter = csv.writer(csvfile, delimiter = ';')
+                    header = ['image name'] + ['object number'] + ['object type'] + ['size']
                     if self.CBSize.isChecked():
-                        header += ['length in microns']
-                    header += ['fatness (area / length)']
+                        header += ['size in microns\u00b2']
+                    if self.parent.canvas.drawSkeleton:
+                        header += ['length in pixel']
+                        if self.CBSize.isChecked():
+                            header += ['length in microns']
+                        header += ['fatness (area / length)']
                         
-                csvWriter.writerow(header)
-                num = len(labels)
-                self.parent.initProgress(num)
-                with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
-                    rows = executor.map(self.getSingleContourFromList, labels)
+                    csvWriter.writerow(header)
+                    num = len(labels)
+                    self.parent.initProgress(num)
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
+                        rows = executor.map(self.getSingleContourFromList, labels)
 
-                csvWriter.writerows(rows) 
-                self.parent.ProgressFinished()
+                    csvWriter.writerows(rows) 
+                    self.parent.ProgressFinished()
+                    self.parent.writeStatus('results saved')
                 
-        except: 
-            self.parent.PopupWarning('Cannot write file (already open?)')
-            return
-        
-        self.hide()
+            except: 
+                self.parent.PopupWarning('Cannot write file (already open?)')
+                return
+            
+            self.hide()
         
     def getSingleContourFromList(self, contourname):
         contours = Contour.loadContours(contourname)

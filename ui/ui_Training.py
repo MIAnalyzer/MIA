@@ -199,6 +199,7 @@ class TrainingWindow(QMainWindow, Window):
                return
         if not self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath):
             self.parent.PopupWarning('Cannot train model (out of recources?)')
+        self.parent.writeStatus('model trained')
         self.hide()
         
         
