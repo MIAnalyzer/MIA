@@ -324,7 +324,7 @@ class Canvas(QGraphicsView):
             self.tool = Tools.DrawTool(self)
         if tool == canvasTool.assign.name:
             self.tool = Tools.AssignTool(self)
-        if tool == canvasTool.expand.name:
+        if tool == canvasTool.extend.name:
             self.tool = Tools.ExtendTool(self)
         if tool == canvasTool.delete.name:
             self.tool = Tools.DeleteTool(self)
