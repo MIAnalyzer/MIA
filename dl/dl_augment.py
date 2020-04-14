@@ -9,7 +9,6 @@ Created on Wed Nov 13 13:12:11 2019
 import imgaug.augmenters as iaa
 import numpy as np
 
-
 OUTPUTSIZE = 256    # this size determines the training image size
 
 sometimes = lambda aug: iaa.Sometimes(0.5, aug)
@@ -37,9 +36,6 @@ seq = iaa.Sequential([
                 ]))
 ])
 
-def augment(image, label):
+def augment(image, label): 
     x,y = seq(images=image, segmentation_maps=label)
-    #seq.show_grid([x[0], y[0]*255], cols=8, rows=1)
     return np.asarray(x),np.asarray(y)
-    
-    

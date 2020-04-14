@@ -19,9 +19,10 @@ import cv2
 import multiprocessing
 import concurrent.futures
 import time
+from contextlib import contextmanager
+
 
 import dl.DeepLearning as DeepLearning
-
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
@@ -32,9 +33,8 @@ from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
 
-
-PREDICT_WORMS = True
-PRELOAD = False
+PREDICT_WORMS = False
+PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 
@@ -43,6 +43,7 @@ LOG_FILENAME = 'log/logfile.log'
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
+
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -65,7 +66,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
-        
+
         self.dl = DeepLearning.DeepLearning()
         # init canvas
         self.hlayout.removeWidget(self.canvas)
@@ -82,7 +83,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.classList.setClass(0)
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
-        
 
         
         ### windows - should this be moved to UI ?
@@ -109,7 +109,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
             self.CBLearningMode.setEnabled(False)
 
-        
+
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
         self.BLoadTrainImages.clicked.connect(self.setTrainFolder)
@@ -131,6 +131,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bpredict.clicked.connect(self.predictImage)
         self.Bloadmodel.clicked.connect(self.loadModel)
         self.Bsavemodel.clicked.connect(self.saveModel)
+        self.Bautoseg.clicked.connect(self.autoSegment)
+        self.Bresetmodel.clicked.connect(self.resetModel)
         
         self.Bresults.clicked.connect(self.showResultsWindow)
         self.BSettings.clicked.connect(self.showSettingsWindow)
@@ -140,6 +142,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
+        self.CBExtend.clicked.connect(self.updateCursor)
+        self.CBErase.clicked.connect(self.updateCursor)
         
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
@@ -207,15 +211,26 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         assert(c >= 0)
         return c
     
-    def ClassColor(self, c):
-        return self.classList.getClassColor(c)
+    def ClassColor(self, c = None):
+        if c is None:
+            c = self.activeClass()
+        color = self.classList.getClassColor(c)
+        color.setAlpha(255)
+        return color
     
     def NumOfClasses(self):
         return self.classList.getNumberOfClasses()
         
-    def colorChanged(self):
+    def classcolorChanged(self):
         self.canvas.redrawImage()
-        
+        self.updateCursor()
+
+    def classChanged(self):
+        self.updateCursor()
+
+    def updateCursor(self):
+        self.canvas.updateCursor()
+
     def clear(self):
         self.canvas.clearContours()
         self.deleteLabel()
@@ -318,7 +333,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def getFiles(self):
         if self.imagepath is None:
             return
-        exts = ['*.png', '*.jpg', '*.tif']
+        exts = ['*.png', '*.bmp', '*.jpg', '*.tif']
         self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
         self.files.sort()
         self.currentImage = 0
@@ -336,7 +351,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.ReloadImage()
          
     def setCanvasMode(self):
-        tool = self.sender().objectName()[1:]
+        tool = self.sender().objectName()
         self.setCanvasTool(tool)
         
     def setCanvasTool(self, tool):
@@ -389,20 +404,27 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def writeStatus(self,msg):
         self.Status.setText(msg)
 
-
     ## deep learning  
     def loadModel(self):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
         if filename:
-            self.dl.LoadModel(filename)
-        self.writeStatus('model loaded')
+            with self.wait_cursor():
+                self.dl.LoadModel(filename)
+                self.writeStatus('model loaded')
+
     def saveModel(self):
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         if filename.strip():
-            self.dl.SaveModel(filename)
+            with self.wait_cursor():
+                self.dl.SaveModel(filename)
+                self.writeStatus('model saved')
+
+    def resetModel(self):
+        self.dl.Reset()
+        self.writeStatus('model reset')
     
     def showTrainingWindow(self):
         if self.trainImagespath is None or self.trainImageLabelspath is None:
@@ -416,27 +438,24 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Prediction folder not selected')
             return
 
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
-        
-        images = glob.glob(os.path.join(self.testImagespath,'*.*'))
-        images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
+        with self.wait_cursor():
+            images = glob.glob(os.path.join(self.testImagespath,'*.*'))
+            images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
 
-        self.initProgress(len(images))
+            self.initProgress(len(images))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
+                executor.map(self.predictSingleImageFromStack,images)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
-            executor.map(self.predictSingleImageFromStack,images)
-
-        self.ProgressFinished()
-        self.switchToTestFolder()
+            self.ProgressFinished()
+            self.switchToTestFolder()
+            self.writeStatus(str(len(images)) + ' images predicted')
         
     def predictSingleImageFromStack(self, imagepath):
-        if self.dl.MonoChrome:
-            image = cv2.imread(imagepath, cv2.IMREAD_GRAYSCALE)
-        else:
-            image = cv2.imread(imagepath, cv2.IMREAD_COLOR)
-                   
+        # in worker thread
+        image = cv2.imread(imagepath, cv2.IMREAD_UNCHANGED)
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
         cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
@@ -448,21 +467,39 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def predictImage(self):
         if self.CurrentFilePath() is None:
             return
-        if not self.dl.initialized:
-            self.PopupWarning('No model trained')
+        if not self.dl.initialized():
+            self.PopupWarning('No model trained/loaded')
             return
-        self.clear()
-        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
-        prediction = self.dl.PredictImage(image)
-        if prediction is None:
-            self.PopupWarning('Cannot load image')
-            return
-        cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
-        contours = Contour.extractContoursFromLabel(prediction)
-        Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-        self.canvas.ReloadImage()
+        with self.wait_cursor():
+            self.clear()
+            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            prediction = self.dl.PredictImage(image)
+            if prediction is None:
+                self.PopupWarning('Cannot load image')
+                return
+            cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+            contours = Contour.extractContoursFromLabel(prediction)
+            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            self.canvas.ReloadImage()
+            self.writeStatus('image predicted')
+
+    def autoSegment(self):
+        with self.wait_cursor():
+            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            prediction = self.dl.AutoSegment(image)
+            contours = Contour.extractContoursFromLabel(prediction)
+            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            self.canvas.ReloadImage()
               
-    
+    ############################
+    @contextmanager
+    def wait_cursor(self):
+        try:
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            yield
+        finally:
+            QApplication.restoreOverrideCursor()
+
     def excepthook(excType, excValue, tracebackobj):
         
         timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
@@ -491,14 +528,4 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
     
-
 sys.excepthook = DeepCellDetectorUI.excepthook
-if __name__ == "__main__":
-    app = QCoreApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-        
-    dcdui = DeepCellDetectorUI()
-
-#    sys.exit(app.exec_())
-    app.exec_()
