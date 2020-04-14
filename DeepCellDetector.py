@@ -18,6 +18,7 @@ import os
 import cv2 
 import multiprocessing
 import concurrent.futures
+import time
 
 import dl.DeepLearning as DeepLearning
 
@@ -36,8 +37,6 @@ PREDICT_WORMS = True
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-
-
 
 
 

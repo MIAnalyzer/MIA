@@ -9,12 +9,13 @@ Created on Wed Feb 19 13:43:02 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import multiprocessing
 import tensorflow as tf
 
 class Window(object):
     def setupUi(self, Form):
-        width = 150
-        height= 130
+        width = 180
+        height= 150
         Form.setWindowTitle('Settings') 
         Form.setStyleSheet("background-color: rgb(250, 250, 250)")
 
@@ -37,6 +38,15 @@ class Window(object):
         self.CBgpu.addItem("all gpus")
         self.vlayout.addWidget(self.CBgpu)     
         
+        self.h0layout = QHBoxLayout(self.centralWidget)
+        self.SBThreads = QSpinBox(self.centralWidget)
+        self.SBThreads.setToolTip('Set number of worker threads')
+        self.SBThreads.setRange(1,multiprocessing.cpu_count())
+        self.LThreads = QLabel(self.centralWidget)
+        self.LThreads.setText('Worker threads')
+        self.h0layout.addWidget(self.SBThreads)
+        self.h0layout.addWidget(self.LThreads)
+        self.vlayout.addLayout(self.h0layout)  
         
         
         self.CBContourNumbers = QCheckBox("Show Contour Numbers",self.centralWidget)
@@ -90,12 +100,15 @@ class SettingsWindow(QMainWindow, Window):
         self.SBPenSize.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.setValue(self.parent.canvas.FontSize)
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
+        self.SBThreads.setValue(self.parent.maxworker)
+        
         
         self.CBContourNumbers.clicked.connect(self.showContourNumbers)
         self.SBPenSize.valueChanged.connect(self.setPenSize)
         self.SBFontSize.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
         self.CBgpu.currentIndexChanged.connect(self.setGPU)
+        self.SBThreads.valueChanged.connect(self.setNumThreads)
         
         self.CBgpu.setCurrentIndex(0)
         
@@ -122,7 +135,10 @@ class SettingsWindow(QMainWindow, Window):
             except RuntimeError as e:
                 # Visible devices must be set before GPUs have been initialized
                 self.parent.PopupWarning('GPU settings only take effect upon program start')
-        
+      
+    def setNumThreads(self):
+        self.parent.maxworker = self.SBThreads.value()
+    
     def showContourNumbers(self):
         self.parent.canvas.drawContourNumber = self.CBContourNumbers.isChecked()
         
