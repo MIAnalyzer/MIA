@@ -23,7 +23,7 @@ class canvasTool(Enum):
     draw = 'draw'
     assign = 'assign'
     delete = 'delete'
-    expand = 'extend'
+    extend = 'extend'
     poly =  'poly'
     scale =  'scale'
 
@@ -50,6 +50,12 @@ class AbstractTool(ABC):
 
     @abstractmethod
     def Cursor(self):
+        pass
+
+    def ShowSettings(self):
+        pass
+
+    def HideSettings(self):
         pass
 
 
@@ -120,16 +126,26 @@ class DrawTool(AbstractTool):
             self.canvas.addPoint2NewContour(p2)
 #            if (self.canvas.NewContour.isValid()):
 #                self.canvas.addline(p1,p2)
-            self.canvas.finishNewContour()
+            self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
                 
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             if self.canvas.NewContour is None:
                 self.canvas.prepareNewContour()
                 self.canvas.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
+
+        if e.button() == Qt.RightButton:
+            self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+            self.canvas.setCursor(self.Cursor())
        
     def Cursor(self):
         return Qt.ArrowCursor
+
+    def ShowSettings(self):
+        self.canvas.parent.DrawSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.DrawSettings.hide()
     
     
 class PolygonTool(AbstractTool):
@@ -156,7 +172,10 @@ class PolygonTool(AbstractTool):
                 p2 = self.canvas.NewContour.getFirstPoint()
                 self.canvas.addPoint2NewContour(p2)
                 self.canvas.addline(p1,p2)
-                self.canvas.finishNewContour()
+                self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
+            else:
+                self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+                self.canvas.setCursor(self.Cursor())
         elif e.button() == Qt.LeftButton:
             if self.canvas.NewContour is None:
                 self.canvas.prepareNewContour()
@@ -172,6 +191,12 @@ class PolygonTool(AbstractTool):
 
     def Cursor(self):
         return Qt.ArrowCursor
+
+    def ShowSettings(self):
+        self.canvas.parent.DrawSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.DrawSettings.hide()
     
 class AssignTool(AbstractTool):
     def __init__(self, canvas):
@@ -228,47 +253,42 @@ class ExtendTool(AbstractTool):
         super().__init__(canvas)
         self.canvas = canvas
         self.Text = "Extend/Erase"
-        self.type = canvasTool.expand
-        self.size = 10
-        self.extending = False
+        self.type = canvasTool.extend
+        self.inprogress = False
         self.lock = threading.RLock()
-        self.erase = False
         
     def mouseMoveEvent(self, e):
         if self.canvas.sketch is None:
             return
         with self.lock:
             # if e.button() == Qt.LeftButton: is not working here for some reasons
-            if self.extending:
+            if self.inprogress:
                 p0 = self.canvas.mapToScene(e.pos())
                 p = Contour.QPoint2np(p0)
-                
                 x = p[0,0]
                 y = p[0,1]
-                self.canvas.addcircle(p0, self.size)
-                val = 1 if self.erase == False else 0
-                cv2.circle(self.canvas.sketch, (x, y), self.size, (val), -1)
+                self.canvas.addcircle(p0, self.canvas.parent.SSize.value())
+                val = 1 if self.canvas.parent.CBErase.isChecked() == False else 0
+                cv2.circle(self.canvas.sketch, (x, y), self.canvas.parent.SSize.value(), (val), -1)
 
         
     def mouseReleaseEvent(self,e):
         if e.button() == Qt.LeftButton:
             self.canvas.finishNewContour()
-            self.extending = False
+            self.inprogress = False
 
                       
     def mousePressEvent(self,e):
         if self.canvas.image is None:
             return
-        if e.button() == Qt.LeftButton:
-            
+        if e.button() == Qt.LeftButton:  
             self.size = self.canvas.parent.SSize.value()
-            self.erase = self.canvas.parent.CBErase.isChecked()
             self.canvas.prepareNewContour()
-            self.extending = True
-            
+            self.inprogress = True
+       
         elif e.button() == Qt.RightButton:
-            self.canvas.parent.CBExtend.setChecked(True) if self.erase else self.canvas.parent.CBErase.setChecked(True)
-            self.erase = self.canvas.parent.CBErase.isChecked()
+            self.canvas.parent.CBExtend.setChecked(True) if self.canvas.parent.CBErase.isChecked() else self.canvas.parent.CBErase.setChecked(True)
+            self.canvas.setCursor(self.Cursor())
     
     def wheelEvent(self,e):
         if e.angleDelta().y() > 0:
@@ -277,10 +297,36 @@ class ExtendTool(AbstractTool):
         else:
             v = self.canvas.parent.SSize.value() - 1
             self.canvas.parent.SSize.setValue(v)
+        self.size = self.canvas.parent.SSize.value()
+        self.canvas.setCursor(self.Cursor())
+
+    def createCursor(self):
+        if not self.canvas.hasImage():
+            return Qt.ArrowCursor
+        size = (2*self.canvas.parent.SSize.value() + self.canvas.pen_size) * self.canvas.zoomfactor()[0]
+        icon = QPixmap(size+1,size+1)
+        icon.fill(Qt.transparent)
+        p = QPainter(icon)
+        color = self.canvas.parent.ClassColor()
+        if self.canvas.parent.CBErase.isChecked():
+            p.setBrush(QBrush(Qt.NoBrush))
+            p.setPen(QPen(color,Qt.SolidLine))
+        else:
+            p.setBrush(QBrush(color,Qt.SolidPattern))
+            p.setPen(QPen(Qt.NoPen))
+            
+        p.drawEllipse(0, 0, size, size)
+        p.end()
+        return QCursor(icon, -1, -1)
 
     def Cursor(self):
-        return Qt.ArrowCursor
+        return self.createCursor()
     
+    def ShowSettings(self):
+        self.canvas.parent.ExtendSettings.show()
+
+    def HideSettings(self):
+        self.canvas.parent.ExtendSettings.hide()
 
 class ScaleTool(AbstractTool):
     
