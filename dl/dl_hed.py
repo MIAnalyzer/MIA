@@ -31,19 +31,37 @@ class CropLayer(object):
 
 class HED_Segmentation():
     def __init__(self):
+        # crashs when double register
+        cv2.dnn_unregisterLayer('Crop')
         cv2.dnn_registerLayer('Crop', CropLayer)
         proto = './hed/deploy.prototxt'
         model = './hed/hed_pretrained_bsds.caffemodel'
         self.net = cv2.dnn.readNet(proto, model)
 
     def applyHED(self, image):
+        if image.dtype == 'uint16':
+            image = (image/256).astype('uint8')
+            
         if len(image.shape) == 2 or image.shape[2] == 1:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
-        height, width = image.shape[:2]
-        blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(width, height),mean=(104.00698793, 116.66876762, 122.67891434),swapRB=False, crop=False)
-        self.net.setInput(blob)
-        hed = self.net.forward()
-        hed = cv2.resize(hed[0, 0], (width, height))
+        
+        orig_height, orig_width = image.shape[:2]
+        while True:
+            height, width = image.shape[:2]
+
+            blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(width, height),mean=(104.00698793, 116.66876762, 122.67891434),swapRB=False, crop=False)
+            self.net.setInput(blob)
+            try:
+                hed = self.net.forward()
+                break
+            except:
+                pass
+            
+            if width*height  < 100:
+                raise
+            image = cv2.resize(image, (int(width*0.9), int(height*0.9)))
+             
+        hed = cv2.resize(hed[0, 0], (orig_width, orig_height))
         hed = (255 * hed).astype("uint8")
         return hed
 

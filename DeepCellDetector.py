@@ -58,7 +58,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.progresstick = 10
         self.progress = 0
-        self.maxworker = multiprocessing.cpu_count() // 2
+        self.maxworker = 1
+        
         
         self.files = None
         self.currentImage = 0
@@ -83,7 +84,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.classList.setClass(0)
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
-
+        self.setWorkers(multiprocessing.cpu_count() // 2)
         
         ### windows - should this be moved to UI ?
         self.results_form = ResultsWindow(self)
@@ -380,6 +381,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
+    def setWorkers(self, numWorker):
+        self.maxworker = numWorker
+        self.dl.worker = numWorker
+    
     def initProgress(self, ticks):
         assert(ticks != 0)
         self.progresstick = 1/ticks *100
@@ -496,6 +501,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def wait_cursor(self):
         try:
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            QApplication.processEvents()
             yield
         finally:
             QApplication.restoreOverrideCursor()

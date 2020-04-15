@@ -137,7 +137,7 @@ class SettingsWindow(QMainWindow, Window):
                 self.parent.PopupWarning('GPU settings only take effect upon program start')
       
     def setNumThreads(self):
-        self.parent.maxworker = self.SBThreads.value()
+        self.parent.setWorkers(self.SBThreads.value())
     
     def showContourNumbers(self):
         self.parent.canvas.drawContourNumber = self.CBContourNumbers.isChecked()
