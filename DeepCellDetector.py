@@ -33,6 +33,8 @@ from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
 
+import numpy as np
+
 PREDICT_WORMS = False
 PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
@@ -381,6 +383,20 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
+    def readCurrentImageAsBGR(self):
+        # always returns 3-channel normalized opencv image with 8-bit depth -> for displaying purposes mainly
+        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+
+        norm_image = np.zeros(image.shape)
+        norm_image = cv2.normalize(image,norm_image, 0, 255, cv2.NORM_MINMAX)
+        image = norm_image.astype('uint8')
+
+        if len(image.shape) == 2 or image.shape[2] == 1:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
+        if len(image.shape) == 4:
+            image = cv2.cvtColor(image, cv2.CV_BGRA2BGR )
+        return image
+    
     def setWorkers(self, numWorker):
         self.maxworker = numWorker
         self.dl.worker = numWorker
@@ -490,7 +506,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def autoSegment(self):
         with self.wait_cursor():
-            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            self.clear()
+            image = self.readCurrentImageAsBGR()
             prediction = self.dl.AutoSegment(image)
             contours = Contour.extractContoursFromLabel(prediction)
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))

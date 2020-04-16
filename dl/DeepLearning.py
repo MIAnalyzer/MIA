@@ -49,7 +49,7 @@ class DeepLearning():
         
         self.TrainInMemory = True
         self.useWeightedDistanceMap = False
-        self.ImageScaleFactor = 0.3
+        self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = dl_hed.HED_Segmentation()
         
@@ -144,9 +144,15 @@ class DeepLearning():
         if image is None:
             return None
 
+        width = image.shape[1]
+        height = image.shape[0]
+        image = cv2.resize(image, (int(width*self.ImageScaleFactor), int(height*self.ImageScaleFactor)))
+        
         pred = self.hed.applyHED(image)
         _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        return thresh
+        ret = cv2.resize(thresh, (width, height), interpolation=cv2.INTER_NEAREST)
+        
+        return ret
 
     def NumClasses(self):
         if not self.initialized():

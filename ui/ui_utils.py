@@ -37,6 +37,7 @@ class LabelledSpinBox(QWidget):
     def setToolTip(self, tooltip):
         self.Label.setToolTip(tooltip)
         self.SpinBox.setToolTip(tooltip)
+        
 
 class LabelledDoubleSpinBox(QWidget):
     def __init__(self,labeltext, parent):

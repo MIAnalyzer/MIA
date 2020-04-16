@@ -19,6 +19,9 @@ from ui.Tools import canvasTool
 from utils.Contour import *
 
 
+from skimage.filters import threshold_yen
+from skimage.exposure import rescale_intensity
+
 class Canvas(QGraphicsView):
     def __init__(self, parent):
         super(Canvas, self).__init__(parent)
@@ -181,12 +184,18 @@ class Canvas(QGraphicsView):
     def ReloadImage(self):
         if self.parent.CurrentFilePath() is None:
             return
-        self.rawimage = QPixmap(self.parent.CurrentFilePath())
+        
+        self.rawimage = self.getCurrentPixmap()
         self.clearContours()
         self.getContours()
         self.redrawImage()
         self.zoomstep = 0
         self.fitInView()
+        
+    def getCurrentPixmap(self):
+        image = self.parent.readCurrentImageAsBGR()   
+        image = QImage(image, image.shape[1], image.shape[0], image.shape[1] * 3,QImage.Format_RGB888).rgbSwapped() 
+        return QPixmap(image)
         
     def hasImage(self):
         return self.image is not None
