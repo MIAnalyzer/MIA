@@ -12,10 +12,12 @@ from PyQt5.QtCore import *
 import multiprocessing
 import tensorflow as tf
 
+from ui.ui_utils import LabelledSpinBox, LabelledDoubleSpinBox
+
 class Window(object):
     def setupUi(self, Form):
-        width = 180
-        height= 150
+        width = 250
+        height= 265
         Form.setWindowTitle('Settings') 
         Form.setStyleSheet("background-color: rgb(250, 250, 250)")
 
@@ -28,7 +30,22 @@ class Window(object):
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
         
+        self.dlParams = self.DLGroup()
+        self.vlayout.addWidget(self.dlParams)
         
+        self.dispParams = self.DispGroup()
+        self.vlayout.addWidget(self.dispParams)
+
+        
+        
+    def DLGroup(self):
+        groupBox = QGroupBox("Deep Learning Settings")
+        vlayout = QVBoxLayout(self.centralWidget)
+        
+        vlayout.setContentsMargins(1, 1, 1, 1)
+        vlayout.setSpacing(1)
+        
+        hlayout = QHBoxLayout(self.centralWidget)
         self.CBgpu = QComboBox(self.centralWidget)
 
         devices = tf.config.experimental.list_physical_devices()
@@ -36,44 +53,48 @@ class Window(object):
         for dev in devices:
             self.CBgpu.addItem(dev.name)                  
         self.CBgpu.addItem("all gpus")
-        self.vlayout.addWidget(self.CBgpu)     
         
-        self.h0layout = QHBoxLayout(self.centralWidget)
-        self.SBThreads = QSpinBox(self.centralWidget)
+        self.Lgpu = QLabel(self.centralWidget)
+        self.Lgpu.setText('GPU settings')
+        hlayout.addWidget(self.CBgpu)
+        hlayout.addWidget(self.Lgpu)
+        vlayout.addLayout(hlayout)     
+        
+
+        self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
         self.SBThreads.setToolTip('Set number of worker threads')
-        self.SBThreads.setRange(1,multiprocessing.cpu_count())
-        self.LThreads = QLabel(self.centralWidget)
-        self.LThreads.setText('Worker threads')
-        self.h0layout.addWidget(self.SBThreads)
-        self.h0layout.addWidget(self.LThreads)
-        self.vlayout.addLayout(self.h0layout)  
+        self.SBThreads.SpinBox.setRange(1,multiprocessing.cpu_count())
+        vlayout.addWidget(self.SBThreads)  
         
+        self.SBScaleFactor = LabelledDoubleSpinBox('Image Down Scaling',self.centralWidget)
+        self.SBScaleFactor.SpinBox.setRange(0.1,1)
+        self.SBScaleFactor.setToolTip('Set image reduction factor')
+        self.SBScaleFactor.SpinBox.setSingleStep(0.1)
+        self.SBScaleFactor.SpinBox.setDecimals(1)
+        vlayout.addWidget(self.SBScaleFactor)
+        groupBox.setLayout(vlayout)
+        return groupBox
+    
+    def DispGroup(self):
+        groupBox = QGroupBox("Display Settings")
+        vlayout = QVBoxLayout(self.centralWidget)
+        vlayout.setContentsMargins(1, 1, 1, 1)
+        vlayout.setSpacing(1)        
         
         self.CBContourNumbers = QCheckBox("Show Contour Numbers",self.centralWidget)
         self.CBContourNumbers.setToolTip('Select to show contour number below each contour')
-        self.vlayout.addWidget(self.CBContourNumbers)
+        vlayout.addWidget(self.CBContourNumbers)
         
-        self.hlayout = QHBoxLayout(self.centralWidget)
-        self.SBFontSize = QSpinBox(self.centralWidget)
+
+        self.SBFontSize = LabelledSpinBox('Font Size',self.centralWidget)
         self.SBFontSize.setToolTip('Set font size')
-        self.SBFontSize.setRange(8,32)
-        self.LFontSize = QLabel(self.centralWidget)
-        self.LFontSize.setText('Font Size')
-        self.hlayout.addWidget(self.SBFontSize)
-        self.hlayout.addWidget(self.LFontSize)
-        self.vlayout.addLayout(self.hlayout)
-        
-        
-        
-        self.h1layout = QHBoxLayout(self.centralWidget)
-        self.SBPenSize = QSpinBox(self.centralWidget)
-        self.SBPenSize.setRange(1,15)
+        self.SBFontSize.SpinBox.setRange(8,32)
+        vlayout.addWidget(self.SBFontSize)
+
+        self.SBPenSize = LabelledSpinBox('Pen Size',self.centralWidget)
+        self.SBPenSize.SpinBox.setRange(1,15)
         self.SBPenSize.setToolTip('Set pen size')
-        self.LPenSize = QLabel(self.centralWidget)
-        self.LPenSize.setText('Pen Size')
-        self.h1layout.addWidget(self.SBPenSize)
-        self.h1layout.addWidget(self.LPenSize)
-        self.vlayout.addLayout(self.h1layout)
+        vlayout.addWidget(self.SBPenSize)
         
         self.h2layout = QHBoxLayout(self.centralWidget)
         self.STransparency = QSlider(Qt.Horizontal, self.centralWidget)
@@ -81,13 +102,13 @@ class Window(object):
         self.STransparency.setMinimum(0)
         self.STransparency.setMaximum(255)
         self.LTransparency = QLabel(self.centralWidget)
-        self.LTransparency.setText('Contour Transparency')
+        self.LTransparency.setText(' Contour Transparency')
         
         self.h2layout.addWidget(self.STransparency)
         self.h2layout.addWidget(self.LTransparency)
-        self.vlayout.addLayout(self.h2layout)
-        
-        
+        vlayout.addLayout(self.h2layout)
+        groupBox.setLayout(vlayout)
+        return groupBox
         
 
 class SettingsWindow(QMainWindow, Window):
@@ -97,18 +118,19 @@ class SettingsWindow(QMainWindow, Window):
         self.setupUi(self)
         
         self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
-        self.SBPenSize.setValue(self.parent.canvas.pen_size)
-        self.SBFontSize.setValue(self.parent.canvas.FontSize)
+        self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
+        self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
-        self.SBThreads.setValue(self.parent.maxworker)
-        
+        self.SBThreads.SpinBox.setValue(self.parent.maxworker)
+        self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         
         self.CBContourNumbers.clicked.connect(self.showContourNumbers)
-        self.SBPenSize.valueChanged.connect(self.setPenSize)
-        self.SBFontSize.valueChanged.connect(self.setFontSize)
+        self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
+        self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
         self.CBgpu.currentIndexChanged.connect(self.setGPU)
-        self.SBThreads.valueChanged.connect(self.setNumThreads)
+        self.SBThreads.SpinBox.valueChanged.connect(self.setNumThreads)
+        self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
         
         self.CBgpu.setCurrentIndex(0)
         
@@ -136,17 +158,20 @@ class SettingsWindow(QMainWindow, Window):
                 # Visible devices must be set before GPUs have been initialized
                 self.parent.PopupWarning('GPU settings only take effect upon program start')
       
+    def ScaleFactorChanged(self):
+        self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())
+        
     def setNumThreads(self):
-        self.parent.setWorkers(self.SBThreads.value())
+        self.parent.setWorkers(self.SBThreads.SpinBox.value())
     
     def showContourNumbers(self):
         self.parent.canvas.drawContourNumber = self.CBContourNumbers.isChecked()
         
     def setPenSize(self):
-        self.parent.canvas.pen_size = self.SBPenSize.value()
+        self.parent.canvas.pen_size = self.SBPenSize.SpinBox.value()
         
     def setFontSize(self):
-        self.parent.canvas.FontSize = self.SBFontSize.value()
+        self.parent.canvas.FontSize = self.SBFontSize.SpinBox.value()
         
     def setTransparency(self):
         self.parent.canvas.ContourTransparency = self.STransparency.value()

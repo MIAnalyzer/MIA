@@ -46,10 +46,6 @@ class TrainingDataGenerator_inMemory(Sequence):
             batch_images = self.images[self.indices[batch_start:batch_end]]
             batch_masks = self.labels[self.indices[batch_start:batch_end]]
 
-            #if self.getWeightMap:
-            # to do 
-            #    weights = dl_utils.createWeightedBorderMapFromLabel(batch_masks)
-
             img, mask = dl_augment.augment(batch_images,batch_masks)            
             img = img.astype('float') /255.        
 
@@ -64,8 +60,6 @@ class TrainingDataGenerator_inMemory(Sequence):
             else:
                 mask = mask.astype('float')
 
-            #if self.numClasses > 2:
-            #    mask = to_categorical(mask, num_classes=self.numClasses)
             return img, mask
         
     def on_epoch_end(self):
