@@ -383,7 +383,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
-    def readCurrentImageAsBGR(self):
+    def readCurrentImageAsBGR(self):     
         # always returns 3-channel normalized opencv image with 8-bit depth -> for displaying purposes mainly
         image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
 
@@ -476,7 +476,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def predictSingleImageFromStack(self, imagepath):
         # in worker thread
-        image = cv2.imread(imagepath, cv2.IMREAD_UNCHANGED)
+        image = self.dl.dataloader.readImage(imagepath)
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
         cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
@@ -493,7 +493,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         with self.wait_cursor():
             self.clear()
-            image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
+            
+            image = self.dl.dataloader.readImage(self.CurrentFilePath())
             prediction = self.dl.PredictImage(image)
             if prediction is None:
                 self.PopupWarning('Cannot load image')
@@ -507,6 +508,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def autoSegment(self):
         with self.wait_cursor():
             self.clear()
+            # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
             image = self.readCurrentImageAsBGR()
             prediction = self.dl.AutoSegment(image)
             contours = Contour.extractContoursFromLabel(prediction)

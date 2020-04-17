@@ -20,12 +20,13 @@ import numpy as np
 from enum import Enum
 
 
-import dl.dl_data as dl_data
+import dl.dl_datagenerator as dl_datagenerator
 import dl.dl_models as dl_models
 import dl.dl_losses as dl_losses
 import dl.dl_metrics as dl_metrics
 import dl.dl_training_record as dl_training_record
 import dl.dl_hed as dl_hed
+import dl.dl_imageloader as dl_imageloader
 
 import utils.Contour
 import multiprocessing
@@ -52,6 +53,7 @@ class DeepLearning():
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = dl_hed.HED_Segmentation()
+        self.dataloader = dl_imageloader.ImageLoader(self)
         
         self.ModelType = 0
         self.Model = None
@@ -79,12 +81,11 @@ class DeepLearning():
         if not self.initialized() or trainingimages_path is None or traininglabels_path is None:
             return False
 
+        self.dataloader.initTrainingDataset(trainingimages_path, traininglabels_path)
         if self.TrainInMemory:
-            x,y = dl_data.loadTrainingDataSet(trainingimages_path, traininglabels_path, self.useWeightedDistanceMap, scalefactor=self.ImageScaleFactor, monochrome = self.MonoChrome())
-            train_generator = dl_data.TrainingDataGenerator_inMemory(self,x,y)
+            train_generator = dl_datagenerator.TrainingDataGenerator_inMemory(self)
         else:
-            x,y = dl_data.getTrainingDataset(trainingimages_path, traininglabels_path)
-            train_generator = dl_data.TrainingDataGenerator_fromDisk(self,x,y)
+            train_generator = dl_datagenerator.TrainingDataGenerator_fromDisk(self)
 
         self.Model.compile(optimizer=self.__getOptimizer(), loss=self.__getLoss(), metrics=self.__getMetrics())  
 
@@ -105,20 +106,8 @@ class DeepLearning():
         width = image.shape[1]
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.ImageScaleFactor), int(height*self.ImageScaleFactor)))
-
         if len(image.shape) == 2:
-            if not self.MonoChrome():
-                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
-            else:
-                image = image[..., np.newaxis]
-        elif len(image.shape) == 3:
-            if self.MonoChrome() and image.shape[2] > 1:
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
-                # atm I dont know if bgr2gray squeezes
-                if len(image.shape) == 2:
-                    image = image[..., np.newaxis]
-        else:
-            raise ('wrong image format')
+            image = image[...,np.newaxis]
 
         split_factor = 16
         pad = (split_factor - image.shape[0] % split_factor, split_factor - image.shape[1] % split_factor)
@@ -126,7 +115,9 @@ class DeepLearning():
         if pad != (0,0):
             image = np.pad(image, ((0, pad[0]), (0, pad[1]), (0,0)),'constant', constant_values=(0, 0))
 
-        image = image[np.newaxis, ...].astype('float')/255.
+        image = self.dataloader.preprocessImage(image)
+        image = image[np.newaxis, ...]
+        
         # convert_to_tensor is not necessary but improves performance because it avoids retracing
         pred = self.Model.predict(tf.convert_to_tensor(image,np.float32))
         if self.NumClasses() > 2:
