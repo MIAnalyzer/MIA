@@ -82,10 +82,10 @@ class ImageLoader():
             if self.parent.useWeightedDistanceMap:                 
                 label = mask[...,0]
                 weights = mask[...,1]
-                label = to_categorical(label, num_classes=self.numClasses)
+                label = to_categorical(label, num_classes=self.parent.NumClasses())
                 mask = np.concatenate((label, weights[...,np.newaxis]), axis = 3) 
             else:
-                mask = to_categorical(mask, num_classes=self.numClasses)
+                mask = to_categorical(mask, num_classes=self.parent.NumClasses())
         else:
             mask = mask.astype('float')
         return mask
