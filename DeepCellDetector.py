@@ -344,7 +344,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def updateClassList(self):
         try:
-            self.training_form.SBClasses.setValue(self.NumOfClasses())
+            self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
         except:
             pass
         

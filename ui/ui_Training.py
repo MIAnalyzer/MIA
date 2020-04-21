@@ -167,6 +167,11 @@ class TrainingWindow(QMainWindow, Window):
             self.CBMono.setEnabled(False)
             self.CBRGB.setEnabled(False)
             self.CBModel.setEnabled(False)
+            if self.parent.dl.MonoChrome():
+                self.CBMono.setChecked(True)
+            else:
+                self.CBRGB.setChecked(True)
+
         super(TrainingWindow, self).show()
 
     def ModelType(self):

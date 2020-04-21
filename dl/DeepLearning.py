@@ -91,10 +91,11 @@ class DeepLearning():
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
         callbacks = [dl_training_record.TrainingRecording(self)]
-        try:
+        #try:
+        if True:
             self.Model.fit(train_generator,verbose=1, callbacks=callbacks, epochs=self.epochs, workers = self.worker)
-        except:
-            return False
+        #except:
+        #    return False
         return True
        
             
