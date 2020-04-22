@@ -98,7 +98,7 @@ class Canvas(QGraphicsView):
     def addTriangle(self, point, size, color = None):
         psize = self.pen_size
         self.pen_size = 1
-        p = self.getPainter(color, True)
+        p = self.getPainter(color)
         polygon = QPolygonF()
         polygon.append(point)
         point2 = QPointF(point.x() + size/2, point.y() - size)
@@ -110,7 +110,7 @@ class Canvas(QGraphicsView):
         self.updateImage()
         
     def addcircle(self, center , radius, color = None):
-        p = self.getPainter(color, True)
+        p = self.getPainter(color)
         p.drawEllipse(center, radius, radius)
         self.updateImage()
         
@@ -136,15 +136,22 @@ class Canvas(QGraphicsView):
         if self.sketch is None:
             return
         contours = extractContoursFromImage(self.sketch)
-        old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
-        # returns all contours in self.contours not present in countours
-        # fastest way I found so far
-        c1 = [(x, cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in old_contours]
-        c2 = [(cv2.moments(x),cv2.boundingRect(x) ) for x in contours]   
-        changedcontours = [x[0] for x in c1 if x[1:] not in c2]
+        #old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
+        ## returns all contours in self.contours not present in countours
+        ## fastest way I found so far
+        #c1 = [(x, cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in old_contours]
+        #c2 = [(cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in contours]   
+        #changedcontours = [x[0] for x in c1 if x[1:] not in c2]
      
-        self.Contours.deleteContours(changedcontours)
-        self.Contours.addContours([Contour(self.parent.activeClass(),c) for c in contours])
+        #self.Contours.deleteContours(changedcontours)
+        #self.Contours.addContours([Contour(self.parent.activeClass(),c) for c in contours])
+
+
+        old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
+        self.Contours.deleteContours(old_contours)
+        for c in contours :
+            c.setClassLabel(self.parent.activeClass())
+        self.Contours.addContours(contours)
         self.redrawImage()
         
     def finishNewContour(self, delete = False):
@@ -252,7 +259,21 @@ class Canvas(QGraphicsView):
                     path.lineTo(np2QPoint(contour.points[i].reshape(2,1)))
             path.lineTo(np2QPoint(contour.points[0].reshape(2,1)))
             color = self.parent.ClassColor(contour.classlabel)
+
+            innerpath = QPainterPath()
+
+            for c in contour.innercontours:
+                for i in range(len(c)):
+                    if i == 0:
+                        p = np2QPoint(c[i].reshape(2,1))
+                        innerpath.moveTo(np2QPoint(c[i].reshape(2,1)))
+                    else:
+                        innerpath.lineTo(np2QPoint(c[i].reshape(2,1)))
+                innerpath.lineTo(p)
+            path = path.subtracted(innerpath)
+
             self.setPainterColor(painter, color)
+            self.setColorTransparency(painter, color, transparency = 0)
             painter.drawPath(path)
             self.drawcontouraccessories(contour, painter)
             
@@ -292,21 +313,27 @@ class Canvas(QGraphicsView):
             pos.setX(5)
         return pos
 
-    def getPainter(self, color = None, filled = False,):
+    def getPainter(self, color = None):
         if color is None:
             color = self.parent.ClassColor(self.parent.activeClass())
         # painter objects can only exist once per QWidget
         p = QPainter(self.image)
         color.setAlpha(255)    
         p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
-        if filled == True:
-            p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
-        else:
-            color.setAlpha(self.ContourTransparency)
-            p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
+
+        p.setBrush(QBrush(QColor(color),Qt.SolidPattern))
         p.setFont(QFont("Fixed",self.FontSize))
         return p
-        
+
+    def setColorTransparency(self, painter, color, transparency):
+        if transparency == 1:        # opaque
+            color.setAlpha(255)   
+        elif transparency == -1:       # invisible
+            color.setAlpha(0)
+        elif transparency == 0:       # transparent
+            color.setAlpha(self.ContourTransparency)
+        painter.setBrush(QBrush(QColor(color),Qt.SolidPattern))
+
     def setPainterColor(self, painter, color):
         color.setAlpha(255)
         painter.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
