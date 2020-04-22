@@ -212,7 +212,7 @@ class AssignTool(AbstractTool):
         if e.button() == Qt.LeftButton:
             contour = self.canvas.Contours.getContour(self.canvas.mapToScene(e.pos()))
             if contour is not None:
-                contour.classlabel = self.canvas.parent.activeClass()
+                contour.setClassLabel(self.canvas.parent.activeClass())
                 self.canvas.prepareNewContour()
                 self.canvas.finishNewContour()
 #                self.canvas.redrawImage()

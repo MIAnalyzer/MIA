@@ -11,9 +11,11 @@ import imutils
 from PyQt5.QtCore import QPointF, QPoint
 from skimage import morphology
 from skimage.morphology import medial_axis, skeletonize
-FreeFormContour_ID = 123456789
+FreeFormContour_ID_legacy = 123456789
+FreeFormContour_ID = 12345678910
 
 
+BACKGROUNDCLASS = 255
 
 class Contours():
     def __init__(self):
@@ -80,19 +82,29 @@ class Contours():
 
 
 class Contour():
-    def __init__(self, classlabel, points = None):
+    def __init__(self, classlabel, points = None, inner = None):
         self.classlabel = classlabel
         self.labeltype = FreeFormContour_ID
         self.points = None
         self.boundingbox = None # for performance issues saved as member var
         self.moments = None
         self.skeleton = None
+        self.innercontours = []
         if isinstance(points, QPointF):
             self.points = [QPoint2np(points)]
         elif isinstance(points, np.ndarray):
             self.points = points
+            if isinstance(inner, np.ndarray):
+                for i in range(len(inner)):
+                    self.innercontours.append(inner[i])
         elif points is None:
             self.points = None
+
+    def __del__(self): 
+        self.innercontours.clear()
+
+    def setClassLabel(self,n):
+        self.classlabel = n
             
     def addPoint(self, point):
         self.points = np.concatenate([self.points, [QPoint2np(point)]])
@@ -105,7 +117,7 @@ class Contour():
     
     def getLastPoint(self):
         return np2QPoint(self.points[-1][0])
-    
+
     def isValid(self, minArea = 3):
         if len(self.points) >= 3 and cv2.contourArea(self.points) > minArea:   
             return True
@@ -229,57 +241,73 @@ def drawContoursToLabel(label, contours):
        target.append(c)
        
     if bg_contours == list():
-        label[:] = (255)
+        label[:] = (BACKGROUNDCLASS)
     else:
         for c in bg_contours:
             cnt = c.points
             if c.numPoints() > 0: 
-                cv2.drawContours(label, [cnt], 0, (255), -1)        
+                cv2.drawContours(label, [cnt], 0, (BACKGROUNDCLASS), -1)        
         
     for c in target_contours:
         cnt = c.points
         if c.numPoints() > 0: 
-            # separate connecting contours
-            cv2.drawContours(label, [cnt], 0, (255), 2)
             cv2.drawContours(label, [cnt], 0, (int(c.classlabel)), -1)  
-            
+            cv2.drawContours(label, c.innercontours, -1, (BACKGROUNDCLASS), -1)
+            # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
+            cv2.drawContours(label, c.innercontours, -1, (int(c.classlabel)), 1)
+
     return label
        
 
 def extractContoursFromLabel(image):
     image = np.squeeze(image).astype(np.uint8)
-    image[np.where(image == 255)] = 0
+    image[np.where(image == BACKGROUNDCLASS)] = 0
     ret_contours = []
     maxclass = np.max(image)
     for i in range(1,maxclass+1):
         thresh = (image == i).astype(np.uint8)
         if imutils.is_cv2() or imutils.is_cv4():
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours, hierarchy  = cv2.findContours(thresh, cv2.RETR_CCOMP  , cv2.CHAIN_APPROX_SIMPLE)
         elif imutils.is_cv3():
-            _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, hierarchy  = cv2.findContours(thresh, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
         if contours is not None:
-            for c in contours:
-                ret_contours.append(Contour(i,c))
-
+            counter = -1
+            for k, c in enumerate(contours):
+                parent = hierarchy [0][k][3]
+                if parent > -1:
+                    ret_contours[counter].innercontours.append(c)
+                else:
+                    ret_contours.append(Contour(i,c))
+                    counter += 1
+    ret_contours.reverse()
     return ret_contours
 
 def drawContoursToImage(image, contours): 
     for c in contours:
         cnt = c.points
         if c.numPoints() > 0: 
-            cv2.drawContours(image, [cnt], 0, (1), -1)  
-
+            cv2.drawContours(image, [cnt], 0, (1), -1) 
+        cv2.drawContours(image, c.innercontours, -1, (0), -1) 
+        # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
+        cv2.drawContours(image, c.innercontours, -1, (1), 1) 
 
 def extractContoursFromImage(image):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
     if imutils.is_cv2() or imutils.is_cv4():
-        contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
     elif imutils.is_cv3():
-        _, contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
     if contours is not None:
-        for c in contours:
-            ret_contours.append(c)
+        counter = -1
+        for k,c in enumerate(contours):
+            parent = hierarchy [0][k][3]
+            if parent > -1:
+                ret_contours[counter].innercontours.append(c)
+            else:
+                ret_contours.append(Contour(-1,c))
+                counter += 1
+    ret_contours.reverse()
     return ret_contours
 
 def checkIfContourInListOfContours(contour, contours):
@@ -299,7 +327,8 @@ def saveContours(contours, filename):
 
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
-    cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2)]   
+    f3 = lambda x: x.innercontours
+    cnts = [f(x) for x in contours for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
     np.savez(filename, *cnts)
         
@@ -307,12 +336,17 @@ def loadContours(filename):
     container = np.load(filename)
     data = [container[key] for key in container]
     
-    if data[0] != FreeFormContour_ID:
-        return
-    
-    label = data[1::2]
-    array = data[2::2]
-    ret = [Contour(x,y) for x,y in zip(label,array)]
+    ret = []
+    if data[0] == FreeFormContour_ID_legacy:
+        label = data[1::2]
+        array = data[2::2]
+        ret = [Contour(x,y) for x,y in zip(label,array)]
+    elif data[0] == FreeFormContour_ID:
+        label = data[1::3]
+        array = data[2::3]
+        inner = data[3::3]
+        ret = [Contour(x,y,z) for x,y,z in zip(label,array,inner)]
+
     return ret
 
 
