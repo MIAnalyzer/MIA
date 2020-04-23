@@ -136,19 +136,12 @@ class Canvas(QGraphicsView):
         if self.sketch is None:
             return
         contours = extractContoursFromImage(self.sketch)
-        #old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
-        ## returns all contours in self.contours not present in countours
-        ## fastest way I found so far
-        #c1 = [(x, cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in old_contours]
-        #c2 = [(cv2.moments(x.points),cv2.boundingRect(x.points) ) for x in contours]   
-        #changedcontours = [x[0] for x in c1 if x[1:] not in c2]
-     
-        #self.Contours.deleteContours(changedcontours)
-        #self.Contours.addContours([Contour(self.parent.activeClass(),c) for c in contours])
 
-
+        # delete changed contours
         old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())
-        self.Contours.deleteContours(old_contours)
+        changedcontours = getContoursNotinListOfContours(old_contours,contours)
+        self.Contours.deleteContours(changedcontours)
+
         for c in contours :
             c.setClassLabel(self.parent.activeClass())
         self.Contours.addContours(contours)

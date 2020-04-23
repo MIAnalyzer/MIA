@@ -90,6 +90,7 @@ class Contour():
         self.moments = None
         self.skeleton = None
         self.innercontours = []
+        self.innerparams = []
         if isinstance(points, QPointF):
             self.points = [QPoint2np(points)]
         elif isinstance(points, np.ndarray):
@@ -124,6 +125,11 @@ class Contour():
         else:
             return False
         
+    def getInnerContourParams(self):
+        if not self.innerparams:
+            self.innerparams = [ (cv2.moments(x),cv2.boundingRect(x)) for x in self.innercontours]
+        return self.innerparams
+
     def getBoundingBox(self):
         if self.boundingbox is None:
             self.boundingbox = cv2.boundingRect(self.points)
@@ -312,12 +318,12 @@ def extractContoursFromImage(image):
 
 def checkIfContourInListOfContours(contour, contours):
     # returns True if contour is contained in contours
-    return next((True for elem in contours if (elem.getMoments() == contour.getMoments() and elem.getBoundingBox() == contour.getBoundingBox())), False)
+    return next((True for elem in contours if (elem.getMoments() == contour.getMoments() and elem.getBoundingBox() == contour.getBoundingBox() and elem.getInnerContourParams() == contour.getInnerContourParams())), False)
 
 def getContoursNotinListOfContours(contours1, contours2):
     # returns all contours in contours1 not in contours2
-    c1 = [(x, x.getMoments(), x.getBoundingBox() ) for x in contours1]
-    c2 = [( x.getMoments(), x.getBoundingBox() ) for x in contours2]   
+    c1 = [(x, x.getMoments(), x.getBoundingBox(), x.getInnerContourParams() ) for x in contours1]
+    c2 = [( x.getMoments(), x.getBoundingBox(), x.getInnerContourParams() ) for x in contours2]   
     return [x[0] for x in c1 if x[1:] not in c2]
 
 
