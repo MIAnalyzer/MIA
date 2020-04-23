@@ -16,7 +16,7 @@ def focal_loss(ytrue, ypred, weights=1, gamma=2, alpha = .25):
     ypred /= K.sum(ypred, axis=-1, keepdims=True)
     eps = K.epsilon()
     ypred = K.clip(ypred, eps, 1. - eps)
-    return -K.sum(alpha * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weights, axis=-1)
+    return -K.mean(alpha * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weights, axis=-1)
 
 def focal_loss_weighted(ytrue, ypred, gamma=2, alpha = .25):
     weightmap = K.expand_dims(ytrue[...,-1], axis=3)
@@ -30,7 +30,8 @@ def focal_loss_binary(ytrue, ypred,weights = 1, gamma=2, alpha = .25):
     epsilon = K.epsilon()
     pt_1 = K.clip(pt_1, epsilon, 1. - epsilon)
     pt_0 = K.clip(pt_0, epsilon, 1. - epsilon)
-    return -K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1) * weights) -K.sum((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0) * weights)
+
+    return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1) * weights) -K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0) * weights)
 
 def focal_loss_binary_weighted(ytrue, ypred, gamma=2, alpha = .25):
     weightmap = K.expand_dims(ytrue[...,-1], axis=3)
