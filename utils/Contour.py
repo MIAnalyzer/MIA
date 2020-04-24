@@ -14,7 +14,6 @@ from skimage.morphology import medial_axis, skeletonize
 FreeFormContour_ID_legacy = 123456789
 FreeFormContour_ID = 12345678910
 
-
 BACKGROUNDCLASS = 255
 
 class Contours():
@@ -124,6 +123,10 @@ class Contour():
             return True
         else:
             return False
+
+    def addInnerContour(self, c):
+        if len(c) >= 3 and cv2.contourArea(c) > 3:
+            self.innercontours.append(c)
         
     def getInnerContourParams(self):
         if not self.innerparams:
@@ -281,7 +284,7 @@ def extractContoursFromLabel(image):
             for k, c in enumerate(contours):
                 parent = hierarchy [0][k][3]
                 if parent > -1:
-                    ret_contours[counter].innercontours.append(c)
+                    ret_contours[counter].addInnerContour(c)
                 else:
                     ret_contours.append(Contour(i,c))
                     counter += 1
@@ -309,7 +312,7 @@ def extractContoursFromImage(image):
         for k,c in enumerate(contours):
             parent = hierarchy [0][k][3]
             if parent > -1:
-                ret_contours[counter].innercontours.append(c)
+                ret_contours[counter].addInnerContour(c)
             else:
                 ret_contours.append(Contour(-1,c))
                 counter += 1
@@ -326,7 +329,6 @@ def getContoursNotinListOfContours(contours1, contours2):
     c2 = [( x.getMoments(), x.getBoundingBox(), x.getInnerContourParams() ) for x in contours2]   
     return [x[0] for x in c1 if x[1:] not in c2]
 
-
 def saveContours(contours, filename):
     if len(contours) == 0:
         return
@@ -334,7 +336,7 @@ def saveContours(contours, filename):
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
     f3 = lambda x: x.innercontours
-    cnts = [f(x) for x in contours for f in (f1, f2, f3)]
+    cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
     np.savez(filename, *cnts)
         
@@ -352,7 +354,6 @@ def loadContours(filename):
         array = data[2::3]
         inner = data[3::3]
         ret = [Contour(x,y,z) for x,y,z in zip(label,array,inner)]
-
     return ret
 
 

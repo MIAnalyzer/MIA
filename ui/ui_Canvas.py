@@ -18,7 +18,6 @@ import ui.Tools as Tools
 from ui.Tools import canvasTool
 from utils.Contour import *
 
-
 from skimage.filters import threshold_yen
 from skimage.exposure import rescale_intensity
 
@@ -234,14 +233,13 @@ class Canvas(QGraphicsView):
     def drawcontours(self):
         if self.image is None:
             return
-
         for c in self.Contours.contours:  
             self.drawcontour(c)
 
         self.updateImage()
         self.parent.numOfContoursChanged()
                 
-    def drawcontour(self, contour):
+    def drawcontour(self, contour):     
         painter = self.getPainter()
         path = QPainterPath()
         if contour.points is not None:
@@ -252,9 +250,7 @@ class Canvas(QGraphicsView):
                     path.lineTo(np2QPoint(contour.points[i].reshape(2,1)))
             path.lineTo(np2QPoint(contour.points[0].reshape(2,1)))
             color = self.parent.ClassColor(contour.classlabel)
-
             innerpath = QPainterPath()
-
             for c in contour.innercontours:
                 for i in range(len(c)):
                     if i == 0:

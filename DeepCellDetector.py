@@ -32,6 +32,7 @@ from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
+import utils.image 
 
 import numpy as np
 
@@ -336,7 +337,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def getFiles(self):
         if self.imagepath is None:
             return
-        exts = ['*.png', '*.bmp', '*.jpg', '*.tif']
+        exts = ['*' + x for x in utils.image.supportedImageFormats()]
         self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
         self.files.sort()
         self.currentImage = 0
@@ -349,7 +350,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             pass
         
     def loadImage(self):
-        path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr('Image Files(*.png *.jpg *.bmp *.tif)'))
+        ext = ['*' + x for x in utils.image.supportedImageFormats()]
+        text = 'Image Files(' + ' '.join(ext) + ')'
+        path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr(text))
         self.canvas.image = QPixmap(path[0])
         self.canvas.ReloadImage()
          
@@ -383,19 +386,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return None
         return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
-    def readCurrentImageAsBGR(self):     
-        # always returns 3-channel normalized opencv image with 8-bit depth -> for displaying purposes mainly
-        image = cv2.imread(self.CurrentFilePath(), cv2.IMREAD_UNCHANGED)
-
-        norm_image = np.zeros(image.shape)
-        norm_image = cv2.normalize(image,norm_image, 0, 255, cv2.NORM_MINMAX)
-        image = norm_image.astype('uint8')
-
-        if len(image.shape) == 2 or image.shape[2] == 1:
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
-        if len(image.shape) == 4:
-            image = cv2.cvtColor(image, cv2.CV_BGRA2BGR )
-        return image
+    def readCurrentImageAsBGR(self):   
+        return utils.image.readImageAsBGR(self.CurrentFilePath())
     
     def setWorkers(self, numWorker):
         self.maxworker = numWorker
@@ -464,7 +456,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         with self.wait_cursor():
             images = glob.glob(os.path.join(self.testImagespath,'*.*'))
-            images = [x for x in images if (x.endswith(".tif") or x.endswith(".bmp") or x.endswith(".jpg") or x.endswith(".png"))]
+            images = [x for x in images if (x.endswith(tuple(utils.image.supportedImageFormats())))]
 
             self.initProgress(len(images))
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
@@ -476,7 +468,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def predictSingleImageFromStack(self, imagepath):
         # in worker thread
-        image = self.dl.dataloader.readImage(imagepath)
+        image = self.dl.data.readImage(imagepath)
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
         cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
@@ -494,7 +486,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         with self.wait_cursor():
             self.clear()
             
-            image = self.dl.dataloader.readImage(self.CurrentFilePath())
+            image = self.dl.data.readImage(self.CurrentFilePath())
             prediction = self.dl.PredictImage(image)
             if prediction is None:
                 self.PopupWarning('Cannot load image')
