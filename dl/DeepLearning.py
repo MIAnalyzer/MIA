@@ -26,7 +26,7 @@ import dl.dl_losses as dl_losses
 import dl.dl_metrics as dl_metrics
 import dl.dl_training_record as dl_training_record
 import dl.dl_hed as dl_hed
-import dl.dl_imageloader as dl_imageloader
+import dl.dl_imagedata as dl_imagedata
 
 import utils.Contour
 import multiprocessing
@@ -53,7 +53,7 @@ class DeepLearning():
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = dl_hed.HED_Segmentation()
-        self.dataloader = dl_imageloader.ImageLoader(self)
+        self.data = dl_imagedata.ImageData(self)
         
         self.ModelType = 0
         self.Model = None
@@ -81,7 +81,7 @@ class DeepLearning():
         if not self.initialized() or trainingimages_path is None or traininglabels_path is None:
             return False
 
-        self.dataloader.initTrainingDataset(trainingimages_path, traininglabels_path)
+        self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
         if self.TrainInMemory:
             train_generator = dl_datagenerator.TrainingDataGenerator_inMemory(self)
         else:
@@ -116,7 +116,7 @@ class DeepLearning():
         if pad != (0,0):
             image = np.pad(image, ((0, pad[0]), (0, pad[1]), (0,0)),'constant', constant_values=(0, 0))
 
-        image = self.dataloader.preprocessImage(image)
+        image = self.data.preprocessImage(image)
         image = image[np.newaxis, ...]
         
         # convert_to_tensor is not necessary but improves performance because it avoids retracing

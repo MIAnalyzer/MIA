@@ -26,7 +26,7 @@ class TrainingDataGenerator_inMemory(Sequence):
         self.parent = parent
         self.batch_size = parent.batch_size
         self.lock = threading.Lock() 
-        images,labels = parent.dataloader.loadTrainingDataSet()
+        images,labels = parent.data.loadTrainingDataSet()
         self.images = images
         self.labels = labels
         self.indices = list(range(0,images.shape[0]))
@@ -45,8 +45,8 @@ class TrainingDataGenerator_inMemory(Sequence):
             batch_masks = self.labels[self.indices[batch_start:batch_end]]
 
             img, mask = dl_augment.augment(batch_images,batch_masks)         
-            img = self.parent.dataloader.preprocessImage(img)     
-            mask = self.parent.dataloader.preprocessLabel(mask)
+            img = self.parent.data.preprocessImage(img)     
+            mask = self.parent.data.preprocessLabel(mask)
             return img, mask
         
     def on_epoch_end(self):
@@ -58,8 +58,8 @@ class TrainingDataGenerator_fromDisk(Sequence):
         self.parent = parent
         self.batch_size = parent.batch_size
         self.lock = threading.Lock()
-        self.images = self.parent.dataloader.ImagesPaths
-        self.labels = self.parent.dataloader.LabelsPaths
+        self.images = self.parent.data.ImagesPaths
+        self.labels = self.parent.data.LabelsPaths
         self.channels = 1 if parent.MonoChrome() is True else 3
         self.numClasses = parent.NumClasses()
         self.scalefactor = parent.ImageScaleFactor
@@ -78,15 +78,15 @@ class TrainingDataGenerator_fromDisk(Sequence):
             batch_end = min(batch_start + self.batch_size, self.numImages)
             for i in range(batch_start, batch_end):
                 
-                train_img, train_mask = self.parent.dataloader.createImageLabelPair(i)
+                train_img, train_mask = self.parent.data.createImageLabelPair(i)
 
                 batch_images.append(train_img)
                 batch_masks.append(train_mask)
 
             img, mask = dl_augment.augment(batch_images, batch_masks)
 
-            img = self.parent.dataloader.preprocessImage(img)     
-            mask = self.parent.dataloader.preprocessLabel(mask)
+            img = self.parent.data.preprocessImage(img)     
+            mask = self.parent.data.preprocessLabel(mask)
             return img, mask
         
     def on_epoch_end(self):
