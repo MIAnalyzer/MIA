@@ -338,6 +338,7 @@ def saveContours(contours, filename):
     f3 = lambda x: x.innercontours
     cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
+    print(len(cnts))
     np.savez(filename, *cnts)
         
 def loadContours(filename):

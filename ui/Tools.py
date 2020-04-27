@@ -108,24 +108,17 @@ class DrawTool(AbstractTool):
    
     def mouseMoveEvent(self, e):
         if self.canvas.NewContour:
-            # order imaportant
-            p1 = self.canvas.NewContour.getLastPoint()
-            p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
-            if (self.canvas.addPoint2NewContour(p2)):
-                self.canvas.addline(p1,p2)
-                
-            image = self.canvas.image.copy()
-            p3 = self.canvas.NewContour.getFirstPoint()
-            self.canvas.addline(p1,p3, dashed = True)
-            self.canvas.image = image
+            p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+            self.canvas.addPoint2NewContour(p)
+
+            if self.canvas.showConnectingDrawingLine:
+                image = self.canvas.image.copy()
+                p3 = self.canvas.NewContour.getFirstPoint()
+                self.canvas.addline(p,p3, dashed = True)
+                self.canvas.image = image
 
     def mouseReleaseEvent(self, e):       
         if self.canvas.NewContour:
-            p1 = self.canvas.NewContour.getFirstPoint()
-            p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
-            self.canvas.addPoint2NewContour(p2)
-#            if (self.canvas.NewContour.isValid()):
-#                self.canvas.addline(p1,p2)
             self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
                 
     def mousePressEvent(self, e):
@@ -158,20 +151,17 @@ class PolygonTool(AbstractTool):
         
     def mouseMoveEvent(self, e):
         if self.canvas.NewContour is not None:
-            image = self.canvas.image.copy()
-            p1 = self.canvas.NewContour.getLastPoint()
-            p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
-            self.canvas.addline(p1,p2)
-            self.canvas.image = image
+            if self.canvas.showConnectingDrawingLine:
+                image = self.canvas.image.copy()
+                p1 = self.canvas.NewContour.getLastPoint()
+                p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                self.canvas.addline(p1,p2)
+                self.canvas.image = image
             
         
     def mouseReleaseEvent(self,e):
         if e.button() == Qt.RightButton:
             if self.canvas.NewContour:
-                p1 = self.canvas.NewContour.getLastPoint()
-                p2 = self.canvas.NewContour.getFirstPoint()
-                self.canvas.addPoint2NewContour(p2)
-                self.canvas.addline(p1,p2)
                 self.canvas.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
             else:
                 self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
@@ -181,10 +171,8 @@ class PolygonTool(AbstractTool):
                 self.canvas.prepareNewContour()
                 self.canvas.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.f2intPoint(self.canvas.mapToScene(e.pos())))
             else:
-                p1 = self.canvas.NewContour.getLastPoint()
-                p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
-                if self.canvas.addPoint2NewContour(p2):
-                    self.canvas.addline(p1,p2)
+                p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                self.canvas.addPoint2NewContour(p)
                       
     def mousePressEvent(self,e):
         pass

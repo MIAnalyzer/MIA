@@ -17,7 +17,7 @@ from ui.ui_utils import LabelledSpinBox, LabelledDoubleSpinBox
 class Window(object):
     def setupUi(self, Form):
         width = 250
-        height= 265
+        height= 280
         Form.setWindowTitle('Settings') 
         Form.setStyleSheet("background-color: rgb(250, 250, 250)")
 
@@ -85,6 +85,10 @@ class Window(object):
         self.CBContourNumbers.setToolTip('Select to show contour number below each contour')
         vlayout.addWidget(self.CBContourNumbers)
         
+        self.CBFastDrawing = QCheckBox("Fast Drawing",self.centralWidget)
+        self.CBFastDrawing.setToolTip('Reduces performance needs during drawing. Might be used for large images.')
+        vlayout.addWidget(self.CBFastDrawing)
+        
 
         self.SBFontSize = LabelledSpinBox('Font Size',self.centralWidget)
         self.SBFontSize.setToolTip('Set font size')
@@ -118,19 +122,23 @@ class SettingsWindow(QMainWindow, Window):
         self.setupUi(self)
         
         self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
+        self.CBFastDrawing.setChecked(not self.parent.canvas.showConnectingDrawingLine)
         self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
         self.SBThreads.SpinBox.setValue(self.parent.maxworker)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         
+        
         self.CBContourNumbers.clicked.connect(self.showContourNumbers)
+        self.CBFastDrawing.clicked.connect(self.fastDrawing)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
         self.CBgpu.currentIndexChanged.connect(self.setGPU)
         self.SBThreads.SpinBox.valueChanged.connect(self.setNumThreads)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
+        
         
         self.CBgpu.setCurrentIndex(0)
         
@@ -157,6 +165,9 @@ class SettingsWindow(QMainWindow, Window):
             except RuntimeError as e:
                 # Visible devices must be set before GPUs have been initialized
                 self.parent.PopupWarning('GPU settings only take effect upon program start')
+    
+    def fastDrawing(self):
+        self.parent.canvas.showConnectingDrawingLine = not self.CBFastDrawing.isChecked()
       
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())

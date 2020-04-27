@@ -41,7 +41,7 @@ class Canvas(QGraphicsView):
         self.drawContourNumber = True
         self.drawSkeleton = False
         self.sketch = None
-        
+        self.showConnectingDrawingLine = True
         
         #self.setCursor(Qt.OpenHandCursor)
         self.displayedimage = QGraphicsPixmapItem()
@@ -119,11 +119,11 @@ class Canvas(QGraphicsView):
             self.update()
             
     def addPoint2NewContour(self, p_image):
-        if (p_image != self.NewContour.getLastPoint()):
+        p_last = self.NewContour.getLastPoint()
+        if (p_image != p_last):
             self.NewContour.addPoint(p_image)
-            return True
-        else:
-            return False
+            self.addline(p_last,p_image)
+
             
     def prepareNewContour(self):
         width = self.image.width()
@@ -192,7 +192,7 @@ class Canvas(QGraphicsView):
         self.fitInView()
         
     def getCurrentPixmap(self):
-        image = self.parent.readCurrentImageAsBGR()   
+        image = self.parent.readCurrentImageAsBGR() 
         image = QImage(image, image.shape[1], image.shape[0], image.shape[1] * 3,QImage.Format_RGB888).rgbSwapped() 
         return QPixmap(image)
         
