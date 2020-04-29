@@ -135,9 +135,10 @@ class ResultsWindow(QMainWindow, Window):
                     num = len(labels)
                     self.parent.initProgress(num)
                     with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
-                        rows = executor.map(self.getSingleContourFromList, labels)
-
-                    csvWriter.writerows(rows) 
+                        rows = executor.map(self.getSingleLabelFromList, labels)
+                    
+                    for r in rows:
+                        csvWriter.writerows(r) 
                     self.parent.ProgressFinished()
                     self.parent.writeStatus('results saved')
                 
@@ -147,10 +148,11 @@ class ResultsWindow(QMainWindow, Window):
             
             self.hide()
         
-    def getSingleContourFromList(self, contourname):
+    def getSingleLabelFromList(self, contourname):
         contours = Contour.loadContours(contourname)
         name = os.path.splitext(os.path.basename(contourname))[0]
         x = 0
+        rows = []
         for c in contours:
             x += 1
             row = [name] + [x] + [c.classlabel] + [c.getSize()]
@@ -163,9 +165,9 @@ class ResultsWindow(QMainWindow, Window):
                     row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]
                 if length > 0:
                     row += ['%.2f'%(c.getSize()/length)]
-
+            rows.append(row)
         self.parent.addProgress()
-        return row
+        return rows
        
             
         
