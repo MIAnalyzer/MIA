@@ -289,6 +289,7 @@ class Canvas(QGraphicsView):
                     i = i+1
                 col = color.darker(65)
                 self.setPainterColor(painter, col)
+                self.setColorTransparency(painter, color, transparency = -1)
                 painter.drawPath(skelpath)
 
         

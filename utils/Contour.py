@@ -95,8 +95,11 @@ class Contour():
         elif isinstance(points, np.ndarray):
             self.points = points
             if isinstance(inner, np.ndarray):
-                for i in range(len(inner)):
-                    self.innercontours.append(inner[i])
+                self.unpackInnerContours(inner)
+                
+                # with a list as input
+#                for i in range(len(inner)):
+#                    self.innercontours.append(inner[i])
         elif points is None:
             self.points = None
 
@@ -127,7 +130,25 @@ class Contour():
     def addInnerContour(self, c):
         if len(c) >= 3 and cv2.contourArea(c) > 3:
             self.innercontours.append(c)
+            
+    def packedInnerContours(self):
+        if len(self.innercontours) < 1:
+            return self.innercontours
+        else:
+            # we pack a [-1,-1] at front of every contour
+            # warning: bracket overload!!! :)          
+            return [np.concatenate((np.array([[[-1,-1]]]),x)) for x in self.innercontours]
         
+    def unpackInnerContours(self, inner_packed):
+        if len(inner_packed) == 0:
+            return
+        # we split the array at the position of every [-1,-1] into separate contours and remove [-1,-1]
+        separate = np.where(inner_packed == ([-1,-1]))
+        s = separate[0][0::2]
+        inner = np.split(inner_packed, s[1:])    
+        self.innercontours = [x[1:,...] for x in inner]
+
+
     def getInnerContourParams(self):
         if not self.innerparams:
             self.innerparams = [ (cv2.moments(x),cv2.boundingRect(x)) for x in self.innercontours]
@@ -144,7 +165,13 @@ class Contour():
         return self.moments
         
     def getSize(self):
-        return cv2.contourArea(self.points)
+        # careful: contourarea uses Green formula
+        # as we use this in segmentation non_zero pixels might be more accurate
+        # consider changing to non_zero pixels
+        outer = cv2.contourArea(self.points)
+        inner = [cv2.contourArea(x) for x in self.innercontours]
+        return outer - sum(inner)
+    
     def numPoints(self):
         return len(self.points)
                     
@@ -207,9 +234,15 @@ class Contour():
 #        image = np.zeros((height, width, 1), np.uint8)
 
         cv2.drawContours(image, [self.points - (l,t)], 0, (255), -1)
+        inner = [i - (l,t) for i in self.innercontours]
+        cv2.drawContours(image, inner, -1, (0), -1)
+        
+        
         blurred = cv2.medianBlur(image, 11)
 
         skel = morphology.skeletonize(blurred>0,  method='lee')
+        
+        cv2.imwrite('iamanimage.tif',skel)
         
         # contour based length measurement
         if imutils.is_cv2() or imutils.is_cv4():
@@ -217,9 +250,10 @@ class Contour():
         elif imutils.is_cv3():
             _, contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
+
         c = contours[np.argmax([len(l) for l in contours])] + ([l,t])
         self.skeleton = cv2.approxPolyDP(c, 3, False)
-
+        
         return self.skeleton
     
         ## pixel based length measurement
@@ -333,12 +367,14 @@ def saveContours(contours, filename):
     if len(contours) == 0:
         return
 
+
+    
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
-    f3 = lambda x: x.innercontours
+#    f3 = lambda x: x.innercontours # we need to allow_pickle = True in np.load then
+    f3 = lambda x: np.concatenate(x.packedInnerContours()) if x.innercontours else []
     cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
-    print(len(cnts))
     np.savez(filename, *cnts)
         
 def loadContours(filename):
@@ -346,6 +382,7 @@ def loadContours(filename):
     data = [container[key] for key in container]
     
     ret = []
+    
     if data[0] == FreeFormContour_ID_legacy:
         label = data[1::2]
         array = data[2::2]
