@@ -278,15 +278,17 @@ class Canvas(QGraphicsView):
             
         if self.drawSkeleton:
             skeleton = contour.getSkeleton()         
-            i = 0
+            
             skelpath = QPainterPath()
             if skeleton is not None:
-                for c in skeleton:
-                    if i == 0:
-                        skelpath.moveTo(c[0][0], c[0][1])
-                    else:
-                        skelpath.lineTo(c[0][0], c[0][1])
-                    i = i+1
+                for cnt in skeleton:
+                    i = 0
+                    for c in cnt:         
+                        if i == 0:
+                            skelpath.moveTo(c[0][0], c[0][1])
+                        else:
+                            skelpath.lineTo(c[0][0], c[0][1])
+                        i = i+1
                 col = color.darker(65)
                 self.setPainterColor(painter, col)
                 self.setColorTransparency(painter, color, transparency = -1)

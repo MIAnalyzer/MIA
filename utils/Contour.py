@@ -214,7 +214,8 @@ class Contour():
         if self.skeleton is None:
             return 0
         else:
-            return cv2.arcLength(self.skeleton, False)/2
+            return sum([cv2.arcLength(c, True) for c in self.skeleton])/2
+#            return cv2.arcLength(self.skeleton, False)/2
     
     def getSkeleton(self):
         if self.skeleton is not None:
@@ -245,15 +246,9 @@ class Contour():
         cv2.imwrite('iamanimage.tif',skel)
         
         # contour based length measurement
-        if imutils.is_cv2() or imutils.is_cv4():
-            contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        elif imutils.is_cv3():
-            _, contours, _ = cv2.findContours(skel, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+        contours, hierarchy = findContours(skel)
 
-        c = contours[np.argmax([len(l) for l in contours])] + ([l,t])
-        self.skeleton = cv2.approxPolyDP(c, 3, False)
-        
+        self.skeleton = [cv2.approxPolyDP(c + ([l,t]), 3, True) for c in contours if len(c)>0]
         return self.skeleton
     
         ## pixel based length measurement
@@ -309,10 +304,7 @@ def extractContoursFromLabel(image):
     maxclass = np.max(image)
     for i in range(1,maxclass+1):
         thresh = (image == i).astype(np.uint8)
-        if imutils.is_cv2() or imutils.is_cv4():
-            contours, hierarchy  = cv2.findContours(thresh, cv2.RETR_CCOMP  , cv2.CHAIN_APPROX_SIMPLE)
-        elif imutils.is_cv3():
-            _, contours, hierarchy  = cv2.findContours(thresh, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = findContours(image)
         if contours is not None:
             counter = -1
             for k, c in enumerate(contours):
@@ -337,10 +329,8 @@ def drawContoursToImage(image, contours):
 def extractContoursFromImage(image):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
-    if imutils.is_cv2() or imutils.is_cv4():
-        contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
-    elif imutils.is_cv3():
-        _, contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = findContours(image)
+
     if contours is not None:
         counter = -1
         for k,c in enumerate(contours):
@@ -367,8 +357,6 @@ def saveContours(contours, filename):
     if len(contours) == 0:
         return
 
-
-    
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
 #    f3 = lambda x: x.innercontours # we need to allow_pickle = True in np.load then
@@ -394,6 +382,12 @@ def loadContours(filename):
         ret = [Contour(x,y,z) for x,y,z in zip(label,array,inner)]
     return ret
 
+def findContours(image):
+    if imutils.is_cv2() or imutils.is_cv4():
+        contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
+    elif imutils.is_cv3():
+        _, contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP , cv2.CHAIN_APPROX_SIMPLE)
+    return contours, hierarchy
 
 def QPoint2np(p):
     return np.array([(p.x(),p.y())], dtype=np.int32)
