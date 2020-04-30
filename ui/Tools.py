@@ -223,7 +223,10 @@ class DeleteTool(AbstractTool):
         
     def mouseReleaseEvent(self,e):
         if e.button() == Qt.LeftButton:
-            contour = self.canvas.Contours.getContour(self.canvas.mapToScene(e.pos()))
+            
+            contour = self.canvas.Contours.getContourOfClass_x(self.canvas.parent.activeClass(),self.canvas.mapToScene(e.pos()))
+            if contour is None:
+                contour = self.canvas.Contours.getContour(self.canvas.mapToScene(e.pos()))
             if contour is not None:
                 self.canvas.Contours.deleteContour(contour)
                 self.canvas.redrawImage()

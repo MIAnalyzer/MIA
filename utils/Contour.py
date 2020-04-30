@@ -61,6 +61,12 @@ class Contours():
                 l.append(c)
         return l        
     
+    def getContourOfClass_x(self,x, point):
+        contours = self.getContoursOfClass_x(x)
+        for c in contours: 
+            if c.inside(point):
+                return c
+    
     def getContour(self, point):
         for c in self.contours: 
             if c.inside(point):
@@ -177,9 +183,15 @@ class Contour():
                     
     def inside(self, point):
         p = QPoint2np(point)
-        inside = cv2.pointPolygonTest(self.points,  (p[0,0], p[0,1]), False) 
-        return True if inside >= 0 else False
-    
+        p = (p[0,0], p[0,1])
+        inside = cv2.pointPolygonTest(self.points,  p, False)   
+        if inside < 0:
+            return False
+        if not self.innercontours:
+            return True    
+        else:
+            return next((False for c in self.innercontours if cv2.pointPolygonTest(c,  p, False) > 0), True)
+
     def getBottomPoint(self):
         b = (self.points[self.points[..., 1].argmax()][0])
         return QPoint(b[0], b[1])
