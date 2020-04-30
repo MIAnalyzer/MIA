@@ -143,7 +143,7 @@ class Contour():
         else:
             # we pack a [-1,-1] at front of every contour
             # warning: bracket overload!!! :)          
-            return [np.concatenate((np.array([[[-1,-1]]]),x)) for x in self.innercontours]
+            return np.concatenate([np.concatenate((np.array([[[-1,-1]]]),x)) for x in self.innercontours])
         
     def unpackInnerContours(self, inner_packed):
         if len(inner_packed) == 0:
@@ -372,7 +372,7 @@ def saveContours(contours, filename):
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
 #    f3 = lambda x: x.innercontours # we need to allow_pickle = True in np.load then
-    f3 = lambda x: np.concatenate(x.packedInnerContours()) if x.innercontours else []
+    f3 = lambda x: x.packedInnerContours()
     cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
     np.savez(filename, *cnts)
