@@ -14,6 +14,9 @@ import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.image import normalizeImage
 
+import concurrent.futures
+from itertools import repeat
+
 class ImageData():
     def __init__(self, parent):
         self.parent = parent
@@ -128,6 +131,7 @@ class ImageData():
         train_mask = self.addWeightMap(train_mask)
         
         return train_img, train_mask
+    
 
     
     def loadTrainingDataSet(self):
@@ -147,16 +151,14 @@ class ImageData():
         img = np.zeros((len(images), height, width, im_channels)).astype('uint8')
         mask = np.zeros((len(images), height, width, lb_channels)).astype('uint8')
         
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
+            x = executor.map(self.createImageLabelPair,range(len(images)), repeat(width), repeat(height))
         
-        for i in range (len(images)):   
-            # to do: process with workers a la: with concurrent.futures.ThreadPoolExecutor(...) as executor:
-            train_img, train_mask = self.createImageLabelPair(i, width=width, height=height)
-              
-            img[i] = train_img
-            mask[i] = train_mask
-            
+        for counter, pair in enumerate(x):   
+            img[counter] = pair[0]
+            mask[counter] = pair[1]
+        
         return img, mask
-    
     
     
     
