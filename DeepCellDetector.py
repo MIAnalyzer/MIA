@@ -189,7 +189,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
             label.setText(str(len(self.canvas.Contours.getContoursOfClass_x(i))))
-        self.canvas.createLabelFromContours()
+        self.canvas.SaveCurrentContours()
         
     def changeLearningMode(self, i):
         self.LearningMode = i
@@ -287,14 +287,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.train_test_dir = False
         self.setWorkingFolder()
         
-    def createLabelFolder(self):
+    def setLabelPaths(self):
         if self.trainImagespath is not None:
             self.trainImageLabelspath = self.trainImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
-            self.ensureFolder(self.trainImageLabelspath)
+#            self.ensureFolder(self.trainImageLabelspath)
         
         if self.testImagespath is not None:
             self.testImageLabelspath = self.testImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
-            self.ensureFolder(self.testImageLabelspath)
+#            self.ensureFolder(self.testImageLabelspath)
        
     def switchToTrainFolder(self):
         self.train_test_dir = True
@@ -305,7 +305,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setWorkingFolder()
             
     def setWorkingFolder(self):
-        self.createLabelFolder()
+        self.setLabelPaths()
         if self.train_test_dir:
             self.imagepath = self.trainImagespath
             self.labelpath = self.trainImageLabelspath
@@ -316,11 +316,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.changeImage()
         self.setFolderLabels()
         
+    def ensureLabelFolder(self):
+        self.ensureFolder(self.labelpath)
+        
     def ensureFolder(self, foldername):
-        try:
+        if not os.path.isdir(foldername):
             os.mkdir(foldername)
-        except FileExistsError:
-            pass # do nothing
+
         
     def setFolderLabels(self):
         if self.trainImagespath:
