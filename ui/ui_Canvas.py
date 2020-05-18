@@ -251,8 +251,9 @@ class Canvas(QGraphicsView):
         pix = self.image().scaled(width * factor, height * factor, Qt.KeepAspectRatio)
         self.displayedimage.setPixmap(pix)
         
-    def createLabelFromContours(self):
+    def SaveCurrentContours(self):
         if not self.Contours.empty():
+            self.parent.ensureLabelFolder()
             self.Contours.saveContours(self.parent.CurrentLabelFullName())
         else:
             self.parent.deleteLabel()
