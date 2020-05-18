@@ -13,13 +13,14 @@ import multiprocessing
 import tensorflow as tf
 
 from ui.ui_utils import LabelledSpinBox, LabelledDoubleSpinBox
+from ui.style import styleForm
 
 class Window(object):
     def setupUi(self, Form):
         width = 250
-        height= 280
+        height= 325
         Form.setWindowTitle('Settings') 
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
 
         Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
@@ -60,6 +61,9 @@ class Window(object):
         hlayout.addWidget(self.Lgpu)
         vlayout.addLayout(hlayout)     
         
+        self.CBSeparateLabels = QCheckBox("Separate Labels of Stacks",self.centralWidget)
+        self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
+        vlayout.addWidget(self.CBSeparateLabels)
 
         self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
         self.SBThreads.setToolTip('Set number of worker threads')
@@ -123,6 +127,7 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
         self.CBFastDrawing.setChecked(not self.parent.canvas.showConnectingDrawingLine)
+        self.CBSeparateLabels.setChecked(self.parent.separateStackLabels)
         self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
@@ -132,6 +137,7 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBContourNumbers.clicked.connect(self.showContourNumbers)
         self.CBFastDrawing.clicked.connect(self.fastDrawing)
+        self.CBSeparateLabels.clicked.connect(self.separateLabels)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
@@ -168,6 +174,9 @@ class SettingsWindow(QMainWindow, Window):
     
     def fastDrawing(self):
         self.parent.canvas.showConnectingDrawingLine = not self.CBFastDrawing.isChecked()
+        
+    def separateLabels(self):
+        self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
       
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())

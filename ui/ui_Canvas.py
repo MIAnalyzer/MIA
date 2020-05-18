@@ -13,13 +13,43 @@ import os
 import numpy as np
 import cv2
 
-
 import ui.Tools as Tools
 from ui.Tools import canvasTool
 from utils.Contour import *
 
 from skimage.filters import threshold_yen
 from skimage.exposure import rescale_intensity
+
+
+# to do: derive QGraphicsItem to display whole slide image
+# get the viewpoint via "self.mapToScene(self.viewport().geometry()).boundingRect()"
+# and paint target region
+
+class DrawingImage(QGraphicsItem):
+    # need to inherit here because the pixmap of QGraphicsPixmapItem is const
+    # like this we can draw directly on the pixmap, avoid unnecessary copies
+    def __init__(self, pixmap, parent=None):
+        super(DrawingImage, self).__init__(parent)
+        self.pmap = pixmap
+        
+    def setPixmap(self, pixmap):
+        if pixmap:
+            self.pmap = pixmap
+   
+    def pixmap(self):
+        if self.pmap == QPixmap():
+            return None
+        else:
+            return self.pmap
+        
+    def boundingRect(self):
+        if self.pmap is None:
+            return QRectF()
+        return QRectF(0, 0, self.pmap.width(), self.pmap.height())
+    
+    def paint(self, painter, option, widget):
+        painter.drawPixmap(0, 0, self.pmap)
+
 
 class Canvas(QGraphicsView):
     def __init__(self, parent):
@@ -28,7 +58,7 @@ class Canvas(QGraphicsView):
         self.colors = []
         self.pen_size = 3
         self.bgcolor = QColor(0,0,0)
-        self.image = None
+#        self.image = None
         self.rawimage = None
         self.zoomstep = 0
         self.tool = Tools.DragTool(self)
@@ -43,8 +73,7 @@ class Canvas(QGraphicsView):
         self.sketch = None
         self.showConnectingDrawingLine = True
         
-        #self.setCursor(Qt.OpenHandCursor)
-        self.displayedimage = QGraphicsPixmapItem()
+        self.displayedimage = DrawingImage(QPixmap())
         self.scene = QGraphicsScene(self)
         self.scene.addItem(self.displayedimage)
         self.setScene(self.scene)
@@ -63,7 +92,6 @@ class Canvas(QGraphicsView):
         self.tool.mouseMoveEvent(e)
         super(Canvas, self).mouseMoveEvent(e)
 
-
     def mouseReleaseEvent(self, e):
         if not self.hasImage():
             return
@@ -79,6 +107,9 @@ class Canvas(QGraphicsView):
     def wheelEvent(self,e):
         if self.hasImage():
             self.tool.wheelEvent(e)
+            
+    def image(self):
+        return self.displayedimage.pixmap()
       
     def addline(self, p1 ,p2, color = None, dashed = False):
         p = self.getPainter(color)
@@ -114,9 +145,9 @@ class Canvas(QGraphicsView):
         self.updateImage()
         
     def updateImage(self):
-        if self.image is not None:
-            self.displayedimage.setPixmap(self.image)
+        if self.image() is not None:
             self.update()
+
             
     def addPoint2NewContour(self, p_image):
         p_last = self.NewContour.getLastPoint()
@@ -126,8 +157,8 @@ class Canvas(QGraphicsView):
 
             
     def prepareNewContour(self):
-        width = self.image.width()
-        height = self.image.height()
+        width = self.image().width()
+        height = self.image().height()
         self.sketch = np.zeros((height, width, 1), np.uint8)
         drawContoursToImage(self.sketch, self.Contours.getContoursOfClass_x(self.parent.activeClass()))
     
@@ -155,12 +186,14 @@ class Canvas(QGraphicsView):
         self.NewContour = None
         
     def fitInView(self, scale=True):
-        rect = QRectF(self.displayedimage.pixmap().rect())
+        rect = QRectF(self.image().rect())
         if not rect.isNull():
             self.setSceneRect(rect)
             if self.hasImage():
                 viewrect = self.viewport().rect()
                 scenerect = self.transform().mapRect(rect)
+                if scenerect.width() * scenerect.height() == 0:
+                    return
                 factor = min(viewrect.width() / scenerect.width(), viewrect.height() / scenerect.height())
                 self.scale(factor, factor)
                 self.zoomstep = 0
@@ -169,16 +202,18 @@ class Canvas(QGraphicsView):
     def zoomfactor(self):
         if not self.hasImage():
             return None
-        rect = QRectF(self.displayedimage.pixmap().rect()) 
+        rect = QRectF(self.image().rect()) 
         viewrect = self.viewport().rect()
         scenerect = self.transform().mapRect(rect)
+        if rect.width() * rect.height() == 0:
+            return None
         w = scenerect.width() / rect.width()
         h = scenerect.height() / rect.height()
         return (w,h)
 
     def reset(self, width, height):
-        self.displayedimage.setPixmap(QPixmap(width, height))
-        self.displayedimage.pixmap().fill(self.bgcolor)
+        pix = QPixmap(width, height).fill(self.bgcolor)
+        self.displayedimage.setPixmap(pix)
         
     def ReloadImage(self):
         if self.parent.CurrentFilePath() is None:
@@ -192,12 +227,15 @@ class Canvas(QGraphicsView):
         self.fitInView()
         
     def getCurrentPixmap(self):
-        image = self.parent.readCurrentImageAsBGR() 
+        image = self.parent.getCurrentImage() 
+        if image is None:
+            self.parent.PopupWarning('No image loaded')
+            return
         image = QImage(image, image.shape[1], image.shape[0], image.shape[1] * 3,QImage.Format_RGB888).rgbSwapped() 
         return QPixmap(image)
         
     def hasImage(self):
-        return self.image is not None
+        return self.image() is not None
     
     def setScale(self,scale_ppmm):
         if scale_ppmm <= 0:
@@ -210,7 +248,7 @@ class Canvas(QGraphicsView):
         width = self.geometry().width()
         height = self.geometry().height()
         factor = 1 + self.zoomstep/10 
-        pix = self.image.scaled(width * factor, height * factor, Qt.KeepAspectRatio)
+        pix = self.image().scaled(width * factor, height * factor, Qt.KeepAspectRatio)
         self.displayedimage.setPixmap(pix)
         
     def createLabelFromContours(self):
@@ -226,12 +264,11 @@ class Canvas(QGraphicsView):
     
     def redrawImage(self):
         if self.rawimage is not None:
-            self.image = self.rawimage.copy()
-            self.displayedimage.setPixmap(self.image)
+            self.displayedimage.setPixmap(self.rawimage.copy())
             self.drawcontours()
             
     def drawcontours(self):
-        if self.image is None:
+        if self.image() is None:
             return
         for c in self.Contours.contours:  
             self.drawcontour(c)
@@ -297,10 +334,10 @@ class Canvas(QGraphicsView):
         
     def getLabelNumPosition(self, contour):
         pos = contour.getBottomPoint()+QPoint(0,self.FontSize + 10)
-        if pos.y() > self.image.height():
-            pos.setY(self.image.height() - self.FontSize - 5)
-        if pos.x() > self.image.width():
-            pos.setX(self.image.width() - self.FontSize - 5)
+        if pos.y() > self.image().height():
+            pos.setY(self.image().height() - self.FontSize - 5)
+        if pos.x() > self.image().width():
+            pos.setX(self.image().width() - self.FontSize - 5)
         if pos.x() < 0:
             pos.setX(5)
         return pos
@@ -309,7 +346,7 @@ class Canvas(QGraphicsView):
         if color is None:
             color = self.parent.ClassColor(self.parent.activeClass())
         # painter objects can only exist once per QWidget
-        p = QPainter(self.image)
+        p = QPainter(self.image())
         color.setAlpha(255)    
         p.setPen(QPen(color, self.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
 

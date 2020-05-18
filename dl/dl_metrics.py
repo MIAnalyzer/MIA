@@ -1,6 +1,7 @@
 
 import tensorflow.keras.backend as K
 from tensorflow.keras.metrics import MeanIoU
+from tensorflow.keras.utils import get_custom_objects
 import tensorflow as tf
 
 def mean_iou_binary(y_true, y_pred):
@@ -45,3 +46,10 @@ def iou_function(binary, weighted):
             return [mean_iou_weighted]
         else:
             return [mean_iou]
+
+
+# for loading models trained with custom metrics
+get_custom_objects()['mean_iou'] = mean_iou
+get_custom_objects()['mean_iou_weighted'] = mean_iou_weighted
+get_custom_objects()['mean_iou_binary'] = mean_iou_binary
+get_custom_objects()['mean_iou_binary_weighted'] = mean_iou_binary_weighted

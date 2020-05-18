@@ -32,7 +32,7 @@ from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
 
 import utils.Contour as Contour
-import utils.image 
+from utils.Image import ImageFile, supportedImageFormats
 
 import numpy as np
 
@@ -46,7 +46,6 @@ LOG_FILENAME = 'log/logfile.log'
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
-
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -67,23 +66,27 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.files = None
         self.currentImage = 0
         self.numofImages = 0
+        self.currentImageFile = None
+        self.currentFrame = 0
+        self.separateStackLabels = False
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
 
         self.dl = DeepLearning.DeepLearning()
-        # init canvas
+#         init canvas
         self.hlayout.removeWidget(self.canvas)
         self.canvas.close()
         self.canvas = Canvas(self)
         self.canvas.setMouseTracking(True)
         self.canvas.setFocusPolicy(Qt.StrongFocus)
-
         self.canvas.setFixedSize(QSize(width, height))
         self.canvas.reset(width, height)
         self.hlayout.addWidget(self.canvas)
+        self.hlayout.addWidget(self.SFrame)
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
+        
         self.classList.setClass(0)
         self.changeLearningMode(self.LearningMode)
         self.CBLearningMode.setCurrentIndex (self.LearningMode)
@@ -122,6 +125,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.BTrainImageFolder.clicked.connect(self.switchToTrainFolder)
         self.Bnext.clicked.connect(self.nextImage)
         self.Bprev.clicked.connect(self.previousImage)
+        self.SFrame.valueChanged.connect(self.FrameChanged)
         
         self.Bdrag.clicked.connect(self.setCanvasMode)
         self.Bdraw.clicked.connect(self.setCanvasMode)
@@ -238,7 +242,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def clear(self):
         self.canvas.clearContours()
         self.deleteLabel()
-        self.changeImage()
+        self.canvas.ReloadImage()
         QApplication.processEvents()
     
     def deleteLabel(self):
@@ -259,7 +263,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def changeImage(self):
         if self.numofImages > 0:
-            self.canvas.ReloadImage()
+            self.readCurrentImageAsBGR()
             text = "%d of %i: " % (self.currentImage+1,self.numofImages) + self.CurrentFileName()
             self.StatusFile.setText(text)
         else:
@@ -337,7 +341,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def getFiles(self):
         if self.imagepath is None:
             return
-        exts = ['*' + x for x in utils.image.supportedImageFormats()]
+        exts = ['*' + x for x in supportedImageFormats()]
         self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
         self.files.sort()
         self.currentImage = 0
@@ -350,7 +354,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             pass
         
     def loadImage(self):
-        ext = ['*' + x for x in utils.image.supportedImageFormats()]
+        ext = ['*' + x for x in supportedImageFormats()]
         text = 'Image Files(' + ' '.join(ext) + ')'
         path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr(text))
         self.canvas.image = QPixmap(path[0])
@@ -384,10 +388,34 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def CurrentLabelFullName(self):
         if self.labelpath is None or self.CurrentFileName() is None:
             return None
-        return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
+        if self.separateStackLabels:
+            return os.path.join(self.labelpath, self.CurrentFileName()) + '_' + str(self.currentFrame) + ".npz"
+        else:
+            return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
     def readCurrentImageAsBGR(self):   
-        return utils.image.readImageAsBGR(self.CurrentFilePath())
+        with self.wait_cursor():
+            self.currentImageFile = ImageFile(self.CurrentFilePath(), asBGR = True)
+            if self.currentImageFile.isStack():
+                self.SFrame.show()
+                # initFrameSlider reloads image 
+                self.initFrameSlider()
+            else:
+                self.SFrame.hide()
+                self.canvas.ReloadImage()
+            
+    def initFrameSlider(self):
+        maxval = self.currentImageFile.numOfImagesInStack()
+        self.SFrame.setMaximum(maxval)
+        self.currentFrame = 0
+        self.SFrame.setValue(maxval)
+  
+    def FrameChanged(self):
+        self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
+        self.canvas.ReloadImage()
+    
+    def getCurrentImage(self):   
+        return self.currentImageFile.getImage(self.currentFrame)
     
     def setWorkers(self, numWorker):
         self.maxworker = numWorker
@@ -456,7 +484,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         with self.wait_cursor():
             images = glob.glob(os.path.join(self.testImagespath,'*.*'))
-            images = [x for x in images if (x.endswith(tuple(utils.image.supportedImageFormats())))]
+            images = [x for x in images if (x.endswith(tuple(supportedImageFormats())))]
 
             self.initProgress(len(images))
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
@@ -501,7 +529,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         with self.wait_cursor():
             self.clear()
             # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
-            image = self.readCurrentImageAsBGR()
+            image = self.getCurrentImage()
+            if image is None:
+                self.PopupWarning('No image loaded')
             prediction = self.dl.AutoSegment(image)
             contours = Contour.extractContoursFromLabel(prediction)
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))

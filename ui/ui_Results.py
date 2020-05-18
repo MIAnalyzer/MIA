@@ -15,13 +15,14 @@ import glob
 import concurrent.futures
 import utils.Contour as Contour
 from ui.Tools import canvasTool
+from ui.style import styleForm
 
 
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Results') 
         Form.setFixedSize(250, 80)
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         self.centralWidget = QWidget(Form)
         self.centralWidget.setFixedSize(250, 80)
 

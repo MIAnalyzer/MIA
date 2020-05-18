@@ -71,11 +71,12 @@ class DeepLearning():
         
         
     def initModel(self, numClasses, MonoChrome):
-        try:
+        # try:
+        if True:
             self.Model = self.Models.getModel(self.Mode, self.ModelType, numClasses, monochrome = MonoChrome)
             return self.initialized()
-        except:
-            return False
+        # except:
+        #     return False
        
     def Train(self, trainingimages_path, traininglabels_path):
         if not self.initialized() or trainingimages_path is None or traininglabels_path is None:

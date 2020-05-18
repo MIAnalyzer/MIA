@@ -2,6 +2,9 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import random
+
+from ui.style import getBrightColor
+
 class QAdaptiveDoubleSpinBox(QDoubleSpinBox):
     # implementation of QDoubleSpinBox with adaptive step size,
     # will be obsolete in future as QAbstractSpinBox::AdaptiveDecimalStepType is supported with qt 9.12 (not in python for now)
@@ -78,7 +81,11 @@ class DCDButton(QPushButton):
         if text:
             self.setText(text)
             self.setStyleSheet('text-align:left')
+        self.setStyleSheet('QPushButton:hover:!pressed { border: 1px solid lightblue}')
         self.setFlat(True)
+        
+    def resetStyle(self):
+        self.setStyleSheet('QPushButton:hover:!pressed { border: 1px solid lightblue}')
 
 
 class ClassList(QListWidget):
@@ -86,6 +93,7 @@ class ClassList(QListWidget):
         super(ClassList, self).__init__(parent)
         self.parent = parent
         self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setStyleSheet("QListWidget { border: 2px solid " + getBrightColor(asString=True) +";}")
 
     def addClass(self, name = 'class type'):
         item = QListWidgetItem(self)
@@ -150,7 +158,7 @@ class ClassWidget(QWidget):
         self.rb_select.setToolTip('Select class')
         self.ButtonGroup.addButton(self.rb_select)
 
-        self.pb_color = QPushButton()
+        self.pb_color = DCDButton(parent)
         self.pb_color.setToolTip('Change color')
         self.pb_color.setMaximumSize(15, 15)
         self.setButtonColor(self.color)
@@ -163,8 +171,7 @@ class ClassWidget(QWidget):
         self.label_numOfContours = QLabel(parent)
         self.label_numOfContours.setObjectName('numOfContours_class' + str(self.id))
         self.label_numOfContours.setToolTip('Number of contours')
-        self.label_numOfContours.setText('0')
-        
+        self.label_numOfContours.setText('0')     
         
         self.row.addWidget(self.rb_select)
         self.row.addWidget(self.pb_color)
@@ -180,6 +187,7 @@ class ClassWidget(QWidget):
         pixmap = QPixmap(15, 15)
         pixmap.fill(color)
         self.pb_color.setIcon(QIcon(pixmap))
+ 
         
     def changeColor(self):
         color = QColorDialog.getColor()

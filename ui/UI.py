@@ -10,13 +10,13 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from ui.ui_utils import ClassList, ClassWidget, DCDButton
-
+from ui.style import styleForm, getHighlightColor, getBackgroundColor, getBrightColor
 
 class MainWindow(object):
     def setupUi(self, Form):
-       
+
         screen_resolution = QDesktopWidget().screenGeometry()
-        
+
         height = screen_resolution.height() - 150
         width = height * 4/3
         
@@ -24,12 +24,11 @@ class MainWindow(object):
         Form.setWindowTitle('DeepCellDetector') 
         Form.setWindowIcon(QIcon('icons/logo.png'))
         Form.resize(width, height)
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
-        
+        Form.setStyleSheet("background: " + getBackgroundColor(asString = True))
+        styleForm(Form)
+
         self.centralWidget = QWidget(Form)
-        
-        
-        
+
         sizePolicy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -40,7 +39,6 @@ class MainWindow(object):
         self.menubar = QMenuBar(self.centralWidget)
         
         self.FileMenu = self.menubar.addMenu("File")
-        self.FileMenu.setStyleSheet("QMenu:item:selected { background:#3399ff; color:white;}")
         self.ASetTrainingFolder = QAction("Training Folder", self.centralWidget)
         self.FileMenu.addAction(self.ASetTrainingFolder)
         
@@ -54,11 +52,9 @@ class MainWindow(object):
         
         self.EditMenu = self.menubar.addMenu("Edit")
         self.ASettings = QAction("Settings")
-        self.EditMenu.setStyleSheet("QMenu:item:selected { background:#3399ff; color:white;}")
         self.EditMenu.addAction(self.ASettings)
         
         self.AboutMenu = self.menubar.addMenu("About")
-        self.AboutMenu.setStyleSheet("QMenu:item:selected { background:#3399ff; color:white;}")
         
         self.setMenuBar(self.menubar)
 
@@ -86,7 +82,7 @@ class MainWindow(object):
         self.CBLearningMode.addItem("Classification")
         self.CBLearningMode.addItem("Segmentation")
         self.CBLearningMode.addItem("Time Series")
-        self.CBLearningMode.setToolTip('Select analysis mode')
+        self.CBLearningMode.setToolTip('Select analysis mode')        
         self.CBLearningMode.setObjectName("CBmode")
         self.CBLearningMode.setEditable(False)
         self.CBLearningMode.setFocus(False)
@@ -164,6 +160,7 @@ class MainWindow(object):
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
         
         self.Bdelete = DCDButton(self.centralWidget)
@@ -207,10 +204,12 @@ class MainWindow(object):
         self.SSize.setMaximum(40)
         self.SSize.setValue(10)
         self.SSize.setToolTip('Set marker size')
+        self.SSize.setMaximumWidth((self.CBExtend.width()+self.CBErase.width())/4)
         self.ExtendSettingslayout.addWidget(self.CBExtend)
         self.ExtendSettingslayout.addWidget(self.CBErase)
         self.ExtendSettingslayout.addWidget(self.SSize)
         self.ExtendSettings = QFrame()
+#        self.ExtendSettings.setMaximumWidth(200)
         self.ExtendSettings.setLayout(self.ExtendSettingslayout)
         self.ExtendSettings.hide()
         self.vlayout.addWidget(self.ExtendSettings)
@@ -240,6 +239,7 @@ class MainWindow(object):
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
 
         
@@ -262,6 +262,7 @@ class MainWindow(object):
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
 
         self.trlayout = QHBoxLayout(self.centralWidget)
@@ -312,22 +313,26 @@ class MainWindow(object):
         self.classList.addClass('background')
         self.classList.addClass()
         self.vlayout.addWidget(self.classList)
+
         
         self.add_del_layout = QHBoxLayout(self.centralWidget)
         self.Baddclass = DCDButton(self.centralWidget, "+")
         self.Baddclass.setToolTip('Add a new class')
         self.Baddclass.setMaximumHeight(bheight)
         self.Baddclass.setStyleSheet('text-align:center')
+        self.Baddclass.resetStyle()      
         self.add_del_layout.addWidget(self.Baddclass)
         self.Bdelclass = DCDButton(self.centralWidget, "-")
         self.Bdelclass.setToolTip('Delete class')
         self.Bdelclass.setMaximumHeight(bheight)
         self.Bdelclass.setStyleSheet('text-align:center')
+        self.Bdelclass.resetStyle()  
         self.add_del_layout.addWidget(self.Bdelclass)
         self.vlayout.addItem(self.add_del_layout)
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
         
         self.BPostProcessing = DCDButton(self.centralWidget, "Postprocessing")
@@ -365,6 +370,14 @@ class MainWindow(object):
         self.canvas.setObjectName("canvas")
         self.canvas.setPixmap(QPixmap(width, height))
         self.hlayout.addWidget(self.canvas)
+        self.SFrame = QSlider(Qt.Vertical, self.centralWidget)
+        self.SFrame.setMinimum(1)
+        self.SFrame.setMaximum(10)
+        self.SFrame.setValue(1)
+        self.SFrame.setToolTip('Change Frame of Stack')
+        self.SFrame.hide()
+        self.hlayout.addWidget(self.SFrame)
+        
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
         

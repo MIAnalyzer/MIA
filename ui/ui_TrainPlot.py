@@ -18,7 +18,7 @@ class Window(object):
         height= 300
         Form.setWindowTitle('Training Data') 
         Form.setFixedSize(width, height)
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         self.centralWidget = QWidget(Form)
         self.centralWidget.setFixedSize(width, height)
         layout = QVBoxLayout()
