@@ -9,6 +9,7 @@ Created on Wed Feb 19 13:43:00 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from ui.style import styleForm
 
 
 class Window(object):
@@ -16,7 +17,7 @@ class Window(object):
         width = 250
         height= 80
         Form.setWindowTitle('Title') 
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         
         Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)

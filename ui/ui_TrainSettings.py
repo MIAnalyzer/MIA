@@ -10,13 +10,14 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
+from ui.style import styleForm
 
 class Window(object):
     def setupUi(self, Form):
         width = 300
-        height= 350
+        height= 380
         Form.setWindowTitle('Training Settings') 
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         
         Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)

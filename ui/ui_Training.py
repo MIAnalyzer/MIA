@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_Augment import AugmentWindow
 from ui.ui_TrainSettings import TrainSettingsWindow
-from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox
+from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox, DCDButton
+from ui.style import styleForm
 
 
 class Window(object):
@@ -20,7 +21,7 @@ class Window(object):
         height= 250
 
         Form.setFixedSize(width, height)
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         self.centralWidget = QWidget(Form)
         self.centralWidget.setFixedSize(width, height)
     
@@ -47,32 +48,21 @@ class Window(object):
 
         # row 4
         self.settings3layout = QHBoxLayout(self.centralWidget)
-        self.BSettings = QPushButton(self.centralWidget)
-        self.BSettings.setText('Settings')
+        self.BSettings = DCDButton(self.centralWidget, 'Settings')
         self.BSettings.setToolTip('Open extended training settings')
-        self.BSettings.setFlat(True)
         self.BSettings.setIcon(QIcon('icons/augmentation.png'))
-        self.BSettings.setStyleSheet('text-align:left')
-        self.BSettings.setStyleSheet('border:1px solid black ')
         self.settings3layout.addWidget(self.BSettings)
         self.vlayout.addLayout(self.settings3layout)
-        self.BAugmentation = QPushButton(self.centralWidget)
+        self.BAugmentation = DCDButton(self.centralWidget, 'Augmentations')
         self.BAugmentation.setToolTip('Open image augmentation settings')
-        self.BAugmentation.setText('Augmentations')
-        self.BAugmentation.setFlat(True)
         self.BAugmentation.setIcon(QIcon('icons/augmentation.png'))
-        self.BAugmentation.setStyleSheet('text-align:left')
-        self.BAugmentation.setStyleSheet('border:1px solid black ')
         self.settings3layout.addWidget(self.BAugmentation)
         self.vlayout.addLayout(self.settings3layout)
         
         # row 5
-        self.BTrain = QPushButton(self.centralWidget)
+        self.BTrain = DCDButton(self.centralWidget, 'Start Training')
         self.BTrain.setIcon(QIcon('icons/train.png'))
-        self.BTrain.setFlat(True)
         self.BTrain.setToolTip('Start training with selected parameters')
-        self.BTrain.setText('Start Training')
-        self.BTrain.setStyleSheet('border:1px solid black ')
         self.vlayout.addWidget(self.BTrain)  
 
     def ParameterGroup(self):

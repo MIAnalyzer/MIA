@@ -10,15 +10,16 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_utils import LabelledSpinBox
+from ui.style import styleForm
 
 
 
 class Window(object):
     def setupUi(self, Form):
         width = 400
-        height= 450
+        height= 500
         Form.setWindowTitle('Augmentation') 
-        Form.setStyleSheet("background-color: rgb(250, 250, 250)")
+        styleForm(Form)
         
         Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)

@@ -258,7 +258,7 @@ class Contour():
         cv2.imwrite('iamanimage.tif',skel)
         
         # contour based length measurement
-        contours, hierarchy = findContours(skel)
+        contours, _ = findContours(skel)
 
         self.skeleton = [cv2.approxPolyDP(c + ([l,t]), 3, True) for c in contours if len(c)>0]
         return self.skeleton
@@ -316,7 +316,7 @@ def extractContoursFromLabel(image):
     maxclass = np.max(image)
     for i in range(1,maxclass+1):
         thresh = (image == i).astype(np.uint8)
-        contours, hierarchy = findContours(image)
+        contours, hierarchy = findContours(thresh)
         if contours is not None:
             counter = -1
             for k, c in enumerate(contours):

@@ -12,7 +12,7 @@ import dl.dl_utils as dl_utils
 from utils.Contour import LoadLabel
 import numpy as np
 from tensorflow.keras.utils import to_categorical
-from utils.image import normalizeImage
+from utils.Image import normalizeImage
 
 import concurrent.futures
 from itertools import repeat
@@ -28,6 +28,8 @@ class ImageData():
 
         
     def readImage(self, path):
+        
+        # this should be changed to ImageFile class and should also handle stacks
         image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 
         # should we normalize each image or over the dataset?
