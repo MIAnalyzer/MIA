@@ -18,7 +18,7 @@ from ui.style import styleForm
 class Window(object):
     def setupUi(self, Form):
         width = 250
-        height= 325
+        height= 350
         Form.setWindowTitle('Settings') 
         styleForm(Form)
 
@@ -85,6 +85,11 @@ class Window(object):
         vlayout.setContentsMargins(1, 1, 1, 1)
         vlayout.setSpacing(1)        
         
+        
+        self.CBInnerContours = QCheckBox("Process Inner Contours",self.centralWidget)
+        self.CBInnerContours.setToolTip('Select to allow contours to have holes')
+        vlayout.addWidget(self.CBInnerContours)
+        
         self.CBContourNumbers = QCheckBox("Show Contour Numbers",self.centralWidget)
         self.CBContourNumbers.setToolTip('Select to show contour number below each contour')
         vlayout.addWidget(self.CBContourNumbers)
@@ -127,6 +132,7 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
         self.CBFastDrawing.setChecked(not self.parent.canvas.showConnectingDrawingLine)
+        self.CBInnerContours.setChecked(self.parent.allowInnerContours)
         self.CBSeparateLabels.setChecked(self.parent.separateStackLabels)
         self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
@@ -137,6 +143,7 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBContourNumbers.clicked.connect(self.showContourNumbers)
         self.CBFastDrawing.clicked.connect(self.fastDrawing)
+        self.CBInnerContours.clicked.connect(self.allowinnerContours)
         self.CBSeparateLabels.clicked.connect(self.separateLabels)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
@@ -174,6 +181,9 @@ class SettingsWindow(QMainWindow, Window):
     
     def fastDrawing(self):
         self.parent.canvas.showConnectingDrawingLine = not self.CBFastDrawing.isChecked()
+        
+    def allowinnerContours(self):
+        self.parent.allowInnerContours = self.CBInnerContours.isChecked()
         
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()

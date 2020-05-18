@@ -165,7 +165,7 @@ class Canvas(QGraphicsView):
     def getFinalContours(self):
         if self.sketch is None:
             return
-        contours = extractContoursFromImage(self.sketch)
+        contours = extractContoursFromImage(self.sketch, not self.parent.allowInnerContours)
 
         # delete changed contours
         old_contours = self.Contours.getContoursOfClass_x(self.parent.activeClass())

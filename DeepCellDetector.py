@@ -69,6 +69,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.currentImageFile = None
         self.currentFrame = 0
         self.separateStackLabels = False
+        self.allowInnerContours = True
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
@@ -99,6 +100,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.postprocessing_form = PostProcessingWindow(self)
         
         self.updateClassList()
+        self.classList.setClass(1)
         
         if PREDICT_WORMS:
             self.settings_form.CBgpu.setCurrentIndex(1)
@@ -502,7 +504,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         pred = self.dl.PredictImage(image)
         name = os.path.splitext(os.path.basename(imagepath))[0]
         cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
-        contours = Contour.extractContoursFromLabel(pred)
+        contours = Contour.extractContoursFromLabel(pred, not self.allowInnerContours)
         Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
         self.addProgress()
         
@@ -522,7 +524,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.PopupWarning('Cannot load image')
                 return
             cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
-            contours = Contour.extractContoursFromLabel(prediction)
+            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
@@ -535,7 +537,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if image is None:
                 self.PopupWarning('No image loaded')
             prediction = self.dl.AutoSegment(image)
-            contours = Contour.extractContoursFromLabel(prediction)
+            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
             self.canvas.ReloadImage()
               
