@@ -12,8 +12,10 @@ import numpy as np
 
 class ImageAugment():
     def __init__(self):
-        self.outputwidth = 256
+        # this is the model input size
+        self.outputwidth = 256  
         self.outputheight = 256
+        
         self.enableAll = True
         self.flip_horz = True
         self.flip_vert = True
@@ -48,30 +50,24 @@ class ImageAugment():
             return
         
         if self.flip_horz:
-            print('flip horz')
             self.augmentation_sequence.append(iaa.Fliplr(0.5))
             
         if self.flip_vert:
-            print('flip vert')
             self.augmentation_sequence.append(iaa.Flipud(0.5))
             
         if self.prob_gaussian > 0:
-            print('flip gaussian')
             self.augmentation_sequence.append(gaussian(iaa.GaussianBlur(sigma=(0, 3.0))))
             
         if self.prob_piecewise > 0:
-            print('flip piecewise')
             self.augmentation_sequence.append(piecewise(iaa.PiecewiseAffine(scale=(0.01, 0.05))))
             
         if self.prob_dropout > 0:
-            print('flip dropout')
             self.augmentation_sequence.append(dropout(iaa.OneOf([
                             iaa.Dropout((0.01, 0.1), per_channel=0.5),
                             iaa.CoarseDropout((0.03, 0.15), size_percent=(0.02, 0.05), per_channel=0.2),
                 ])))
             
         if self.enableAffine and self.prob_affine > 0:
-            print('flip affine')
             self.augmentation_sequence.append(affine(
                     iaa.KeepSizeByResize(
                     iaa.Affine(
@@ -89,34 +85,3 @@ class ImageAugment():
         x,y = self.augmentation_sequence(images=image, segmentation_maps=label)
         return np.asarray(x),np.asarray(y)
 
-
-# OUTPUTSIZE = 256    # this size determines the training image size
-
-# sometimes = lambda aug: iaa.Sometimes(0.5, aug)
-# rare = lambda aug: iaa.Sometimes(0.2, aug)
-# seq = iaa.Sequential([
-#     iaa.CropToFixedSize(width=OUTPUTSIZE, height=OUTPUTSIZE),          
-#     iaa.PadToFixedSize(width=OUTPUTSIZE, height=OUTPUTSIZE),  
-#     iaa.Fliplr(0.5),
-#     iaa.Flipud(0.5),
-#     sometimes(iaa.PiecewiseAffine(scale=(0.01, 0.05))), 
-#     sometimes(iaa.GaussianBlur(sigma=(0, 3.0))),
-#     sometimes(
-#             iaa.KeepSizeByResize(
-#             iaa.Affine(
-#             scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-#             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, 
-#             rotate=(-45, 45), 
-#             shear=(-16, 16), 
-#             order=[0, 1], 
-#             mode=["constant"] 
-#         ))),
-#     rare(iaa.OneOf([
-#                     iaa.Dropout((0.01, 0.1), per_channel=0.5),
-#                     iaa.CoarseDropout((0.03, 0.15), size_percent=(0.02, 0.05), per_channel=0.2),
-#                 ]))
-# ])
-
-# def augment(image, label): 
-#     x,y = seq(images=image, segmentation_maps=label)
-#     return np.asarray(x),np.asarray(y)
