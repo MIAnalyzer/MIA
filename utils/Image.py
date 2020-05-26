@@ -3,13 +3,14 @@ import cv2
 from PIL import Image
 import numpy as np
 
+
 def supportedImageFormats():
     return ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']
 
 class ImageFile():
     def __init__(self, path, asBGR = False):
-        self.__image = None
-        self.__stack = False
+        self._image = None
+        self._stack = False
         self.readImage(path)
         if asBGR:
             self.normalizeImage()
@@ -18,71 +19,75 @@ class ImageFile():
     def readImage(self, path):
         try:
             image = Image.open(path)
+            image.seek(0)
+
             frames = image.n_frames
             images = []
             for i in range(frames):
                 image.seek(i)
                 images.append(np.array(image))
-            self.__image = np.array(images)
+
+            self._image = np.array(images)
             # convert to bgr if color
             if len(self.__image.shape)>=4: 
-                self.__image = self.__image[:, :, :, [2, 1, 0],...].copy()
+                self._image = self._image[:, :, :, [2, 1, 0],...].copy()
                 
             if frames == 1:
-                self.__stack = False
-                self.__image = np.squeeze(self.__image)
+                self._stack = False
+                self._image = np.squeeze(self._image)
             elif frames > 1:
-                self.__stack = True            
+                self._stack = True            
         except:
-            self.__image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-            self.__stack = False
+            self._image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            self._stack = False
         
     def convertToBGR(self):
-        if self.__image is None:
+        if self._image is None:
             return
-        if self.__stack:
-            if len(self.__image.shape) == 3 or self.__image.shape[3] == 1:
+        if self._stack:
+            if len(self._image.shape) == 3 or self._image.shape[3] == 1:
                 images = []
-                for i in range (self.__image.shape[0]):
-                    image = cv2.cvtColor(self.__image[i], cv2.COLOR_GRAY2BGR )
+                for i in range (self._image.shape[0]):
+                    image = cv2.cvtColor(self._image[i], cv2.COLOR_GRAY2BGR )
                     images.append(image)
-                self.__image = np.array(images) 
-            if len(self.__image.shape) == 5:
+                self._image = np.array(images) 
+            if len(self._image.shape) == 5:
                 images = []
-                for i in range (self.__image.shape[0]):
-                    image = cv2.cvtColor(self.__image[i], cv2.CV_BGRA2BGR )
+                for i in range (self._image.shape[0]):
+                    image = cv2.cvtColor(self._image[i], cv2.CV_BGRA2BGR )
                     images.append(image)
-                self.__image = np.array(images) 
+                self._image = np.array(images) 
             return
         else:
-            if len(self.__image.shape) == 2 or self.__image.shape[2] == 1:
-                self.__image = cv2.cvtColor(self.__image, cv2.COLOR_GRAY2BGR )
-            if len(self.__image.shape) == 4:
-                self.__image = cv2.cvtColor(self.__image, cv2.CV_BGRA2BGR )
+            if len(self._image.shape) == 2 or self._image.shape[2] == 1:
+                self._image = cv2.cvtColor(self._image, cv2.COLOR_GRAY2BGR )
+            if self._image.shape[2] == 4:
+                self._image = cv2.cvtColor(self._image, cv2.COLOR_BGRA2BGR )
+
  
     def normalizeImage(self):
-        if self.__image is None:
+        if self._image is None:
             return
-        if self.__stack:
+        if self._stack:
             return 
         else:
-            norm_image = np.zeros(self.__image.shape)
-            norm_image = cv2.normalize(self.__image,norm_image, 0, 255, cv2.NORM_MINMAX)
-            self.__image = norm_image.astype('uint8')
+            norm_image = np.zeros(self._image.shape)
+            norm_image = cv2.normalize(self._image,norm_image, 0, 255, cv2.NORM_MINMAX)
+            self._image = norm_image.astype('uint8')
             
     def isStack(self):
-        return True if self.__stack else False
+        return True if self._stack else False
     
     def numOfImagesInStack(self):
-        if not self.__stack:
+        if not self._stack:
             return 1
         else:
-            return self.__image.shape[0]
+            return self._image.shape[0]
 
     def getImage(self, frame = 0):
-        if self.__stack:
-            return self.__image[frame]
-        return self.__image
+        if self._stack:
+            return self._image[frame]
+        return self._image
 
 
 def read_tiff(path):

@@ -27,6 +27,7 @@ import dl.dl_metrics as dl_metrics
 import dl.dl_training_record as dl_training_record
 import dl.dl_hed as dl_hed
 import dl.dl_imagedata as dl_imagedata
+import dl.dl_augment as dl_augment
 
 import utils.Contour
 import multiprocessing
@@ -54,6 +55,8 @@ class DeepLearning():
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = dl_hed.HED_Segmentation()
         self.data = dl_imagedata.ImageData(self)
+        self.augmentation = dl_augment.ImageAugment()
+        self.record = dl_training_record.TrainingRecording(self)
         
         self.ModelType = 0
         self.Model = None
@@ -91,7 +94,7 @@ class DeepLearning():
         self.Model.compile(optimizer=self.__getOptimizer(), loss=self.__getLoss(), metrics=self.__getMetrics())  
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
-        callbacks = [dl_training_record.TrainingRecording(self)]
+        callbacks = [self.record]
         #try:
         if True:
             self.Model.fit(train_generator,verbose=1, callbacks=callbacks, epochs=self.epochs, workers = self.worker)

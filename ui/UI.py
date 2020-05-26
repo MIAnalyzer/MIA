@@ -352,11 +352,11 @@ class MainWindow(object):
         self.nextprev_layout = QHBoxLayout(self.centralWidget)
         self.Bprev = DCDButton(self.centralWidget, "<")
         self.Bprev.setStyleSheet('text-align:center')
-        self.Bprev.setToolTip('Previous window')
+        self.Bprev.setToolTip('Previous image')
         self.nextprev_layout.addWidget(self.Bprev)
         self.Bnext = DCDButton(self.centralWidget, ">")
         self.Bnext.setStyleSheet('text-align:center')
-        self.Bnext.setToolTip('Next window')
+        self.Bnext.setToolTip('Next image')
         self.nextprev_layout.addWidget(self.Bnext)
         self.vlayout.addItem(self.nextprev_layout)
         

@@ -135,17 +135,17 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
-        self.CBMemory.setChecked(self.parent.parent.dl.TrainInMemory)
-        self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
+        self.CBMemory.setChecked(self.parent.dl.TrainInMemory)
+        self.CBDitanceMap.setChecked(self.parent.dl.useWeightedDistanceMap)
 
         self.CBMemory.clicked.connect(self.InMemoryChanged)
         self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
 
 
     def InMemoryChanged(self):
-        self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
+        self.parent.dl.TrainInMemory = self.CBMemory.isChecked()
 
     def ShapeSeparationChanged(self):
-        self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
+        self.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
 
 

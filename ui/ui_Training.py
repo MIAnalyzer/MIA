@@ -141,8 +141,8 @@ class TrainingWindow(QMainWindow, Window):
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
         self.CBModel.currentIndexChanged.connect(self.ModelType)
         
-        self.settings_form = TrainSettingsWindow(self)
-        self.augmentation_form = AugmentWindow(self)
+        self.settings_form = TrainSettingsWindow(self.parent)
+        self.augmentation_form = AugmentWindow(self.parent)
 
         self.BSettings.clicked.connect(self.settings_form.show)
         self.BAugmentation.clicked.connect(self.augmentation_form.show)
@@ -161,9 +161,13 @@ class TrainingWindow(QMainWindow, Window):
                 self.CBMono.setChecked(True)
             else:
                 self.CBRGB.setChecked(True)
-
         super(TrainingWindow, self).show()
-
+        
+    def hide(self):
+        self.settings_form.hide()
+        self.augmentation_form.hide()
+        super(TrainingWindow, self).hide()
+        
     def ModelType(self):
         self.parent.dl.ModelType = self.CBModel.currentIndex()
         

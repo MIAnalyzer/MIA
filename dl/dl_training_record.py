@@ -24,4 +24,3 @@ class TrainingRecording( Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         pass
-        #self.model.stop_training = True
