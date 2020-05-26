@@ -167,11 +167,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def showPostProcessingWindow(self):   
         self.postprocessing_form.show()
     
-    def closeEvent(self, event):
-        self.results_form.hide()
-        self.training_form.hide()
-        self.postprocessing_form.hide()
-        self.settings_form.hide()
+    def closeEvent(self, event):       
+        QApplication.closeAllWindows()
+        super(QMainWindow, self).closeEvent(event)
+
         
     def showResultsWindow(self):
         if self.testImageLabelspath is None:
@@ -525,21 +524,29 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 return
             cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
+            self.ensureLabelFolder()
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
 
     def autoSegment(self):
         with self.wait_cursor():
-            self.clear()
+            
+            image = self.canvas.getFieldOfViewImage()
+            fov = self.canvas.getFieldOfViewRect()
             # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
-            image = self.getCurrentImage()
+            # image = self.getCurrentImage()
+
             if image is None:
                 self.PopupWarning('No image loaded')
             prediction = self.dl.AutoSegment(image)
-            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
-            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-            self.canvas.ReloadImage()
+            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
+            self.canvas.Contours.addContours(contours)
+            self.canvas.checkForOverlappingContours()
+            self.canvas.redrawImage()
+            # self.ensureLabelFolder()
+            # Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            # self.canvas.ReloadImage()
               
     ############################
     @contextmanager

@@ -15,7 +15,7 @@ import threading
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from tensorflow.python.keras.utils.data_utils import Sequence
-import dl.dl_augment as dl_augment
+# import dl.dl_augment as dl_augment
 import dl.dl_utils as dl_utils
 from utils.Contour import LoadLabel
 
@@ -27,6 +27,7 @@ class TrainingDataGenerator_inMemory(Sequence):
         self.batch_size = parent.batch_size
         self.lock = threading.Lock() 
         images,labels = parent.data.loadTrainingDataSet()
+        self.parent.augmentation.initAugmentation()
         self.images = images
         self.labels = labels
         self.indices = list(range(0,images.shape[0]))
@@ -44,7 +45,8 @@ class TrainingDataGenerator_inMemory(Sequence):
             batch_images = self.images[self.indices[batch_start:batch_end]]
             batch_masks = self.labels[self.indices[batch_start:batch_end]]
 
-            img, mask = dl_augment.augment(batch_images,batch_masks)         
+            img, mask = self.parent.augmentation.augment(batch_images,batch_masks)
+            # img, mask = dl_augment.augment(batch_images,batch_masks)         
             img = self.parent.data.preprocessImage(img)     
             mask = self.parent.data.preprocessLabel(mask)
             return img, mask
@@ -60,6 +62,7 @@ class TrainingDataGenerator_fromDisk(Sequence):
         self.lock = threading.Lock()
         self.images = self.parent.data.ImagesPaths
         self.labels = self.parent.data.LabelsPaths
+        self.parent.augmentation.initAugmentation()
         self.channels = 1 if parent.MonoChrome() is True else 3
         self.numClasses = parent.NumClasses()
         self.scalefactor = parent.ImageScaleFactor
@@ -83,7 +86,8 @@ class TrainingDataGenerator_fromDisk(Sequence):
                 batch_images.append(train_img)
                 batch_masks.append(train_mask)
 
-            img, mask = dl_augment.augment(batch_images, batch_masks)
+            img, mask = self.parent.augmentation.augment(batch_images,batch_masks)
+            # img, mask = dl_augment.augment(batch_images, batch_masks)
 
             img = self.parent.data.preprocessImage(img)     
             mask = self.parent.data.preprocessLabel(mask)

@@ -177,6 +177,10 @@ class Canvas(QGraphicsView):
         self.Contours.addContours(contours)
         self.redrawImage()
         
+    def checkForOverlappingContours(self):
+        self.prepareNewContour()
+        self.getFinalContours()
+        
     def finishNewContour(self, delete = False):
         if self.NewContour is not None:
             self.NewContour.closeContour()
@@ -414,3 +418,22 @@ class Canvas(QGraphicsView):
             self.setnewTool(self.lasttool.type.name)
         else:
             self.setnewTool(canvasTool.drag.name)
+            
+
+    def getFieldOfViewImage(self):
+        fov = self.getFieldOfViewRect()
+        image = self.parent.getCurrentImage() 
+        y0 = int(fov.x())
+        y1 = int(fov.x() + fov.width())
+        x0 = int(fov.y())
+        x1 = int(fov.y() + fov.height())
+        image = image[x0:x1,y0:y1]
+        return image
+        
+    def getFieldOfViewRect(self):
+        fov = self.mapToScene(self.viewport().geometry()).boundingRect()
+        fov.setX(max(0,fov.x()))
+        fov.setY(max(0,fov.y()))
+        return fov
+    
+        

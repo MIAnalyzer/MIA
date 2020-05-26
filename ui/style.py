@@ -13,6 +13,9 @@ def setStyle(app):
     palette = QPalette()
     palette.setColor(QPalette.Window, getBackgroundColor())
     palette.setColor(QPalette.WindowText, Qt.white)
+    palette.setColor(QPalette.Disabled, QPalette.WindowText, Qt.gray)
+    
+    
     palette.setColor(QPalette.Base, QColor(25, 25, 25))
     palette.setColor(QPalette.AlternateBase, getBrightColor())
     # have no effect, see below
@@ -24,10 +27,8 @@ def setStyle(app):
     
     palette.setColor(QPalette.ButtonText, Qt.white)
     palette.setColor(QPalette.BrightText, Qt.red)
-    
-    #palette.setColor(QPalette.Link, QColor(42, 130, 218))
 
-#    palette.setColor(QPalette.Highlight,getHighlightColor())
+
     palette.setColor(QPalette.Highlight,QColor(51,153,255))
     palette.setColor(QPalette.HighlightedText, getHighlightColor())
     

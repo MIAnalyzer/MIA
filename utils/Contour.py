@@ -309,14 +309,14 @@ def drawContoursToLabel(label, contours):
     return label
        
 
-def extractContoursFromLabel(image, ext_only = False):
+def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
     image = np.squeeze(image).astype(np.uint8)
     image[np.where(image == BACKGROUNDCLASS)] = 0
     ret_contours = []
     maxclass = np.max(image)
     for i in range(1,maxclass+1):
         thresh = (image == i).astype(np.uint8)
-        contours, hierarchy = findContours(thresh, ext_only)
+        contours, hierarchy = findContours(thresh, ext_only, offset)
         if contours is not None:
             counter = -1
             for k, c in enumerate(contours):
@@ -338,10 +338,10 @@ def drawContoursToImage(image, contours):
         # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
         cv2.drawContours(image, c.innercontours, -1, (1), 1) 
 
-def extractContoursFromImage(image, ext_only = False):
+def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
-    contours, hierarchy = findContours(image, ext_only)
+    contours, hierarchy = findContours(image, ext_only, offset)
 
     if contours is not None:
         counter = -1
@@ -394,12 +394,12 @@ def loadContours(filename):
         ret = [Contour(x,y,z) for x,y,z in zip(label,array,inner)]
     return ret
 
-def findContours(image, ext_only = False):
+def findContours(image, ext_only = False, offset=(0,0)):
     structure = cv2.RETR_EXTERNAL if ext_only else cv2.RETR_CCOMP 
     if imutils.is_cv2() or imutils.is_cv4():
-        contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
     elif imutils.is_cv3():
-        _, contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
     return contours, hierarchy
 
 def QPoint2np(p):

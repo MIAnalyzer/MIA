@@ -9,7 +9,7 @@ Created on Wed Feb 19 13:43:00 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from ui.ui_utils import LabelledSpinBox
+from ui.ui_utils import LabelledSpinBox, LabelledDoubleSpinBox
 from ui.style import styleForm
 
 
@@ -30,14 +30,8 @@ class Window(object):
         self.vlayout.setSpacing(0)
         self.centralWidget.setLayout(self.vlayout)
 
-
-        self.CBEnableAll = QCheckBox("Enable Augmentation",self.centralWidget)
-        self.CBEnableAll.setChecked(True)
-        self.CBEnableAll.setToolTip('Check enable/disable all augmentaions')
-        self.vlayout.addWidget(self.CBEnableAll)
-
-
         self.augmentations = self.AugmentationGroup()
+        self.augmentations.setCheckable(True)
         self.vlayout.addWidget(self.augmentations)
 
 
@@ -70,6 +64,7 @@ class Window(object):
         layout.addItem(hlayout)
 
         self.Affine = self.AffineGroup()
+        self.Affine.setCheckable(True)
         layout.addWidget(self.Affine)
 
         groupBox.setLayout(layout)
@@ -83,10 +78,8 @@ class Window(object):
         layout.setSpacing(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.CBFliplr = QCheckBox("Flip horizontal",self.centralWidget)
-        self.CBFliplr.setChecked(True)
         self.CBFliplr.setToolTip('Check to flip images horizontally')
         self.CBFliptb = QCheckBox("Flip vertical",self.centralWidget)
-        self.CBFliptb.setChecked(True)
         self.CBFliptb.setToolTip('Check to flip images vertically')
 
         layout.addWidget(self.CBFliplr)
@@ -102,21 +95,21 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(1)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.CBNoise = LabelledSpinBox(' Noise', self.centralWidget)
-        self.CBNoise.SpinBox.setRange(0,100)
-        self.CBNoise.setToolTip('Percentage to apply gaussian noise to the input image')
+        self.SBNoise = LabelledSpinBox(' Blur (%)', self.centralWidget)
+        self.SBNoise.SpinBox.setRange(0,100)
+        self.SBNoise.setToolTip('Percentage to apply gaussian blur to the input image')
 
-        self.CBPieceWise = LabelledSpinBox(' Piecewise affine', self.centralWidget)
-        self.CBPieceWise.SpinBox.setRange(0,100)
-        self.CBPieceWise.setToolTip('Percentage to apply piecewise affine transformation')
+        self.SBPieceWise = LabelledSpinBox(' Piecewise (%)', self.centralWidget)
+        self.SBPieceWise.SpinBox.setRange(0,100)
+        self.SBPieceWise.setToolTip('Percentage to apply piecewise affine transformation')
 
-        self.CBDropout = LabelledSpinBox(' dropout', self.centralWidget)
-        self.CBDropout.SpinBox.setRange(0,100)
-        self.CBDropout.setToolTip('Percentage to apply dropout')
+        self.SBDropout = LabelledSpinBox(' Dropout (%)', self.centralWidget)
+        self.SBDropout.SpinBox.setRange(0,100)
+        self.SBDropout.setToolTip('Percentage to apply piecewise dropout')
 
-        layout.addWidget(self.CBNoise)
-        layout.addWidget(self.CBPieceWise)
-        layout.addWidget(self.CBDropout)
+        layout.addWidget(self.SBNoise)
+        layout.addWidget(self.SBPieceWise)
+        layout.addWidget(self.SBDropout)
 
         groupBox.setLayout(layout)
         return groupBox
@@ -128,13 +121,9 @@ class Window(object):
         layout.setSpacing(1)
         layout.setContentsMargins(1, 1, 1, 1)
         hlayout = QHBoxLayout(self.centralWidget)
-        self.CBEnableAffine = QCheckBox("Enable Affine ",self.centralWidget)
-        self.CBEnableAffine.setChecked(True)
-        self.CBEnableAffine.setToolTip('Check enable/disable affine transformatio')
-        self.SBPercentage = LabelledSpinBox(' Percentage', self.centralWidget)
+        self.SBPercentage = LabelledSpinBox(' Apply Affine (%)', self.centralWidget)
         self.SBPercentage.setToolTip('Percentage to apply affine transformation')
         self.SBPercentage.SpinBox.setRange(0,100)
-        hlayout.addWidget(self.CBEnableAffine)
         hlayout.addWidget(self.SBPercentage)
 
         layout.addLayout(hlayout)
@@ -153,13 +142,17 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.SBScaleMin = LabelledSpinBox(' Scale Min', self.centralWidget)
+        self.SBScaleMin = LabelledDoubleSpinBox(' Scale Min (factor)', self.centralWidget)
         self.SBScaleMin.setToolTip('Set scale maximum percentage')
-        self.SBScaleMin.SpinBox.setRange(0,1024)
+        self.SBScaleMin.SpinBox.setSingleStep(0.1)
+        self.SBScaleMin.SpinBox.setDecimals(1)
+        self.SBScaleMin.SpinBox.setRange(0,1)
 
-        self.SBScaleMax = LabelledSpinBox(' Scale Max', self.centralWidget)
+        self.SBScaleMax = LabelledDoubleSpinBox(' Scale Max (factor)', self.centralWidget)
         self.SBScaleMax.setToolTip('Set scale minimum percentage')
-        self.SBScaleMax.SpinBox.setRange(0,1024)
+        self.SBScaleMax.SpinBox.setSingleStep(0.1)
+        self.SBScaleMax.SpinBox.setDecimals(1)
+        self.SBScaleMax.SpinBox.setRange(1,10)
 
         layout.addWidget(self.SBScaleMin)
         layout.addWidget(self.SBScaleMax)
@@ -173,13 +166,17 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.SBTranslateMin = LabelledSpinBox(' Translate Min', self.centralWidget)
+        self.SBTranslateMin = LabelledDoubleSpinBox(' Translate Min (%)', self.centralWidget)
         self.SBTranslateMin.setToolTip('Set translation minimun percent')
-        self.SBTranslateMin.SpinBox.setRange(0,1024)
+        self.SBTranslateMin.SpinBox.setSingleStep(0.1)
+        self.SBTranslateMin.SpinBox.setDecimals(1)
+        self.SBTranslateMin.SpinBox.setRange(-1,0)
 
-        self.SBTranslateMax = LabelledSpinBox(' Translate Max', self.centralWidget)
+        self.SBTranslateMax = LabelledDoubleSpinBox(' Translate Max (%)', self.centralWidget)
         self.SBTranslateMax.setToolTip('Set translation minimun percent')
-        self.SBTranslateMax.SpinBox.setRange(0,1024)
+        self.SBTranslateMax.SpinBox.setSingleStep(0.1)
+        self.SBTranslateMax.SpinBox.setDecimals(1)
+        self.SBTranslateMax.SpinBox.setRange(0,1)
 
         layout.addWidget(self.SBTranslateMin)
         layout.addWidget(self.SBTranslateMax)
@@ -192,13 +189,13 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.SBShearMin = LabelledSpinBox(' Shear Min', self.centralWidget)
+        self.SBShearMin = LabelledSpinBox(' Shear Min (deg)', self.centralWidget)
         self.SBShearMin.setToolTip('Set shear minimum')
-        self.SBShearMin.SpinBox.setRange(0,1024)
+        self.SBShearMin.SpinBox.setRange(-45,0)
 
-        self.SBShearMax = LabelledSpinBox(' Shear Max', self.centralWidget)
+        self.SBShearMax = LabelledSpinBox(' Shear Max (deg)', self.centralWidget)
         self.SBShearMax.setToolTip('Set shear maximum')
-        self.SBShearMax.SpinBox.setRange(0,1024)
+        self.SBShearMax.SpinBox.setRange(0,45)
 
         layout.addWidget(self.SBShearMin)
         layout.addWidget(self.SBShearMax)
@@ -211,11 +208,11 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.SBRotMin = LabelledSpinBox(' Rotation Min', self.centralWidget)
+        self.SBRotMin = LabelledSpinBox(' Rotation Min (deg)', self.centralWidget)
         self.SBRotMin.setToolTip('Set rotation range minimum')
         self.SBRotMin.SpinBox.setRange(-45,0)
 
-        self.SBRotMax = LabelledSpinBox(' Rotation Max', self.centralWidget)
+        self.SBRotMax = LabelledSpinBox(' Rotation Max (deg)', self.centralWidget)
         self.SBRotMax.setToolTip('Set rotation range maximum')
         self.SBRotMax.SpinBox.setRange(0,45)
 
@@ -235,3 +232,93 @@ class AugmentWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
+        
+        self.SBModelInputSize_x.SpinBox.setValue(self.parent.dl.augmentation.outputwidth)
+        self.SBModelInputSize_y.SpinBox.setValue(self.parent.dl.augmentation.outputheight)
+        
+        self.CBFliplr.setChecked(self.parent.dl.augmentation.flip_horz)
+        self.CBFliptb.setChecked(self.parent.dl.augmentation.flip_vert)
+        
+        self.SBNoise.SpinBox.setValue(self.parent.dl.augmentation.prob_gaussian *100)
+        self.SBPieceWise.SpinBox.setValue(self.parent.dl.augmentation.prob_piecewise *100)
+        self.SBDropout.SpinBox.setValue(self.parent.dl.augmentation.prob_dropout *100)
+        
+        self.SBPercentage.SpinBox.setValue(self.parent.dl.augmentation.prob_affine *100)
+        self.SBScaleMin.SpinBox.setValue(self.parent.dl.augmentation.scale_min)
+        self.SBScaleMax.SpinBox.setValue(self.parent.dl.augmentation.scale_max)
+        self.SBTranslateMin.SpinBox.setValue(self.parent.dl.augmentation.translate_min)
+        self.SBTranslateMax.SpinBox.setValue(self.parent.dl.augmentation.translate_max)
+        self.SBShearMin.SpinBox.setValue(self.parent.dl.augmentation.shear_min)
+        self.SBShearMax.SpinBox.setValue(self.parent.dl.augmentation.shear_max)
+        self.SBRotMin.SpinBox.setValue(self.parent.dl.augmentation.rotate_min)
+        self.SBRotMax.SpinBox.setValue(self.parent.dl.augmentation.rotate_max)
+        
+        
+        self.SBModelInputSize_x.SpinBox.valueChanged.connect(self.size)
+        self.SBModelInputSize_y.SpinBox.valueChanged.connect(self.size)
+        
+        self.CBFliplr.clicked.connect(self.flip)
+        self.CBFliptb.clicked.connect(self.flip)
+        
+        self.SBNoise.SpinBox.valueChanged.connect(self.noise)
+        self.SBPieceWise.SpinBox.valueChanged.connect(self.piecewise)
+        self.SBDropout.SpinBox.valueChanged.connect(self.dropout)
+        
+        self.SBPercentage.SpinBox.valueChanged.connect(self.affinepercentage)
+        self.SBScaleMin.SpinBox.valueChanged.connect(self.scale)
+        self.SBScaleMax.SpinBox.valueChanged.connect(self.scale)
+        self.SBTranslateMin.SpinBox.valueChanged.connect(self.translate)
+        self.SBTranslateMax.SpinBox.valueChanged.connect(self.translate)
+        self.SBShearMin.SpinBox.valueChanged.connect(self.shear)
+        self.SBShearMax.SpinBox.valueChanged.connect(self.shear)
+        self.SBRotMin.SpinBox.valueChanged.connect(self.rotate)
+        self.SBRotMax.SpinBox.valueChanged.connect(self.rotate)
+        
+        
+        self.augmentations.setChecked(self.parent.dl.augmentation.enableAll)
+        self.augmentations.clicked.connect(self.enableAll)
+        
+        self.Affine.setChecked(self.parent.dl.augmentation.enableAffine)
+        self.Affine.clicked.connect(self.enableAffine)
+        
+    def enableAll(self):
+        self.parent.dl.augmentation.enableAll = self.augmentations.isChecked()
+    
+    def size(self):
+        self.parent.dl.augmentation.outputwidth = self.SBModelInputSize_x.SpinBox.value()
+        self.parent.dl.augmentation.outputheight = self.SBModelInputSize_x.SpinBox.value()
+        
+    def flip(self):
+        self.parent.dl.augmentation.flip_horz = self.CBFliplr.isChecked()
+        self.parent.dl.augmentation.flip_vert = self.CBFliptb.isChecked()
+        
+    def noise(self):
+        self.parent.dl.augmentation.prob_gaussian = self.SBNoise.SpinBox.value() /100
+
+    def piecewise(self):
+        self.parent.dl.augmentation.prob_piecewise = self.SBPieceWise.SpinBox.value() /100
+        
+    def dropout(self):
+        self.parent.dl.augmentation.prob_dropout = self.SBDropout.SpinBox.value() /100
+        
+    def enableAffine(self):
+        self.parent.dl.augmentation.enableAffine = self.Affine.isChecked()
+        
+    def affinepercentage(self):
+        self.parent.dl.augmentation.prob_affine = self.SBPercentage.SpinBox.value() /100
+        
+    def scale(self):
+        self.parent.dl.augmentation.scale_min = self.SBScaleMin.SpinBox.value()
+        self.parent.dl.augmentation.scale_max = self.SBScaleMax.SpinBox.value()
+
+    def translate(self):
+        self.parent.dl.augmentation.translate_min = self.SBTranslateMin.SpinBox.value()
+        self.parent.dl.augmentation.translate_max = self.SBTranslateMax.SpinBox.value()
+        
+    def shear(self):
+        self.parent.dl.augmentation.shear_min = self.SBShearMin.SpinBox.value()
+        self.parent.dl.augmentation.shear_max = self.SBShearMax.SpinBox.value()
+    
+    def rotate(self):
+        self.parent.dl.augmentation.rotate_min = self.SBRotMin.SpinBox.value()
+        self.parent.dl.augmentation.rotate_max = self.SBRotMax.SpinBox.value()
