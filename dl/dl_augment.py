@@ -79,8 +79,6 @@ class ImageAugment():
                     mode=["reflect"] # what is best padding strategy for segmentation ?!
                 ))))
             
-        print(self.augmentation_sequence)
-            
     def augment(self, image, label):
         x,y = self.augmentation_sequence(images=image, segmentation_maps=label)
         return np.asarray(x),np.asarray(y)
