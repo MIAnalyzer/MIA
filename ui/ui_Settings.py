@@ -185,6 +185,7 @@ class SettingsWindow(QMainWindow, Window):
     def allowinnerContours(self):
         self.parent.allowInnerContours = self.CBInnerContours.isChecked()
         
+        
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
       
@@ -207,4 +208,4 @@ class SettingsWindow(QMainWindow, Window):
         self.parent.canvas.ContourTransparency = self.STransparency.value()
         
     def closeEvent(self, event):
-        self.parent.canvas.redrawImage()
+        self.parent.canvas.checkForChangedContours()

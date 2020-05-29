@@ -7,17 +7,18 @@ class TrainingRecording( Callback):
     def __init__(self, parent ):
         self.parent = parent
         self.plotting_form = TrainPlotWindow(self)
-        self.losses = []
+        self.loss = []
+        self.metric = []
         self.interrupt = False
 
     def on_train_begin(self, logs=None):
         self.plotting_form.show()
-        self.plotting_form.refresh()
+        self.plotting_form.initialize()
         self.interrupt = False
 
     def on_batch_end(self, batch, logs=None):
-        self.losses.append(logs.get('loss'))
-        self.plotting_form.plot(self.losses)
+        self.loss.append(logs.get('loss'))
+        self.metric.append(logs.get(self.parent.Model.metrics_names[1]))
         self.plotting_form.refresh()
         if self.interrupt:
             self.model.stop_training = True

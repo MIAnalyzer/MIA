@@ -177,9 +177,10 @@ class Canvas(QGraphicsView):
         self.Contours.addContours(contours)
         self.redrawImage()
         
-    def checkForOverlappingContours(self):
+    def checkForChangedContours(self):
         self.prepareNewContour()
         self.getFinalContours()
+        self.redrawImage()
         
     def finishNewContour(self, delete = False):
         if self.NewContour is not None:
