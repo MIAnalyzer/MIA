@@ -4,10 +4,10 @@ block_cipher = None
 
 
 a = Analysis(['ImageStitcher.py'],
-             pathex=['P:\\abteilung9\\90\\nils\\DeepCellDetector\\sticher'],
+             pathex=['P:\\abteilung9\\90\\nils\\DeepCellDetector\\stitcher'],
              binaries=[],
              datas=[],
-             hiddenimports=[],
+             hiddenimports=['six'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],

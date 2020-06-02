@@ -13,7 +13,6 @@ import imutils
 import sys
 import cv2
 import numpy as np
-import imutils
 import glob
 import os
 
@@ -337,9 +336,10 @@ class ImageStitcher(QWidget):
         if len(filenames) != 2:
             if self.OkCancelPopup('Please select 2 image files'):
                 self.startRegistration()
+                return
             else:
                 return            
-            
+
         self.image1 = cv2.imread(filenames[0], cv2.IMREAD_GRAYSCALE)
         self.image2 = cv2.imread(filenames[1], cv2.IMREAD_GRAYSCALE)  
         
