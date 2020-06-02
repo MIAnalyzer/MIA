@@ -10,7 +10,8 @@ import sys
 def main():
 
     command2 = r"python -m PyInstaller --noconfirm ImageStitcher.spec"
-    command = r"pyi-makespec -F -i ./stitch_icon.ico --noconsole --noupx --log-level=WARN ImageStitcher.py"
+    command = r"pyi-makespec -F -i ./stitch_icon.ico --hidden-import=six --noconsole --noupx --log-level=WARN ImageStitcher.py"
+    debug = r"pyi-makespec -F -i ./stitch_icon.ico --hidden-import=six --noupx --debug all --log-level=DEBUG ImageStitcher.py"
 
     with open('test.log', 'wb') as f: 
         process = subprocess.Popen(command2, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
