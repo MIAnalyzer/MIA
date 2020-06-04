@@ -5,14 +5,16 @@ Created on Thu Nov  7 13:54:36 2019
 @author: Koerber
 """
 
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, Adamax, Adadelta, Adagrad, SGD
 from tensorflow.keras import losses
 from tensorflow.keras.metrics import MeanIoU
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-import math
 
+
+import math
+from inspect import signature
 import cv2
 import glob
 import os
@@ -44,7 +46,12 @@ class dlMetric(Enum):
     iou = 1
 
 class dlOptim(Enum):
-    adam = 1
+    Adam = 1
+    AdaMax = 2
+    AdaDelta = 3
+    AdaGrad = 4
+    SGDNesterov = 5
+    
 
 class DeepLearning():
     def __init__(self):
@@ -69,11 +76,11 @@ class DeepLearning():
         # Training settings
         self.batch_size = 4
         self.epochs = 100
-        self.learning_rate = 1e-5
+        self.learning_rate = 0.001
 
         self.Loss = dlLoss.focal
         self.Metric = dlMetric.iou
-        self.Optimizer = dlOptim.adam
+        self.Optimizer = dlOptim.Adam
         
         
     def initModel(self, numClasses, MonoChrome):
@@ -94,7 +101,7 @@ class DeepLearning():
         else:
             train_generator = dl_datagenerator.TrainingDataGenerator_fromDisk(self)
 
-        self.Model.compile(optimizer=self.__getOptimizer(), loss=self.__getLoss(), metrics=self.__getMetrics())  
+        self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics())  
 
         ## this needs more investigation for some reasons, fit_generator is much slower than fit
         callbacks = [self.record]
@@ -229,15 +236,37 @@ class DeepLearning():
         if self.initialized():
             self.Model.save(modelpath)
     
-    def __getLoss(self):
+    def _getLoss(self):
         if self.Loss == dlLoss.focal:
             return dl_losses.focal_loss_function(binary = self.NumClasses() <= 2, weighted = self.useWeightedDistanceMap)
 
-    def __getMetrics(self):
+    def _getMetrics(self):
         if self.Metric == dlMetric.iou:
             return dl_metrics.iou_function(binary = self.NumClasses() <= 2, weighted = self.useWeightedDistanceMap)
 
-    def __getOptimizer(self):
-        if self.Optimizer == dlOptim.adam:
-            optim = Adam(lr=self.learning_rate)
+    def _getOptimizer(self):
+        if self.Optimizer == dlOptim.Adam:
+            optim = Adam(learning_rate=self.learning_rate)
+        if self.Optimizer == dlOptim.AdaMax:
+            optim = AdaMax(learning_rate=self.learning_rate)
+        if self.Optimizer == dlOptim.AdaDelta:
+            optim = AdaDelta(learning_rate=self.learning_rate)
+        if self.Optimizer == dlOptim.AdaGrad:
+            optim = Adagrad(learning_rate=self.learning_rate)
+        if self.Optimizer == dlOptim.SGDNesterov:
+            optim = SGD(learning_rate=self.learning_rate, momentum=0.9, nesterov=True)  
         return optim
+    
+    def setOptimizer(self, opti):
+        self.Optimizer = opti
+        if self.Optimizer == dlOptim.Adam:
+            fun = Adam
+        if self.Optimizer == dlOptim.AdaMax:
+            fun = Adamax
+        if self.Optimizer == dlOptim.AdaDelta:
+            fun = Adadelta
+        if self.Optimizer == dlOptim.AdaGrad:
+            fun = Adagrad
+        if self.Optimizer == dlOptim.SGDNesterov:
+            fun = SGD  
+        self.learning_rate = signature(fun).parameters['learning_rate'].default

@@ -141,7 +141,7 @@ class TrainingWindow(QMainWindow, Window):
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
         self.CBModel.currentIndexChanged.connect(self.ModelType)
         
-        self.settings_form = TrainSettingsWindow(self.parent)
+        self.settings_form = TrainSettingsWindow(self)
         self.augmentation_form = AugmentWindow(self.parent)
 
         self.BSettings.clicked.connect(self.settings_form.show)
@@ -179,7 +179,7 @@ class TrainingWindow(QMainWindow, Window):
         
     def LRChanged(self):
         self.parent.dl.learning_rate = self.SBLearningRate.SpinBox.value()
-        self.settings_form.SBlr.SpinBox.setValue(self.SBLearningRate.SpinBox.value())
+        self.settings_form.silentlyUpdateLR(self.SBLearningRate.SpinBox.value())      
         
     def ScaleFactorChanged(self):
         self.parent.dl.ImageScaleFactor = self.SBScaleFactor.SpinBox.value()

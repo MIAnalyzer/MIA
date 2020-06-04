@@ -97,6 +97,7 @@ class MainWindow(object):
         self.BLoadTrainImages.setToolTip('Set folder with training images')
         self.BLoadTrainImages.setMaximumSize(bwidth, bheight)
         self.BLoadTrainImages.setIcon(QIcon('icons/load.png'))
+         
 
         self.BTrainImageFolder = DCDButton(self.centralWidget, "Set Training Image Folder")
         self.BTrainImageFolder.setToolTip('Training image folder')
@@ -353,10 +354,12 @@ class MainWindow(object):
         self.Bprev = DCDButton(self.centralWidget, "<")
         self.Bprev.setStyleSheet('text-align:center')
         self.Bprev.setToolTip('Previous image')
+        self.Bprev.resetStyle()   
         self.nextprev_layout.addWidget(self.Bprev)
         self.Bnext = DCDButton(self.centralWidget, ">")
         self.Bnext.setStyleSheet('text-align:center')
         self.Bnext.setToolTip('Next image')
+        self.Bnext.resetStyle()  
         self.nextprev_layout.addWidget(self.Bnext)
         self.vlayout.addItem(self.nextprev_layout)
         
