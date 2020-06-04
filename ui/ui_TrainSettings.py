@@ -11,11 +11,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
 from ui.style import styleForm
+from dl.DeepLearning import dlOptim
 
 class Window(object):
     def setupUi(self, Form):
         width = 300
-        height= 380
+        height= 385
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
         
@@ -50,6 +51,10 @@ class Window(object):
         self.CBMetrics.setToolTip('Set metric to measure network perforance')
         self.CBOptimizer = QComboBox(self.centralWidget)
         self.CBOptimizer.addItem("Adam")
+        self.CBOptimizer.addItem("AdaDelta")
+        self.CBOptimizer.addItem("AdaGrad")
+        self.CBOptimizer.addItem("AdaMax")
+        self.CBOptimizer.addItem("SGDNesterov")
         self.CBOptimizer.setToolTip('Set optimizer to minimize loss function')
         hlayout.addWidget(self.CBLoss)
         hlayout.addWidget(self.CBMetrics)
@@ -92,10 +97,10 @@ class Window(object):
         self.RBConstant = QRadioButton(self.centralWidget)
         self.RBConstant.setText("Constant")
         self.RBConstant.setToolTip('Toggle to set constant learning rate')
-        self.RBConstant.setChecked(True)
+
 
         self.RBRlop = QRadioButton(self.centralWidget)
-        self.RBRlop.setText("Plateau")
+        self.RBRlop.setText("on Plateau")
         self.RBRlop.setToolTip('Toggle to reduce learning rate on plateau')
 
         self.RBLRschedule = QRadioButton(self.centralWidget)
@@ -115,17 +120,20 @@ class Window(object):
         layout.addWidget(self.SBlr)
         
         self.SBReduction = LabelledAdaptiveDoubleSpinBox ('Reduction Factor', self.centralWidget)
-        self.SBReduction.SpinBox.setRange(0.000001,1)
-        self.SBReduction.SpinBox.setDecimals(6)
+        self.SBReduction.SpinBox.setRange(0.001,1)
+        self.SBReduction.SpinBox.setValue(0.2)
+        self.SBReduction.SpinBox.setDecimals(3)
         self.SBReduction.SpinBox.setSingleStep(0.1)
         layout.addWidget(self.SBReduction)
 
         self.SBEveryx = LabelledSpinBox ('Reduce every x epochs', self.centralWidget)
         self.SBEveryx.SpinBox.setRange(1,1000)
+        self.SBReduction.SpinBox.setValue(25)
         layout.addWidget(self.SBEveryx)
+        layout.addStretch()
 
         groupBox.setLayout(layout)
-        groupBox.setEnabled(False)
+
         return groupBox
 
 
@@ -135,17 +143,59 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
-        self.CBMemory.setChecked(self.parent.dl.TrainInMemory)
-        self.CBDitanceMap.setChecked(self.parent.dl.useWeightedDistanceMap)
+        self.CBMemory.setChecked(self.parent.parent.dl.TrainInMemory)
+        self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
+        self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.Optimizer.name))
+        self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
+        
 
         self.CBMemory.clicked.connect(self.InMemoryChanged)
         self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
+        self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
+        
+        self.RBConstant.clicked.connect(self.LROption)
+        self.RBRlop.clicked.connect(self.LROption)
+        self.RBLRschedule.clicked.connect(self.LROption)
+        
+        self.SBlr.SpinBox.valueChanged.connect(self.changeLR)
+        self.SBReduction.SpinBox.valueChanged.connect(self.changeLRSchedule)
+        self.SBEveryx.SpinBox.valueChanged.connect(self.changeLRSchedule)
+        
+        self.RBConstant.setChecked(True)
+        self.LROption()
 
 
     def InMemoryChanged(self):
-        self.parent.dl.TrainInMemory = self.CBMemory.isChecked()
+        self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
 
     def ShapeSeparationChanged(self):
-        self.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
-
+        self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
+        
+    def changeOptimizer(self, i):
+        self.parent.parent.dl.setOptimizer(dlOptim[self.CBOptimizer.currentText()])
+        self.parent.SBLearningRate.SpinBox.setValue(self.parent.parent.dl.learning_rate)
+        
+    def LROption(self):
+        if self.RBConstant.isChecked():
+            self.SBReduction.hide()
+            self.SBEveryx.hide()
+        if self.RBRlop.isChecked():
+            self.SBReduction.show()
+            self.SBEveryx.hide()
+        if self.RBLRschedule.isChecked():
+            self.SBReduction.show()
+            self.SBEveryx.show()
+        self.changeLRSchedule()
+            
+    def changeLRSchedule(self):
+        # to do
+        pass
+        
+    def changeLR(self):
+        self.parent.SBLearningRate.SpinBox.setValue(self.SBlr.SpinBox.value())
+            
+    def silentlyUpdateLR(self, value):
+        self.SBlr.SpinBox.blockSignals(True)
+        self.SBlr.SpinBox.setValue(value)
+        self.SBlr.SpinBox.blockSignals(False)
 
