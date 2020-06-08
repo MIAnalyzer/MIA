@@ -277,17 +277,42 @@ class ImageStitcher(QWidget):
         self.SaveImage.clicked.connect(self.saveImage)
         self.SaveImage.setEnabled(False)
         
+        self.Merge = QCheckBox(self)
+        self.Merge.setText('Merge Result')
+        self.Merge.setChecked(True)
+        self.Merge.clicked.connect(self.merge)
+        
+        layout3 = QHBoxLayout(self)
+        self.primaryImage = QFrame()
+        self.primaryImage.setLayout(layout3)
+        self.primaryImage.hide()
+        self.usefirst = QRadioButton(self)
+        self.usefirst.setText('show 1st')
+        self.usefirst.setChecked(True)
+        self.usefirst.clicked.connect(self.merge)
+        
+        self.usesecond = QRadioButton(self)
+        self.usesecond.setText('show 2nd')
+        self.usesecond.clicked.connect(self.merge)
+        layout3.addWidget(self.usefirst)
+        layout3.addWidget(self.usesecond)
+        
+        
         layout.addWidget(self.RegisterAllButton)
         layout.addWidget(self.RegisterButton)
         layout.addWidget(self.SelectSpot)
         layout.addLayout(layout2)
         layout.addWidget(self.SaveImage)
+        layout.addWidget(self.Merge)
+        layout.addWidget(self.primaryImage)
         
         self.manushift = ManualWindow(self)
         
         self.show()    
         self.image1 = None
         self.image2 = None
+        self.mergeResult = True
+        self.primary1 = True
         self.RegisteredImage = None
         self.x1_shift = 0
         self.y1_shift = 0
@@ -306,6 +331,17 @@ class ImageStitcher(QWidget):
         cv2.destroyAllWindows()
 
         
+    def merge(self):
+        self.mergeResult = self.Merge.isChecked()
+        self.primary1 = self.usefirst.isChecked()
+        if self.mergeResult:
+            self.primaryImage.hide()
+        else:
+            self.primaryImage.show()
+        
+        if cv2.getWindowProperty('Result', cv2.WND_PROP_AUTOSIZE) == 1:
+            self.combineImages()
+            self.ShowResult()
         
     def RegisterAll(self):
         # searches for all images in folder that end with _a.tif and _b.tif or _A.tif and _B.tif and performs their registration
@@ -325,7 +361,7 @@ class ImageStitcher(QWidget):
                     self.image1 = cv2.imread(name1, cv2.IMREAD_GRAYSCALE)
                     self.image2 = cv2.imread(name2, cv2.IMREAD_GRAYSCALE)
                     if self.image1 is not None and self.image2 is not None:  
-                        self.RegisteredImage = self.Register()
+                        self.Register()
                         cv2.imwrite(os.path.join(folder, f[:-1] + 'ab.tif'), self.RegisteredImage)
         
         
@@ -341,10 +377,16 @@ class ImageStitcher(QWidget):
                 return            
 
         self.image1 = cv2.imread(filenames[0], cv2.IMREAD_GRAYSCALE)
-        self.image2 = cv2.imread(filenames[1], cv2.IMREAD_GRAYSCALE)  
+        self.image2 = cv2.imread(filenames[1], cv2.IMREAD_GRAYSCALE) 
+        if self.image1 is None or self.image2 is None:
+            if self.OkCancelPopup('Could not Load Images. Retry?'):
+                self.startRegistration()
+                return
+            else:
+                return
         
 
-        self.RegisteredImage = self.Register()
+        self.Register()
         self.ShowResult()
 
         self.ManualRButton.setEnabled(True)
@@ -460,7 +502,7 @@ class ImageStitcher(QWidget):
         
         if spot[0] == spot[1] == spot[2] == spot[3] == 0:
             return
-        self.RegisteredImage = self.Register(spot)
+        self.Register(spot)
         self.ShowResult()
         
     def selectCommonRoi(self):
@@ -550,26 +592,42 @@ class ImageStitcher(QWidget):
         x2 = maxLoc[0]
         y2 = maxLoc[1]
 
-            
-        if y2 > y1:
-            im1_y = y2 - y1
+
+        self.y1_shift = y2
+        self.y2_shift = y1
+        self.x1_shift = x2
+        self.x2_shift = x1
+        
+        self.combineImages()
+
+        
+    def combineImages(self):
+        width1 = self.image1.shape[1]
+        height1 = self.image1.shape[0]
+        
+        width2 = self.image2.shape[1]
+        height2 = self.image2.shape[0]
+        
+        
+        if self.y1_shift > self.y2_shift:
+            im1_y =  self.y1_shift - self.y2_shift
             im2_y = 0
             y_begin = im1_y
             y_end = height2
         else:
             im1_y = 0
-            im2_y = y1 - y2
+            im2_y = self.y2_shift -  self.y1_shift
             y_begin = im2_y
             y_end = height2
 
-        if x2 > x1:
-            im1_x = x2 - x1
+        if self.x1_shift > self.x2_shift :
+            im1_x = self.x1_shift - self.x2_shift 
             im2_x = 0
             x_begin = im1_x
             x_end = width2
         else:
             im1_x = 0
-            im2_x = x1 - x2
+            im2_x = self.x2_shift  - self.x1_shift
             x_begin = im2_x
             x_end = width1
 
@@ -577,19 +635,21 @@ class ImageStitcher(QWidget):
         reswidth = max(im2_x + width2,im1_x + width1)  
         resheight = max(im2_y + height2,im1_y + height1) 
         result = np.zeros((resheight, reswidth), np.uint16)
-
-        result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
-        result[im2_y:im2_y+height2,im2_x:im2_x+width2] = (self.image2 + result[im2_y:im2_y+height2,im2_x:im2_x+width2])
-        result[y_begin:y_end,x_begin:x_end] = result[y_begin:y_end,x_begin:x_end] / 2
-        result = result.astype(np.uint8)        
-
-        self.y1_shift = y2
-        self.y2_shift = y1
-        self.x1_shift = x2
-        self.x2_shift = x1
-
-        return result
         
+        if self.mergeResult:
+            result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
+            result[im2_y:im2_y+height2,im2_x:im2_x+width2] = (self.image2 + result[im2_y:im2_y+height2,im2_x:im2_x+width2])
+            result[y_begin:y_end,x_begin:x_end] = result[y_begin:y_end,x_begin:x_end] / 2
+        else:
+            if self.primary1:
+                result[im2_y:im2_y+height2,im2_x:im2_x+width2] = self.image2
+                result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1    
+            else:
+                result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
+                result[im2_y:im2_y+height2,im2_x:im2_x+width2] = self.image2
+            
+        self.RegisteredImage  = result.astype(np.uint8)
+
 
 if __name__ == "__main__":
     app = QCoreApplication.instance()
