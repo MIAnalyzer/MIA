@@ -30,6 +30,7 @@ import dl.dl_training_record as dl_training_record
 import dl.dl_hed as dl_hed
 import dl.dl_imagedata as dl_imagedata
 import dl.dl_augment as dl_augment
+import dl.dl_lrschedule as dl_schedule
 
 import utils.Contour
 import multiprocessing
@@ -77,6 +78,7 @@ class DeepLearning():
         self.batch_size = 4
         self.epochs = 100
         self.learning_rate = 0.001
+        self.lrschedule = dl_schedule.LearningRateSchedule(self)
 
         self.Loss = dlLoss.focal
         self.Metric = dlMetric.iou
@@ -103,8 +105,11 @@ class DeepLearning():
 
         self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics())  
 
-        ## this needs more investigation for some reasons, fit_generator is much slower than fit
+
         callbacks = [self.record]
+        lr = self.lrschedule.LearningRateCallBack()
+        if lr is not None:
+            callbacks.append(lr)
         #try:
         if True:
             self.Model.fit(train_generator,verbose=1, callbacks=callbacks, epochs=self.epochs, workers = self.worker)

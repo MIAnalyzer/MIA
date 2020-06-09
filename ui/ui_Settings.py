@@ -192,6 +192,11 @@ class SettingsWindow(QMainWindow, Window):
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())
         
+    def silentlyUpdateScale(self, value):
+        self.SBScaleFactor.SpinBox.blockSignals(True)
+        self.SBScaleFactor.SpinBox.setValue(value)
+        self.SBScaleFactor.SpinBox.blockSignals(False)
+        
     def setNumThreads(self):
         self.parent.setWorkers(self.SBThreads.SpinBox.value())
     
