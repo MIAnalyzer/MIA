@@ -12,6 +12,7 @@ from PyQt5.QtCore import *
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
 from ui.style import styleForm
 from dl.DeepLearning import dlOptim
+from dl.dl_lrschedule import lrMode
 
 class Window(object):
     def setupUi(self, Form):
@@ -99,16 +100,16 @@ class Window(object):
         self.RBConstant.setToolTip('Toggle to set constant learning rate')
 
 
-        self.RBRlop = QRadioButton(self.centralWidget)
-        self.RBRlop.setText("on Plateau")
-        self.RBRlop.setToolTip('Toggle to reduce learning rate on plateau')
+        self.RBRlroP = QRadioButton(self.centralWidget)
+        self.RBRlroP.setText("on Plateau")
+        self.RBRlroP.setToolTip('Toggle to reduce learning rate on plateau')
 
         self.RBLRschedule = QRadioButton(self.centralWidget)
         self.RBLRschedule.setText("Schedule")
         self.RBLRschedule.setToolTip('Toggle to set learning rate schedule')
 
         hlayout.addWidget(self.RBConstant)
-        hlayout.addWidget(self.RBRlop)
+        hlayout.addWidget(self.RBRlroP)
         hlayout.addWidget(self.RBLRschedule)
         layout.addLayout(hlayout)
 
@@ -121,14 +122,13 @@ class Window(object):
         
         self.SBReduction = LabelledAdaptiveDoubleSpinBox ('Reduction Factor', self.centralWidget)
         self.SBReduction.SpinBox.setRange(0.001,1)
-        self.SBReduction.SpinBox.setValue(0.2)
         self.SBReduction.SpinBox.setDecimals(3)
         self.SBReduction.SpinBox.setSingleStep(0.1)
         layout.addWidget(self.SBReduction)
 
         self.SBEveryx = LabelledSpinBox ('Reduce every x epochs', self.centralWidget)
         self.SBEveryx.SpinBox.setRange(1,1000)
-        self.SBReduction.SpinBox.setValue(25)
+        self.SBEveryx.SpinBox.setValue(25)
         layout.addWidget(self.SBEveryx)
         layout.addStretch()
 
@@ -147,19 +147,19 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
         self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.Optimizer.name))
         self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
-        
+        self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
 
         self.CBMemory.clicked.connect(self.InMemoryChanged)
         self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         
         self.RBConstant.clicked.connect(self.LROption)
-        self.RBRlop.clicked.connect(self.LROption)
+        self.RBRlroP.clicked.connect(self.LROption)
         self.RBLRschedule.clicked.connect(self.LROption)
         
         self.SBlr.SpinBox.valueChanged.connect(self.changeLR)
-        self.SBReduction.SpinBox.valueChanged.connect(self.changeLRSchedule)
-        self.SBEveryx.SpinBox.valueChanged.connect(self.changeLRSchedule)
+        self.SBReduction.SpinBox.valueChanged.connect(self.changeReductionFactor)
+        self.SBEveryx.SpinBox.valueChanged.connect(self.changeIntervall)
         
         self.RBConstant.setChecked(True)
         self.LROption()
@@ -179,17 +179,27 @@ class TrainSettingsWindow(QMainWindow, Window):
         if self.RBConstant.isChecked():
             self.SBReduction.hide()
             self.SBEveryx.hide()
-        if self.RBRlop.isChecked():
+            self.parent.parent.dl.lrschedule.setMode(lrMode.Constant)
+        if self.RBRlroP.isChecked():
             self.SBReduction.show()
-            self.SBEveryx.hide()
+            self.SBEveryx.show()
+            self.SBEveryx.Label.setText('Plateau for x epochs')   
+            self.parent.parent.dl.lrschedule.setMode(lrMode.ReduceOnPlateau)
         if self.RBLRschedule.isChecked():
             self.SBReduction.show()
             self.SBEveryx.show()
-        self.changeLRSchedule()
+            self.SBEveryx.Label.setText('Reduce every x epochs')
+            self.parent.parent.dl.lrschedule.setMode(lrMode.Schedule)
+        self.SBEveryx.SpinBox.setValue(self.parent.parent.dl.lrschedule.ReduceEveryXEpoch)
+        self.SBReduction.SpinBox.setValue(self.parent.parent.dl.lrschedule.ReductionFactor)
+
             
-    def changeLRSchedule(self):
-        # to do
-        pass
+    def changeReductionFactor(self):
+        self.parent.parent.dl.lrschedule.ReductionFactor = self.SBReduction.SpinBox.value() 
+        
+    def changeIntervall(self):
+        self.parent.parent.dl.lrschedule.ReduceEveryXEpoch = self.SBEveryx.SpinBox.value()
+ 
         
     def changeLR(self):
         self.parent.SBLearningRate.SpinBox.setValue(self.SBlr.SpinBox.value())

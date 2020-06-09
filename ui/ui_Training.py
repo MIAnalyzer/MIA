@@ -113,7 +113,6 @@ class Window(object):
         self.SBScaleFactor.setToolTip('Set image reduction factor')
         self.SBScaleFactor.SpinBox.setSingleStep(0.1)
         self.SBScaleFactor.SpinBox.setDecimals(1)
-        self.SBScaleFactor.SpinBox.setEnabled(False)
 
         self.settings2layout.addWidget(self.SBLearningRate)
         self.settings2layout.addWidget(self.SBScaleFactor)
@@ -128,6 +127,7 @@ class TrainingWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)   
         
+        self.SBLearningRate.SpinBox.setMinimum(self.parent.dl.lrschedule.minlr)
         self.SBLearningRate.SpinBox.setValue(self.parent.dl.learning_rate)
         self.CBMono.setChecked(True)
         self.SBEpochs.SpinBox.setValue(self.parent.dl.epochs)
@@ -183,6 +183,7 @@ class TrainingWindow(QMainWindow, Window):
         
     def ScaleFactorChanged(self):
         self.parent.dl.ImageScaleFactor = self.SBScaleFactor.SpinBox.value()
+        self.parent.settings_form.silentlyUpdateScale(self.SBScaleFactor.SpinBox.value())
   
     def Train(self):
         if not self.parent.dl.initialized() or not self.parent.dl.parameterFit(self.parent.NumOfClasses(), self.CBMono.isChecked()):
@@ -191,7 +192,8 @@ class TrainingWindow(QMainWindow, Window):
                return
         if not self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath):
             self.parent.PopupWarning('Cannot train model (out of recources?)')
+            return
         self.parent.writeStatus('model trained')
-        self.hide()
+
         
         
