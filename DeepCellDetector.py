@@ -57,6 +57,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.testImageLabelspath = None
         self.train_test_dir = True
         self.LearningMode = 1
+        self.savePredictedMask = False
         
         self.progresstick = 10
         self.progress = 0
@@ -522,7 +523,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if prediction is None:
                 self.PopupWarning('Cannot load image')
                 return
-            cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
+            if self.savePredictedMask:
+                cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
             self.ensureLabelFolder()
             Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
@@ -543,9 +545,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             self.canvas.Contours.addContours(contours)
             self.canvas.checkForChangedContours()
-            # self.ensureLabelFolder()
-            # Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
-            # self.canvas.ReloadImage()
+
               
     ############################
     @contextmanager
