@@ -11,12 +11,13 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from ui.style import styleForm, getHighlightColor, getBackgroundColor
-import random
+from ui.ui_utils import DCDButton
+import math
 
 class Window(object):
     def setupUi(self, Form):
-        width = 600
-        height= 300
+        width = 650
+        height= 650
         Form.setWindowTitle('Training Data') 
         Form.setFixedSize(width, height)
         styleForm(Form)
@@ -25,33 +26,52 @@ class Window(object):
         layout = QVBoxLayout()
         self.centralWidget.setLayout(layout)
 
-        self.figure = Figure()
+        self.figure = Figure(constrained_layout = True, dpi= 100)
         self.canvas = FigureCanvas(self.figure)
+        self.figure.set_size_inches(10, 10)
 
-        self.button = QPushButton('Stop Training')
+        self.BStop = DCDButton(self.centralWidget,'Stop Training')
+        
+        l1 = QHBoxLayout()
 
-        layout.addWidget(self.canvas)
-        layout.addWidget(self.button)
+        self.LBatch = QLabel(self.centralWidget)
+        self.LEpoch = QLabel(self.centralWidget)
+        self.LEpoch.setAlignment(Qt.AlignRight)
+
+        l1.addWidget(self.LBatch)
+        l1.addWidget(self.LEpoch)
+
+
+        layout.addLayout(l1)
+        layout.addWidget(self.canvas)        
+        layout.addWidget(self.BStop)
 
 
 
 class TrainPlotWindow(QMainWindow, Window):
     def __init__(self,parent):
-        super(TrainPlotWindow, self).__init__()
+        super(TrainPlotWindow, self).__init__(parent)
         self.setupUi(self)
         self.parent = parent
+        self.dl = parent.dl
         
-        self.ax1 = None
-        self.ax2 = None
+        self.train_loss_axis = None
+        self.train_metric_axis = None
         
-        self.button.clicked.connect(self.Stop)
+        self.val_loss_axis = None
+        self.val_metric_axis = None
+        
+        self.BStop.clicked.connect(self.Stop)
+        
+    def hide(self):
+        self.dl.interrupt()
+        super(TrainingWindow, self).hide()
         
     def initialize(self):
-        # to do set real colors
+
+
         bg = getBackgroundColor()
         self.figure.patch.set_facecolor((bg.red()/255, bg.green()/255, bg.blue()/255))
-        col = getHighlightColor()
-        # COLOR = (col.red()/255, col.green()/255, col.blue()/255)
         color = 'white'
         
         plt.rcParams['text.color'] = color
@@ -59,52 +79,83 @@ class TrainPlotWindow(QMainWindow, Window):
         plt.rcParams['axes.edgecolor'] = color
         plt.rcParams['xtick.color'] = color
         plt.rcParams['ytick.color'] = color
-        
-        
-        gs = self.figure.add_gridspec(1, 2)
-        self.ax1 = self.figure.add_subplot(gs[0, 0])
-        self.ax2 = self.figure.add_subplot(gs[0, 1])
-        self.ax1.set_facecolor((0.0, 0.0, 0.0))
-        self.ax2.set_facecolor((0.0, 0.0, 0.0))
-        self.ax1.clear()
-        self.ax2.clear()
-        
-        # self.ax1.set_title('loss')
-        # self.ax1.set_xlabel('iteration')
-        
-        # self.ax2.set_title(self.parent.parent.Model.metrics_names[1])
-        # self.ax2.set_xlabel('iteration')
-        
 
-        # self.ax1.plot([])
-        # self.ax2.plot([])
+        
+        if self.train_loss_axis is None or self.train_metric_axis is None: 
+            gs = self.figure.add_gridspec(2, 2)
+            self.train_loss_axis = self.figure.add_subplot(gs[0, 0])
+            self.train_metric_axis = self.figure.add_subplot(gs[0, 1])
+            self.train_loss_axis.set_facecolor((0.0, 0.0, 0.0))
+            self.train_metric_axis.set_facecolor((0.0, 0.0, 0.0))
+            
+            
+        if self.val_loss_axis is None or self.val_metric_axis is None: 
+            self.val_loss_axis = self.figure.add_subplot(gs[1, 0])
+            self.val_metric_axis = self.figure.add_subplot(gs[1, 1])
+            self.val_loss_axis.set_facecolor((0.0, 0.0, 0.0))
+            self.val_metric_axis.set_facecolor((0.0, 0.0, 0.0))
+
 
         self.canvas.draw()
         self.refresh()
 
         
-    def updatePlot(self, loss ,metric):
+    def updatePlot(self):
 
-        self.ax1.clear()
-        self.ax2.clear()
+        loss = self.dl.record.loss
+        metric =  self.dl.record.metric
+        val_loss = self.dl.record.val_loss
+        val_metric = self.dl.record.val_metric
+        lpe = self.dl.record.loss_per_epoch
+        mpe = self.dl.record.metric_per_epoch
         
-        self.ax1.set_title('loss')
-        self.ax1.set_xlabel('iteration')
         
-        self.ax2.set_title(self.parent.parent.Model.metrics_names[1])
-        self.ax2.set_xlabel('iteration')
+        self.train_loss_axis.clear()
+        self.train_metric_axis.clear()
+        
+        if len(loss) > 0:
+            self.train_loss_axis.set_ylabel('loss')
+            self.train_loss_axis.set_xlabel('iteration')
+
+        if len(self.dl.Model.metrics_names) > 1:
+            self.train_metric_axis.set_ylabel(self.dl.Model.metrics_names[1])
+            self.train_metric_axis.set_xlabel('iteration')
+            
+        if self.dl.data.validationData():
+            self.val_loss_axis.set_visible(True)
+            self.val_metric_axis.set_visible(True)
+            self.val_loss_axis.clear()
+            self.val_metric_axis.clear()
+            self.val_loss_axis.set_ylabel('validation loss')
+            self.val_loss_axis.set_xlabel('epoch')
+           
+            if len(self.dl.Model.metrics_names) > 1:
+                self.val_metric_axis.set_ylabel('validation ' + self.dl.Model.metrics_names[1])
+                self.val_metric_axis.set_xlabel('epoch')
+        else:
+            self.val_loss_axis.set_visible(False)
+            self.val_metric_axis.set_visible(False)
 
         col = getHighlightColor()
         color = (col.red()/255, col.green()/255, col.blue()/255)
-        self.ax1.plot(loss, '-', color = color)
-        self.ax2.plot(metric, '-', color = color)
+        self.train_loss_axis.plot(loss, '-', color = color)
+        self.train_metric_axis.plot(metric, '-', color = color)
+        
+        self.val_loss_axis.plot(val_loss, '-',  color='red' )
+        self.val_loss_axis.plot(lpe, '--', color=color )
+        self.val_metric_axis.plot(val_metric, '-', color = 'red')
+        self.val_metric_axis.plot(mpe, '--', color = color)
+
+        self.LBatch.setText("Batch: %d of %d" % (min(self.dl.data.getNumberOfBatches(),self.dl.record.currentbatch +1), self.dl.data.getNumberOfBatches()))
+        self.LEpoch.setText("Epoch: %d of %d" % (min(self.dl.epochs,self.dl.record.currentepoch +1), self.dl.epochs))
 
         self.canvas.draw()
           
     def refresh(self):
-        self.updatePlot(self.parent.loss, self.parent.metric)
-        QApplication.processEvents()
+        self.updatePlot()
 
     def Stop(self):
-        print(self.parent)
-        self.parent.interrupt = True
+        self.dl.interrupt()
+
+    def toggleTrainStatus(self, training):
+        self.BStop.setEnabled(training)

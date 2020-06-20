@@ -13,19 +13,47 @@ from utils.Contour import LoadLabel
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import normalizeImage
-
+import random
 import concurrent.futures
 from itertools import repeat
+import math
+import random
 
 class ImageData():
     def __init__(self, parent):
         self.parent = parent
-        self.TrainingImagePath = None
-        self.LabelImagePath = None
         
-        self.ImagesPaths = []
-        self.LabelsPaths = []
+        # should we split validation data and image data in 2 dataset classes ?
+        self.TrainingImagePaths = []
+        self.TrainingLabelPaths = []
+        self.TrainingTileIndices = []
+        
+        # TrainTestSplit = 1 means 100% Training Data and 0% validation
+        self.TrainTestSplit = 0.85
+        
+        self.ValidationImagePaths = []
+        self.ValidationLabelPaths = []
+        self.ValidationTileIndices = []
 
+    def getImagePaths(self, validation):
+        if validation:
+            return self.ValidationImagePaths
+        else:
+            return self.TrainingImagePaths
+            
+        
+    def getLabelPaths(self, validation):
+        if validation:
+            return self.ValidationLabelPaths
+        else:
+            return self.TrainingLabelPaths
+    
+            
+    def addTileIndices(self, tiles, validation):
+        if validation:
+            self.ValidationTileIndices.extend(tiles)
+        else:
+            self.TrainingTileIndices.extend(tiles)
         
     def readImage(self, path):
         
@@ -72,11 +100,26 @@ class ImageData():
         images.sort()
         labels.sort()
         
-        self.ImagesPaths = images
-        self.LabelsPaths = labels
+        # careful: we got new validation set each time we start training
+        z = list(zip(images, labels))
+        random.shuffle(z)
+        images, labels = zip(*z)
+        
+        split = int(self.TrainTestSplit*len(images))
+        self.TrainingImagePaths = images[0:split]
+        self.TrainingLabelPaths = labels[0:split]
+        self.TrainingTileIndices = []
+        
+        self.ValidationImagePaths = images[split:]
+        self.ValidationLabelPaths = labels[split:]
+        self.ValidationTileIndices = []
+        
 
     def initialized(self):
-        return True if len(self.ImagesPaths) * len(self.LabelsPaths) > 0 else False
+        return True if len(self.TrainingImagePaths) * len(self.TrainingLabelPaths) > 0 else False
+    
+    def validationData(self):
+        return True if len(self.ValidationImagePaths) * len(self.ValidationLabelPaths) > 0 else False
 
     def preprocessImage(self, image):
         return image.astype('float')/255.
@@ -111,16 +154,20 @@ class ImageData():
             label = np.concatenate((label, weights[0,...]), axis = 2)
         return label
             
-    def createImageLabelPair(self, index, width=None, height=None):
+    def createImageLabelPair(self, index, validation=False):
+
+        images = self.getImagePaths(validation)
+        masks = self.getLabelPaths(validation)
+
 
         channels = 1 if self.parent.MonoChrome() is True else 3
-        train_img = self.readImage(self.ImagesPaths[index])
+        train_img = self.readImage(images[index])
         
-        if not width or not height:
-            width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
-            height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
-                
-        train_mask = LoadLabel(self.LabelsPaths[index], train_img.shape[0], train_img.shape[1])
+        width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
+        height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
+              
+            
+        train_mask = LoadLabel(masks[index], train_img.shape[0], train_img.shape[1])
             
         train_img =  cv2.resize(train_img, (width, height))
         train_mask = cv2.resize(train_mask, (width, height), interpolation = cv2.INTER_NEAREST )
@@ -134,34 +181,67 @@ class ImageData():
         
         return train_img, train_mask
     
-
+    def getTileIndices(self, validation = False, equalTilesperImage = False):
+        if not equalTilesperImage:
+            if validation:
+                self.ValidationTileIndices.sort()
+                return self.ValidationTileIndices
+            else:
+                return self.TrainingTileIndices
+        else:
+            images = self.getImagePaths(validation)
+            numImages = len(images)
+            # draw xtimes an images and calculate tilenumber and equally distribute
+            xtimes = 5
+            tilenum = 0
+            for _ in range(5):
+                index = random.randint(0,numImages-1)
+                img = self.readImage(images[index])
+                width = int(img.shape[1]*self.parent.ImageScaleFactor)
+                height= int(img.shape[0]*self.parent.ImageScaleFactor)
+                tilenum += self.parent.augmentation.getTilesPerImage(width, height)
+            tilenum = tilenum // xtimes
+            ret = []
+            [ret.extend([i] * tilenum) for i in range(numImages)]
+            if validation:
+                ret.sort()
+                self.ValidationTileIndices = ret
+            else:
+                self.TrainingTileIndices = ret
+            return ret
+        
+    def getNumberOfBatches(self, validation = False):
+        if validation:
+            idc = len(self.ValidationTileIndices)
+        else:
+            idc = len(self.TrainingTileIndices)
+            
+        return int(np.ceil(idc / float(self.parent.batch_size)))
+                
     
-    def loadTrainingDataSet(self):
+    def loadTrainingDataSet(self, validation = False):
         if not self.initialized():
             return
-       
-        images = self.ImagesPaths
-        test = cv2.imread(images[0], cv2.IMREAD_UNCHANGED)
-        width = int(test.shape[1]*self.parent.ImageScaleFactor)
-        height = int(test.shape[0]*self.parent.ImageScaleFactor)
         
+        images = self.getImagePaths(validation)
+        numImages = len(images)
+       
         
         im_channels = 1 if self.parent.MonoChrome() is True else 3
         lb_channels = 2 if self.parent.useWeightedDistanceMap else 1
-        # now: all images are resized to the size of the first image 
-        # Alternatively: all images could be padded to the largest image size
-        img = np.zeros((len(images), height, width, im_channels)).astype('uint8')
-        mask = np.zeros((len(images), height, width, lb_channels)).astype('uint8')
         
+    
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
-            x = executor.map(self.createImageLabelPair,range(len(images)), repeat(width), repeat(height))
+            x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
         
-        for counter, pair in enumerate(x):   
-            img[counter] = pair[0]
-            mask[counter] = pair[1]
-        
+        img = []
+        mask = []
+
+        for counter, pair in enumerate(x): 
+            tiles = [counter] * self.parent.augmentation.getTilesPerImage(pair[0].shape[1],pair[0].shape[0])
+            self.addTileIndices(tiles, validation)
+            img.append(pair[0])
+            mask.append(pair[1])
+
         return img, mask
-    
-    
-    
 

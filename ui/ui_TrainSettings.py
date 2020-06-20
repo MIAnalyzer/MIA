@@ -17,7 +17,7 @@ from dl.dl_lrschedule import lrMode
 class Window(object):
     def setupUi(self, Form):
         width = 300
-        height= 385
+        height= 435
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
         
@@ -32,9 +32,18 @@ class Window(object):
 
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
+        self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
+        self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
+        self.SBPredictEvery = LabelledSpinBox ('Predict an image every x epochs', self.centralWidget)
+        self.SBPredictEvery.setToolTip('Predict the current selected test image after every x epochs')
+        self.SBPredictEvery.SpinBox.setRange(0,100)
+        self.SBPredictEvery.SpinBox.setValue(0)
+        
         
 
         self.vlayout.addWidget(self.CBMemory)
+        self.vlayout.addWidget(self.CBIgnoreBackgroundTiles)
+        self.vlayout.addWidget(self.SBPredictEvery)
         self.vlayout.addWidget(self.LossGroup())
         self.vlayout.addWidget(self.TrainValGroup())
         self.vlayout.addWidget(self.LRScheduleGroup())
@@ -75,11 +84,10 @@ class Window(object):
         
         hlayout = QHBoxLayout(self.centralWidget)
         self.STrainVal = QSlider(Qt.Horizontal, self.centralWidget)
-        self.STrainVal.setMinimum(1)
+        self.STrainVal.setMinimum(20)
         self.STrainVal.setMaximum(100)
         self.STrainVal.setValue(100)
-        self.STrainVal.setToolTip('Split train and test set')
-        self.STrainVal.setEnabled(False)
+        self.STrainVal.setToolTip('Split training data into a train and validation set.')
         self.LTrainVal = QLabel(self.centralWidget)
         self.LTrainVal.setText('100 % Train 0 % Val')
         hlayout.addWidget(self.STrainVal)
@@ -143,12 +151,16 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
-        self.CBMemory.setChecked(self.parent.parent.dl.TrainInMemory)
+        self.CBMemory.setChecked(self.parent.parent.dl.augmentation.ignoreBackground)
+        self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.TrainInMemory)
+        
         self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
         self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.Optimizer.name))
         self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
         self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
-
+        self.SBPredictEvery.SpinBox.setValue(self.parent.parent.predictionRate)
+        
+        self.CBIgnoreBackgroundTiles.clicked.connect(self.IgnoreBackgroundChanged)
         self.CBMemory.clicked.connect(self.InMemoryChanged)
         self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
@@ -160,6 +172,10 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.SBlr.SpinBox.valueChanged.connect(self.changeLR)
         self.SBReduction.SpinBox.valueChanged.connect(self.changeReductionFactor)
         self.SBEveryx.SpinBox.valueChanged.connect(self.changeIntervall)
+        self.SBPredictEvery.SpinBox.valueChanged.connect(self.predictionRateChanged)
+        
+        self.STrainVal.valueChanged.connect(self.changeTrainTestSplit)
+        self.STrainVal.setValue(self.parent.parent.dl.data.TrainTestSplit*100)
         
         self.RBConstant.setChecked(True)
         self.LROption()
@@ -167,6 +183,12 @@ class TrainSettingsWindow(QMainWindow, Window):
 
     def InMemoryChanged(self):
         self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
+        
+    def IgnoreBackgroundChanged(self):
+        self.parent.parent.dl.augmentation.ignoreBackground = self.CBMemory.isChecked()
+        
+    def predictionRateChanged(self):
+        self.parent.parent.predictionRate = self.SBPredictEvery.SpinBox.value()
 
     def ShapeSeparationChanged(self):
         self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
@@ -196,6 +218,11 @@ class TrainSettingsWindow(QMainWindow, Window):
             
     def changeReductionFactor(self):
         self.parent.parent.dl.lrschedule.ReductionFactor = self.SBReduction.SpinBox.value() 
+        
+    def changeTrainTestSplit(self):
+        self.parent.parent.dl.data.TrainTestSplit = self.STrainVal.value() / 100.
+        text = '%d %% Train  %d %% Val' % (self.parent.parent.dl.data.TrainTestSplit*100, 100-self.parent.parent.dl.data.TrainTestSplit*100)
+        self.LTrainVal.setText(text)
         
     def changeIntervall(self):
         self.parent.parent.dl.lrschedule.ReduceEveryXEpoch = self.SBEveryx.SpinBox.value()

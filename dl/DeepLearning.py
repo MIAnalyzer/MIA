@@ -20,6 +20,9 @@ import glob
 import os
 import numpy as np
 from enum import Enum
+import threading
+import traceback
+import sys
 
 
 import dl.dl_datagenerator as dl_datagenerator
@@ -31,6 +34,8 @@ import dl.dl_hed as dl_hed
 import dl.dl_imagedata as dl_imagedata
 import dl.dl_augment as dl_augment
 import dl.dl_lrschedule as dl_schedule
+
+from utils.Observer import dlObservable
 
 import utils.Contour
 import multiprocessing
@@ -54,9 +59,9 @@ class dlOptim(Enum):
     SGDNesterov = 5
     
 
-class DeepLearning():
+class DeepLearning(dlObservable):
     def __init__(self):
-        
+        super().__init__()
         self.TrainInMemory = True
         self.useWeightedDistanceMap = False
         self.ImageScaleFactor = 0.5
@@ -69,10 +74,12 @@ class DeepLearning():
         self.ModelType = 0
         self.Model = None
         self.split_factor = 32
-        self.PredictFullImage = True
+        self.tryPredictFullImage = False
         
         self.Models = dl_models.Models()
         self.Mode = dlMode.segmentation
+        
+        self.observer = None
         
         # Training settings
         self.batch_size = 4
@@ -80,43 +87,49 @@ class DeepLearning():
         self.learning_rate = 0.001
         self.lrschedule = dl_schedule.LearningRateSchedule(self)
 
+
         self.Loss = dlLoss.focal
         self.Metric = dlMetric.iou
         self.Optimizer = dlOptim.Adam
-        
-        
+
+    
+    def interrupt(self):
+        self.record.interrupt = True
+          
     def initModel(self, numClasses, MonoChrome):
-        # try:
-        if True:
+        try:
             self.Model = self.Models.getModel(self.Mode, self.ModelType, numClasses, monochrome = MonoChrome)
+            self.record.reset()
             return self.initialized()
-        # except:
-        #     return False
+        except:
+            self.notifyError()
+            return False
+
        
     def Train(self, trainingimages_path, traininglabels_path):
         if not self.initialized() or trainingimages_path is None or traininglabels_path is None:
             return False
 
+        thread = threading.Thread(target=self.executeTraining, args=(trainingimages_path, traininglabels_path))
+        thread.daemon = True
+        thread.start()
+
+    
+    def executeTraining(self, trainingimages_path, traininglabels_path):
         self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
-        if self.TrainInMemory:
-            train_generator = dl_datagenerator.TrainingDataGenerator_inMemory(self)
-        else:
-            train_generator = dl_datagenerator.TrainingDataGenerator_fromDisk(self)
 
-        self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics())  
-
-
-        callbacks = [self.record]
-        lr = self.lrschedule.LearningRateCallBack()
-        if lr is not None:
-            callbacks.append(lr)
-        #try:
-        if True:
-            self.Model.fit(train_generator,verbose=1, callbacks=callbacks, epochs=self.epochs, workers = self.worker)
-        #except:
-        #    return False
-        return True
-       
+        train_generator = dl_datagenerator.TrainingDataGenerator(self)
+        if self.data.validationData():
+            val_generator = dl_datagenerator.TrainingDataGenerator(self, validation = True)
+        else: 
+            val_generator = None
+            
+        self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics()) 
+        try:
+            self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
+        except:
+            self.notifyTrainingFinished()
+            self.notifyError()
             
     def PredictImage(self, image):    
         if not self.initialized() or image is None:
@@ -127,7 +140,7 @@ class DeepLearning():
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.ImageScaleFactor), int(height*self.ImageScaleFactor)))
         
-        if self.PredictFullImage:
+        if self.tryPredictFullImage:
             try:
                 pred = self.Predict(image)
             except:
@@ -240,6 +253,13 @@ class DeepLearning():
     def SaveModel(self, modelpath):
         if self.initialized():
             self.Model.save(modelpath)
+            
+    def _getTrainingCallbacks(self):
+        callbacks = [self.record]
+        lr = self.lrschedule.LearningRateCallBack()
+        if lr is not None:
+            callbacks.append(lr)
+        return callbacks
     
     def _getLoss(self):
         if self.Loss == dlLoss.focal:

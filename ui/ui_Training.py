@@ -77,6 +77,7 @@ class Window(object):
 
         self.CBMono = QRadioButton(self.centralWidget)
         self.CBMono.setText("Mono")
+        self.CBMono.setToolTip('Select if only monochromatic images are used as input')
         
         self.CBRGB = QRadioButton(self.centralWidget)
         self.CBRGB.setText("Color")
@@ -163,10 +164,10 @@ class TrainingWindow(QMainWindow, Window):
                 self.CBRGB.setChecked(True)
         super(TrainingWindow, self).show()
         
-    def hide(self):
+    def closeEvent(self, event):       
         self.settings_form.hide()
         self.augmentation_form.hide()
-        super(TrainingWindow, self).hide()
+        super(TrainingWindow, self).closeEvent(event)
         
     def ModelType(self):
         self.parent.dl.ModelType = self.CBModel.currentIndex()
@@ -186,14 +187,15 @@ class TrainingWindow(QMainWindow, Window):
         self.parent.settings_form.silentlyUpdateScale(self.SBScaleFactor.SpinBox.value())
   
     def Train(self):
-        if not self.parent.dl.initialized() or not self.parent.dl.parameterFit(self.parent.NumOfClasses(), self.CBMono.isChecked()):
-            if not self.parent.dl.initModel(self.parent.NumOfClasses(), self.CBMono.isChecked()):
-               self.parent.PopupWarning('Cannot train model (out of recources?)') 
-               return
-        if not self.parent.dl.Train(self.parent.trainImagespath,self.parent.trainImageLabelspath):
-            self.parent.PopupWarning('Cannot train model (out of recources?)')
-            return
-        self.parent.writeStatus('model trained')
+        self.toggleTrainStatus(True)
+        self.parent.startTraining()
+        
+    def toggleTrainStatus(self, training):
+        self.BTrain.setEnabled(not training)
+        self.setEnabled(not training)
+        self.settings_form.setEnabled(not training)
+        self.augmentation_form.setEnabled(not training)
+
 
         
         
