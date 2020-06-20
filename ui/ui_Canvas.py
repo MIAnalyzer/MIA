@@ -190,7 +190,7 @@ class Canvas(QGraphicsView):
         self.getFinalContours()
         self.NewContour = None
         
-    def fitInView(self, scale=True):
+    def resetView(self, scale=True):
         rect = QRectF(self.image().rect())
         if not rect.isNull():
             self.setSceneRect(rect)
@@ -220,17 +220,16 @@ class Canvas(QGraphicsView):
         pix = QPixmap(width, height).fill(self.bgcolor)
         self.displayedimage.setPixmap(pix)
         
-    def ReloadImage(self):
+    def ReloadImage(self, resetView = True):
         if self.parent.CurrentFilePath() is None:
             return
-        
         self.rawimage = self.getCurrentPixmap()
         self.clearContours()
         self.getContours()
         self.redrawImage()
-        self.zoomstep = 0
-        self.fitInView()
-        
+        if resetView:
+            self.resetView()
+                    
     def getCurrentPixmap(self):
         image = self.parent.getCurrentImage() 
         if image is None:

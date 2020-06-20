@@ -15,86 +15,77 @@ import threading
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from tensorflow.python.keras.utils.data_utils import Sequence
-# import dl.dl_augment as dl_augment
 import dl.dl_utils as dl_utils
 from utils.Contour import LoadLabel
 
-
-
-class TrainingDataGenerator_inMemory(Sequence):
-    def __init__(self, parent):
-        self.parent = parent
-        self.batch_size = parent.batch_size
-        self.lock = threading.Lock() 
-        images,labels = parent.data.loadTrainingDataSet()
-        self.parent.augmentation.initAugmentation()
-        self.images = images
-        self.labels = labels
-        self.indices = list(range(0,images.shape[0]))
-        self.numImages = len(self.indices)
-        random.shuffle(self.indices)
-    
-    def __len__(self):
-        return int(np.ceil(self.numImages / float(self.batch_size)))
-
-    def __getitem__(self, idx):
-        with self.lock:
-            batch_start = idx * self.batch_size
-            batch_end = min(batch_start + self.batch_size, self.numImages)
-
-            batch_images = self.images[self.indices[batch_start:batch_end]]
-            batch_masks = self.labels[self.indices[batch_start:batch_end]]
-
-            img, mask = self.parent.augmentation.augment(batch_images,batch_masks)
-            # img, mask = dl_augment.augment(batch_images,batch_masks)         
-            img = self.parent.data.preprocessImage(img)     
-            mask = self.parent.data.preprocessLabel(mask)
-            return img, mask
-        
-    def on_epoch_end(self):
-        random.shuffle(self.indices)
-
-
-class TrainingDataGenerator_fromDisk(Sequence):
-    def __init__(self, parent):
+class TrainingDataGenerator(Sequence):
+    def __init__(self, parent, validation = False):
         self.parent = parent
         self.batch_size = parent.batch_size
         self.lock = threading.Lock()
-        self.images = self.parent.data.ImagesPaths
-        self.labels = self.parent.data.LabelsPaths
+        self.inMemory  = parent.TrainInMemory
+        self.validation = validation
+        if self.inMemory:
+            self.images,self.labels = parent.data.loadTrainingDataSet(validation = self.validation)
+        else:
+            self.images = self.parent.data.getImagePaths(self.validation)
+            self.labels = self.parent.data.getLabelPaths(self.validation)
+            
+
+            
         self.parent.augmentation.initAugmentation()
-        self.channels = 1 if parent.MonoChrome() is True else 3
-        self.numClasses = parent.NumClasses()
-        self.scalefactor = parent.ImageScaleFactor
-        self.indices = list(range(0,len(self.images)))
+        # self.indices = list(range(0,len(self.images)))
+        self.indices = self.parent.data.getTileIndices(validation, equalTilesperImage = not self.inMemory)
         self.numImages = len(self.images)
-        random.shuffle(self.indices)
+        # experimental: 
+        # calculate the number of tiles as the possible crops from all images
+        # note that crops may overlap (avoided for validation)
+        # length of generator derived from tiles
+        self.numTiles = len(self.indices)
+        if not validation:
+            random.shuffle(self.indices)
 
     def __len__(self):
-        return int(np.ceil(self.numImages / float(self.batch_size)))
+        # return int(np.ceil(self.numImages / float(self.batch_size)))
+        return self.parent.data.getNumberOfBatches(self.validation)
 
     def __getitem__(self, idx):
         with self.lock:
-            batch_images = []
-            batch_masks = []
+
             batch_start = idx * self.batch_size
-            batch_end = min(batch_start + self.batch_size, self.numImages)
-            for i in range(batch_start, batch_end):
-                
-                train_img, train_mask = self.parent.data.createImageLabelPair(i)
+            batch_end = min(batch_start + self.batch_size, self.numTiles)
+            if self.inMemory:
+                batch_images,batch_masks = self._loadBatchFromMemory(batch_start, batch_end)
+            else:
+                batch_images,batch_masks = self._loadBatchFromDisk(batch_start, batch_end)
 
-                batch_images.append(train_img)
-                batch_masks.append(train_mask)
-
-            img, mask = self.parent.augmentation.augment(batch_images,batch_masks)
-            # img, mask = dl_augment.augment(batch_images, batch_masks)
-
+    
+            img, mask = self.parent.augmentation.augment(batch_images,batch_masks, self.validation)
             img = self.parent.data.preprocessImage(img)     
             mask = self.parent.data.preprocessLabel(mask)
+
             return img, mask
         
+    def _loadBatchFromMemory(self, batch_start, batch_end): 
+        batch_images = [self.images[self.indices[i]] for i in range(batch_start,batch_end)]
+        batch_masks = [self.labels[self.indices[i]] for i in range(batch_start,batch_end)]
+
+        return batch_images, batch_masks
+        
+    def _loadBatchFromDisk(self, batch_start, batch_end):
+        batch_images = []
+        batch_masks = []
+        for i in range(batch_start, batch_end):
+            train_img, train_mask = self.parent.data.createImageLabelPair(self.indices[i],validation=self.validation)
+            batch_images.append(train_img)
+            batch_masks.append(train_mask)
+        return batch_images, batch_masks
+        
+        
     def on_epoch_end(self):
-        random.shuffle(self.indices)
-    
+        if not self.validation:
+            random.shuffle(self.indices)
+        
+
     
 

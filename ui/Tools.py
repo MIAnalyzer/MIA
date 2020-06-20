@@ -92,7 +92,7 @@ class DragTool(AbstractTool):
         if self.canvas.zoomstep > 0:
             self.canvas.scale(factor, factor)
         elif self.canvas.zoomstep == 0:
-            self.canvas.fitInView()
+            self.canvas.resetView()
         else:
             self.canvas.zoomstep = 0
                 

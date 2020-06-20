@@ -12,12 +12,14 @@ class ImageFile():
         self._image = None
         self._stack = False
         self.readImage(path)
+        self.brightness = 0
+        self.contrast = 1
         if asBGR:
             self.normalizeImage()
             self.convertToBGR()
         
     def readImage(self, path):
-        try:
+        try: # open stack
             image = Image.open(path)
             image.seek(0)
 
@@ -29,7 +31,7 @@ class ImageFile():
 
             self._image = np.array(images)
             # convert to bgr if color
-            if len(self.__image.shape)>=4: 
+            if len(self._image.shape)>=4: 
                 self._image = self._image[:, :, :, [2, 1, 0],...].copy()
                 
             if frames == 1:
@@ -66,9 +68,14 @@ class ImageFile():
 
  
     def normalizeImage(self):
+        # atm always converts 8-bit
         if self._image is None:
             return
         if self._stack:
+            min_ = np.min(self._image)
+            max_ = np.max(self._image)
+            self._image = (self._image - min_)/(max_-min_) * 255
+            self._image = self._image.astype('uint8')
             return 
         else:
             norm_image = np.zeros(self._image.shape)
@@ -83,11 +90,22 @@ class ImageFile():
             return 1
         else:
             return self._image.shape[0]
+        
+    def adjustBrightnessContrast(self, image):
+        # in general this can be done more efficient and without the memory use of a 16 bit image
+        im = (image.astype(np.int16) + self.brightness) * self.contrast 
+        im[im<0] = 0
+        im[im>255]=255
+        return im.astype(np.uint8)
+    
+    def getCorrectedImage(self, frame = 0):
+        return self.adjustBrightnessContrast(self.getImage(frame))
 
     def getImage(self, frame = 0):
         if self._stack:
             return self._image[frame]
-        return self._image
+        else:
+            return self._image
 
 
 def read_tiff(path):

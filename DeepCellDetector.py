@@ -10,6 +10,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
+from tensorflow import errors
+
 
 import io
 import traceback
@@ -30,9 +32,11 @@ from ui.ui_Results import ResultsWindow
 from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
+from ui.ui_TrainPlot import TrainPlotWindow
 
 import utils.Contour as Contour
 from utils.Image import ImageFile, supportedImageFormats
+from utils.Observer import QtObserver
 
 import numpy as np
 
@@ -40,7 +44,7 @@ PREDICT_WORMS = False
 PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-
+CPU_ONLY = False
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -63,7 +67,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.progress = 0
         self.maxworker = 1
         
-        
         self.files = None
         self.currentImage = 0
         self.numofImages = 0
@@ -74,8 +77,22 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
+        
+        self.predictionRate = 0
 
         self.dl = DeepLearning.DeepLearning()
+        # init observer
+        self.dlobserver = QtObserver()
+        self.dl.attachObserver(self.dlobserver)
+        self.dlobserver.signals.progress.connect(self.dlProgress)
+        self.dlobserver.signals.epoch_end.connect(self.dlEpoch)
+        self.dlobserver.signals.finished.connect(self.dlFinished)
+        self.dlobserver.signals.result.connect(self.dlResult)
+        self.dlobserver.signals.error.connect(self.dlError)
+        self.dlobserver.signals.start.connect(self.dlStarted)
+        
+        
+        
 #         init canvas
         self.hlayout.removeWidget(self.canvas)
         self.canvas.close()
@@ -99,13 +116,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
         self.postprocessing_form = PostProcessingWindow(self)
+        self.plotting_form = TrainPlotWindow(self)
         
         self.updateClassList()
         self.classList.setClass(1)
         
-        if PREDICT_WORMS:
+        if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
+        if PREDICT_WORMS:
             if PRELOAD:
                 try:
                     self.dl.LoadModel(PRELOAD_MODEL)
@@ -170,6 +189,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def closeEvent(self, event):       
         QApplication.closeAllWindows()
+        self.dl.interrupt()
         super(QMainWindow, self).closeEvent(event)
 
         
@@ -402,7 +422,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.currentImageFile = ImageFile(self.CurrentFilePath(), asBGR = True)
             if self.currentImageFile.isStack():
                 self.SFrame.show()
-                # initFrameSlider reloads image 
                 self.initFrameSlider()
             else:
                 self.SFrame.hide()
@@ -413,13 +432,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.SFrame.setMaximum(maxval)
         self.currentFrame = 0
         self.SFrame.setValue(maxval)
+        self.canvas.resetView()
+        
   
     def FrameChanged(self):
         self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
-        self.canvas.ReloadImage()
+        self.canvas.ReloadImage(resetView = False)
     
     def getCurrentImage(self):   
-        return self.currentImageFile.getImage(self.currentFrame)
+        return self.currentImageFile.getCorrectedImage(self.currentFrame)
     
     def setWorkers(self, numWorker):
         self.maxworker = numWorker
@@ -478,6 +499,16 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
  
         self.training_form.show()
         
+    def startTraining(self):
+        if not self.dl.initialized() or not self.dl.parameterFit(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
+            if not self.dl.initModel(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
+               self.PopupWarning('Cannot initialize model') 
+               return
+        self.plotting_form.show()
+        self.plotting_form.initialize()
+        self.dl.Train(self.trainImagespath,self.trainImageLabelspath)
+    
+        
     def predictAllImages(self):
         if self.testImagespath is None or self.testImageLabelspath is None:
             self.PopupWarning('Prediction folder not selected')
@@ -508,7 +539,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
         self.addProgress()
         
-    
+        
     def predictImage(self):
         if self.CurrentFilePath() is None:
             return
@@ -545,6 +576,34 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             self.canvas.Contours.addContours(contours)
             self.canvas.checkForChangedContours()
+        
+    # deep learning observer functions
+    def dlStarted(self):
+        self.training_form.toggleTrainStatus(training=True)
+        self.plotting_form.toggleTrainStatus(training=True)
+        
+    def dlProgress(self):
+        self.plotting_form.refresh()
+        
+    def dlEpoch(self, epoch):
+        if self.train_test_dir or self.predictionRate == 0:
+            return    
+        if (epoch % self.predictionRate) == self.predictionRate - 1:
+            self.predictImage()
+        
+    def dlFinished(self):
+        self.training_form.toggleTrainStatus(training=False)
+        self.plotting_form.toggleTrainStatus(training=False)
+
+    def dlResult(self, result):
+        pass
+    
+    def dlError(self, err):
+        (exctype, value, traceback) = err
+        if exctype == errors.ResourceExhaustedError:
+            self.PopupWarning('Out of memory!') 
+        else:
+            DeepCellDetectorUI.excepthook(exctype, value, traceback)
 
               
     ############################

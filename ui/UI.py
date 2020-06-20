@@ -247,7 +247,7 @@ class MainWindow(object):
         self.ralayout = QHBoxLayout(self.centralWidget)
         self.Bautoseg = DCDButton(self.centralWidget, "Auto Segment")
         self.Bautoseg.setObjectName("Bautoseg")
-        self.Bautoseg.setIcon(QIcon('icons/autoseg.png'))
+        self.Bautoseg.setIcon(QIcon('icons/predict.png'))
         self.Bautoseg.setToolTip('autosegment image')
    
 
@@ -273,7 +273,7 @@ class MainWindow(object):
 
                 
         self.Bresetmodel = DCDButton(self.centralWidget, "Reset Model")
-        self.Bresetmodel.setIcon(QIcon('icons/resetmodel.png'))
+        self.Bresetmodel.setIcon(QIcon('icons/reset.png'))
         self.Bresetmodel.setToolTip('reset trained model')
 
         self.trlayout.addWidget(self.Btrain)    
