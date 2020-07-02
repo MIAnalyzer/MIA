@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 FreeFormContour_ID_legacy = 123456789
 FreeFormContour_ID = 12345678910
 PointContour_ID = 987654321
+IMAGELABEL_ID = 1234554321
 UNKNOWN = -1
 
 
@@ -27,7 +28,6 @@ class Shapes(ABC):
         if s:
             self.shapes.remove(s)
        
-
     def clear(self):
         self.shapes.clear()
 

@@ -158,8 +158,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
         
-        self.BassignClass.clicked.connect(self.setCanvasMode)
-        self.BsetClass.clicked.connect(self.setCanvasMode)
+        self.BassignClass.clicked.connect(self.assignImageClass)
+        self.BsetClass.clicked.connect(self.setImageClass)
         
         self.BsetObject.clicked.connect(self.setCanvasMode)
         self.BshiftObject.clicked.connect(self.setCanvasMode)
@@ -260,6 +260,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 continue
             widget.setVisible(True)
 
+    def assignImageClass(self):
+        self.canvas.assignImageClass()
+
+    def setImageClass(self):
+        self.canvas.assignImageClass()
+        self.nextImage()
         
     def addClass(self):
         self.classList.addClass()
