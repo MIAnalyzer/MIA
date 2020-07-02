@@ -93,7 +93,7 @@ class ImageFile():
         
     def adjustBrightnessContrast(self, image):
         # in general this can be done more efficient and without the memory use of a 16 bit image
-        im = (image.astype(np.int16) + self.brightness) * self.contrast 
+        im = (image.astype(np.int16) * self.contrast) + self.brightness
         im[im<0] = 0
         im[im>255]=255
         return im.astype(np.uint8)

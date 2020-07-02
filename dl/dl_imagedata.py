@@ -9,7 +9,8 @@ import os
 import glob
 import cv2
 import dl.dl_utils as dl_utils
-from utils.Contour import LoadLabel
+from dl.dl_labels import LoadLabel
+from utils.utility_functions import getAllImageLabelPairPaths
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import normalizeImage
@@ -81,24 +82,10 @@ class ImageData():
         return image
     
     
-    def initTrainingDataset(self, imagepath, labelpath):         
-        images = glob.glob(os.path.join(imagepath,'*.*'))
-        labels = glob.glob(os.path.join(labelpath,'*.*'))
-          
-        # to do: check if images in one of supported image formats
-        labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
-        
-        image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
-        label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
-        
-        intersection = list(set(image_names).intersection(label_names))
-        if intersection == list():
+    def initTrainingDataset(self, imagepath, labelpath):   
+        images, labels = getAllImageLabelPairPaths(imagepath, labelpath)
+        if images is None or labels is None:
             return None, None
-        
-        images = [each for each in images if os.path.splitext(os.path.basename(each))[0] in intersection]
-        labels = [each for each in labels if os.path.splitext(os.path.basename(each))[0] in intersection]
-        images.sort()
-        labels.sort()
         
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))

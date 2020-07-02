@@ -41,12 +41,17 @@ import utils.Contour
 import multiprocessing
 
 class dlMode(Enum):
-    classification = 1
-    segmentation = 2
-    # add more: tracking, 3Dsegmentation
+    Classification = 0
+    Object_Counting = 1
+    Object_Tracking = 2
+    Segmentation = 3
+    Segmentation_Tracking = 4
+    Segmentation_3D = 5
+    Instance_Segmentation = 6
 
 class dlLoss(Enum):
     focal = 1
+    # add optional class weights
 
 class dlMetric(Enum):
     iou = 1
@@ -73,11 +78,12 @@ class DeepLearning(dlObservable):
         
         self.ModelType = 0
         self.Model = None
+        # split factor need to be reworked and reasonable, get it from network
         self.split_factor = 32
-        self.tryPredictFullImage = False
+        self.tryPredictFullImage = True
         
         self.Models = dl_models.Models()
-        self.Mode = dlMode.segmentation
+        self.Mode = dlMode.Segmentation
         
         self.observer = None
         
@@ -116,20 +122,38 @@ class DeepLearning(dlObservable):
 
     
     def executeTraining(self, trainingimages_path, traininglabels_path):
-        self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
-
-        train_generator = dl_datagenerator.TrainingDataGenerator(self)
-        if self.data.validationData():
-            val_generator = dl_datagenerator.TrainingDataGenerator(self, validation = True)
-        else: 
-            val_generator = None
+        try:
+            self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
+            train_generator = dl_datagenerator.TrainingDataGenerator(self)
+            if self.data.validationData():
+                val_generator = dl_datagenerator.TrainingDataGenerator(self, validation = True)
+            else: 
+                val_generator = None    
+            self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics()) 
+        except:
+            self.notifyError()  
             
-        self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics()) 
         try:
             self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
         except:
             self.notifyTrainingFinished()
             self.notifyError()
+ 
+    def PredictImage_async(self, image):    
+        if not self.initialized() or image is None:
+            return
+
+        thread = threading.Thread(target=self.executePrediction, args=(image,))
+        thread.daemon = True
+        thread.start()   
+        
+    def executePrediction(self, image):
+        try:
+            prediction = self.PredictImage(image)
+        except:
+            self.notifyError() 
+        self.notifyPredictionFinished(prediction)
+        
             
     def PredictImage(self, image):    
         if not self.initialized() or image is None:
@@ -143,6 +167,7 @@ class DeepLearning(dlObservable):
         if self.tryPredictFullImage:
             try:
                 pred = self.Predict(image)
+                
             except:
                 # OOM
                 pred = self.predictTiled(image)
@@ -154,7 +179,7 @@ class DeepLearning(dlObservable):
         return pred
     
     def predictTiled(self, image):
-        pred = np.zeros(image.shape,dtype='uint8')
+        pred = np.zeros(image.shape[0:2],dtype='uint8')
         p_width = self.augmentation.outputwidth
         p_height = self.augmentation.outputheight
         for w in range (0,image.shape[1],p_width):
@@ -163,6 +188,7 @@ class DeepLearning(dlObservable):
                 w_0 = max(w -self.split_factor//2, 0)
                 h_0 = max(h -self.split_factor//2, 0)
                     
+                # split factor need to be reworked and reasonable, get it from network
                 h_til = min(h+p_height+self.split_factor//2, image.shape[0])
                 w_til = min(w+p_width+self.split_factor//2,  image.shape[1])
                 
@@ -176,7 +202,7 @@ class DeepLearning(dlObservable):
                 pred_patch = self.Predict(patch)
                 h_end = min(h+p_height,image.shape[0])
                 w_end = min(w+p_width,image.shape[1])
-                pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end)]
+                pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end),...]
         return pred
     
     def Predict(self, image):

@@ -54,6 +54,10 @@ class dlObservable():
             exctype, value, tb = sys.exc_info()
             o.Error(exctype, value, tb)
             
+    def notifyPredictionFinished(self, prediction):
+        for o in self.observers:
+            o.Result(prediction)            
+
     def notifyTrainingStarted(self):
         for o in self.observers:
             o.Started()            

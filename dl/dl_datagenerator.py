@@ -16,7 +16,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from tensorflow.python.keras.utils.data_utils import Sequence
 import dl.dl_utils as dl_utils
-from utils.Contour import LoadLabel
 
 class TrainingDataGenerator(Sequence):
     def __init__(self, parent, validation = False):

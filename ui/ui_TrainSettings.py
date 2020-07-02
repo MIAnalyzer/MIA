@@ -17,7 +17,7 @@ from dl.dl_lrschedule import lrMode
 class Window(object):
     def setupUi(self, Form):
         width = 300
-        height= 435
+        height= 450
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
         

@@ -25,6 +25,7 @@ from contextlib import contextmanager
 
 
 import dl.DeepLearning as DeepLearning
+from dl.DeepLearning import dlMode
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
@@ -38,13 +39,15 @@ import utils.Contour as Contour
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 
+from ui.ui_utils import DCDButton
+
 import numpy as np
 
 PREDICT_WORMS = False
 PRELOAD = True
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = False
+CPU_ONLY = True
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -60,8 +63,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.testImagespath = None
         self.testImageLabelspath = None
         self.train_test_dir = True
-        self.LearningMode = 1
-        self.savePredictedMask = False
         
         self.progresstick = 10
         self.progress = 0
@@ -93,7 +94,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         
         
-#         init canvas
+        # init canvas
         self.hlayout.removeWidget(self.canvas)
         self.canvas.close()
         self.canvas = Canvas(self)
@@ -107,8 +108,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.hlayout.addItem(horizontalspacer)
         
         self.classList.setClass(0)
-        self.changeLearningMode(self.LearningMode)
-        self.CBLearningMode.setCurrentIndex (self.LearningMode)
+        self.changeLearningMode(self.LearningMode().value)
+        self.CBLearningMode.setCurrentIndex (self.LearningMode().value)
         self.setWorkers(multiprocessing.cpu_count() // 2)
         
         ### windows - should this be moved to UI ?
@@ -137,6 +138,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.Bdelclass.setEnabled(False)
             self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
             self.CBLearningMode.setEnabled(False)
+            self.ASetTrainingFolder.setEnabled(False)
 
 
     def setCallbacks(self):
@@ -156,6 +158,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
         
+        self.BassignClass.clicked.connect(self.setCanvasMode)
+        self.BsetClass.clicked.connect(self.setCanvasMode)
+        
+        self.BsetObject.clicked.connect(self.setCanvasMode)
+        self.BshiftObject.clicked.connect(self.setCanvasMode)
+        
+        
         self.Btrain.clicked.connect(self.showTrainingWindow)
         self.Bpredictall.clicked.connect(self.predictAllImages)
         self.Bpredict.clicked.connect(self.predictImage)
@@ -174,6 +183,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         self.CBExtend.clicked.connect(self.updateCursor)
         self.CBErase.clicked.connect(self.updateCursor)
+        
+        self.SBrightness.sliderReleased.connect(self.setBrightness)
+        self.SContrast.sliderReleased.connect(self.setContrast)
         
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
@@ -210,25 +222,44 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def numOfContoursChanged(self):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
-            label.setText(str(len(self.canvas.Contours.getContoursOfClass_x(i))))
+            if self.canvas.painter.shapes:
+                label.setText(str(len(self.canvas.painter.shapes.getShapesOfClass_x(i))))
+            else:
+                label.setText("")
         self.canvas.SaveCurrentContours()
         
     def changeLearningMode(self, i):
-        self.LearningMode = i
-        if i == 0: # classification
-            self.SegmentButtons.hide()
+        self.dl.Mode = dlMode(i)
+        self.setCanvasTool(canvasTool.drag.name)
+
+        # classification is not handeld via tools as now interaction besides dragging with the image is required
+        if self.LearningMode() == dlMode.Classification: 
             self.ClassificationButtons.show()
-            self.setCanvasTool(canvasTool.drag.name)
             self.canvas.enableToggleTools = False
-        elif i == 1: # segmentation
-            self.SegmentButtons.show()
-            self.ClassificationButtons.hide()
-            self.setCanvasTool(canvasTool.drag.name)
-            self.canvas.enableToggleTools = True
+            self.ToolButtons.setVisible(False)
         else:
-            self.SegmentButtons.hide()
             self.ClassificationButtons.hide()
+            self.canvas.enableToggleTools = True
+            self.ToolButtons.setVisible(True)
+
+
+        self.canvas.setCanvasMode(self.LearningMode())
         self.setWorkingFolder()
+        
+    def setToolButtons(self):
+        # we need to first set all to invisible as otherwise the widget width is extended 
+        # and somewhat hard to control with pyqt :(
+        for tool in canvasTool:
+            widget = self.findChild(DCDButton, tool.name)
+            if not widget:
+                continue
+            widget.setVisible(False)
+        for tool in self.canvas.painter.tools:
+            widget = self.findChild(DCDButton, tool.name)
+            if not widget:
+                continue
+            widget.setVisible(True)
+
         
     def addClass(self):
         self.classList.addClass()
@@ -311,12 +342,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def setLabelPaths(self):
         if self.trainImagespath is not None:
-            self.trainImageLabelspath = self.trainImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
-#            self.ensureFolder(self.trainImageLabelspath)
+            self.trainImageLabelspath = self.trainImagespath + "/" + self.LearningMode().name + "_labels"
         
         if self.testImagespath is not None:
-            self.testImageLabelspath = self.testImagespath + "/" + self.CBLearningMode.currentText() + "_labels"
-#            self.ensureFolder(self.testImageLabelspath)
+            self.testImageLabelspath = self.testImagespath + "/" + self.LearningMode().name + "_labels"
        
     def switchToTrainFolder(self):
         self.train_test_dir = True
@@ -376,13 +405,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
         except:
             pass
-        
-    def loadImage(self):
-        ext = ['*' + x for x in supportedImageFormats()]
-        text = 'Image Files(' + ' '.join(ext) + ')'
-        path = QFileDialog.getOpenFileName(None, self.tr('Select file'), "", self.tr(text))
-        self.canvas.image = QPixmap(path[0])
-        self.canvas.ReloadImage()
          
     def setCanvasMode(self):
         tool = self.sender().objectName()
@@ -396,13 +418,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.canvas.toggleDrag()
         if 48 <= e.key() <= 57:
             classnum = e.key()-48
-            if classnum < self.classList.getNumberOfClasses():
-                self.classList.setClass(e.key()-48)
+            self.classList.setClass(e.key()-48)
+                
+    def getFilenameFromPath(self, path):
+        return os.path.splitext(os.path.basename(path))[0]
 
     def CurrentFileName(self):
         if self.CurrentFilePath() is None:
             return None
-        return os.path.splitext(os.path.basename(self.CurrentFilePath()))[0]
+        return self.getFilenameFromPath(self.CurrentFilePath())
     
     def CurrentFilePath(self):
         if self.files is None:
@@ -420,6 +444,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def readCurrentImageAsBGR(self):   
         with self.wait_cursor():
             self.currentImageFile = ImageFile(self.CurrentFilePath(), asBGR = True)
+            self.resetBrightnessContrast()
             if self.currentImageFile.isStack():
                 self.SFrame.show()
                 self.initFrameSlider()
@@ -438,7 +463,24 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def FrameChanged(self):
         self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
         self.canvas.ReloadImage(resetView = False)
-    
+        
+    def setBrightness(self):
+        b = self.SBrightness.value()
+        self.currentImageFile.brightness = b
+        self.canvas.ReloadImage(resetView = False)
+        
+    def setContrast(self):
+        c = self.SContrast.value()
+        if c > 1:
+            self.currentImageFile.contrast = 1 + c/10 
+        else:
+            self.currentImageFile.contrast = 1 + c/10
+        self.canvas.ReloadImage(resetView = False)
+        
+    def resetBrightnessContrast(self):
+        self.SContrast.setValue(1)
+        self.SBrightness.setValue(0)
+            
     def getCurrentImage(self):   
         return self.currentImageFile.getCorrectedImage(self.currentFrame)
     
@@ -471,6 +513,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Status.setText(msg)
 
     ## deep learning  
+    def LearningMode(self):
+        return self.dl.Mode
+
     def loadModel(self):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
         if filename:
@@ -490,6 +535,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def resetModel(self):
         self.dl.Reset()
+        self.training_form.toggleParameterStatus()
         self.writeStatus('model reset')
     
     def showTrainingWindow(self):
@@ -533,12 +579,16 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         # in worker thread
         image = self.dl.data.readImage(imagepath)
         pred = self.dl.PredictImage(image)
-        name = os.path.splitext(os.path.basename(imagepath))[0]
-        cv2.imwrite(os.path.join(self.testImageLabelspath, (name + ".tif")) , pred)
-        contours = Contour.extractContoursFromLabel(pred, not self.allowInnerContours)
-        Contour.saveContours(contours, os.path.join(self.testImageLabelspath, (name + ".npz")))
+        name = self.getFilenameFromPath(imagepath)
+        self.extractAndSaveContours(pred, self.testImageLabelspath, name)
         self.addProgress()
         
+    def predictImage_async(self):
+        image = self.dl.data.readImage(self.CurrentFilePath())
+        if image is None:
+            return
+        self.dl.PredictImage_async(image)
+
         
     def predictImage(self):
         if self.CurrentFilePath() is None:
@@ -550,17 +600,25 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.clear()
             
             image = self.dl.data.readImage(self.CurrentFilePath())
-            prediction = self.dl.PredictImage(image)
-            if prediction is None:
+            if image is None:
                 self.PopupWarning('Cannot load image')
                 return
-            if self.savePredictedMask:
-                cv2.imwrite(os.path.join(self.labelpath, (self.CurrentFileName() + ".tif")) , prediction)
-            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
-            self.ensureLabelFolder()
-            Contour.saveContours(contours, os.path.join(self.labelpath, (self.CurrentFileName() + ".npz")))
+            prediction = self.dl.PredictImage(image)
+            if prediction is None:
+                self.PopupWarning('Cannot predict image')
+                return
+
+            self.extractAndSaveContours(prediction, self.labelpath, self.CurrentFileName())
+            
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
+            
+    def extractAndSaveContours(self, prediction, path, name):
+        if prediction is None:
+            return
+        contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
+        self.ensureFolder(path)
+        Contour.saveContours(contours, os.path.join(path, (name + ".npz")))
 
     def autoSegment(self):
         with self.wait_cursor():
@@ -574,7 +632,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.PopupWarning('No image loaded')
             prediction = self.dl.AutoSegment(image)
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
-            self.canvas.Contours.addContours(contours)
+            self.canvas.painter.shapes.addShapes(contours)
             self.canvas.checkForChangedContours()
         
     # deep learning observer functions
@@ -589,15 +647,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if self.train_test_dir or self.predictionRate == 0:
             return    
         if (epoch % self.predictionRate) == self.predictionRate - 1:
-            self.predictImage()
+            self.predictImage_async()
         
     def dlFinished(self):
         self.training_form.toggleTrainStatus(training=False)
+        self.training_form.toggleParameterStatus()
         self.plotting_form.toggleTrainStatus(training=False)
 
     def dlResult(self, result):
-        pass
-    
+        self.clear()
+        self.extractAndSaveContours(result, self.labelpath, self.CurrentFileName())
+        self.canvas.ReloadImage()
+
     def dlError(self, err):
         (exctype, value, traceback) = err
         if exctype == errors.ResourceExhaustedError:
