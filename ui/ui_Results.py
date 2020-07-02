@@ -13,23 +13,31 @@ import csv
 import os
 import glob
 import concurrent.futures
-import utils.Contour as Contour
+from dl.dl_labels import LoadLabel
+from utils.Contour import loadContours
+from utils.utility_functions import getAllImageLabelPairPaths
 from ui.Tools import canvasTool
 from ui.style import styleForm
+from ui.ui_utils import DCDButton
+import cv2
 
 
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Results') 
-        Form.setFixedSize(250, 80)
+        width = 250
+        height= 120
+        Form.setFixedSize(width, height)
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(250, 80)
+        self.centralWidget.setFixedSize(width, height)
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
+        
+
         
         self.CBSize = QCheckBox("Export scaled size",self.centralWidget)
         self.CBSize.setChecked(True)
@@ -37,8 +45,7 @@ class Window(object):
         self.vlayout.addWidget(self.CBSize)
         
         self.hlayout = QHBoxLayout(self.centralWidget)
-        self.BSetScale = QPushButton(self.centralWidget)
-        self.BSetScale.setFlat(True)
+        self.BSetScale = DCDButton(self.centralWidget)
         self.BSetScale.setToolTip('Measure scale with known distance')
         self.BSetScale.setIcon(QIcon('icons/measure.png'))
         self.BSetScale.setMaximumSize(28, 28)
@@ -57,8 +64,12 @@ class Window(object):
         self.hlayout.addWidget(self.LScale)
         self.vlayout.addItem(self.hlayout)
         
-        self.BExport = QPushButton(self.centralWidget)
-        self.BExport.setText("Export as csv")
+        self.BExportMasks = DCDButton(self.centralWidget, 'Export Masks')
+        self.BExportMasks.setToolTip('Export contour masks of all images in prediction folder')
+        self.BExportMasks.setIcon(QIcon('icons/savemodel.png'))
+        self.vlayout.addWidget(self.BExportMasks)
+        
+        self.BExport = DCDButton(self.centralWidget, 'Export as csv')
         self.BExport.setToolTip('Export data from all images in prediction folder')
         self.BExport.setIcon(QIcon('icons/savemodel.png'))
         self.BExport.setFlat(True)
@@ -71,11 +82,33 @@ class ResultsWindow(QMainWindow, Window):
         super(ResultsWindow, self).__init__(parent)
         self.parent = parent
         self.setupUi(self)
+        self.BExportMasks.clicked.connect(self.exportAllMasks)
         self.BExport.clicked.connect(self.saveResults)
         self.CBSize.clicked.connect(self.EnableSetScale)
         self.BSetScale.clicked.connect(self.setScaleTool)
         self.LEScale.textEdited.connect(self.setScale)
         self.LEScale.setText('1')
+        
+    def exportMask(self):
+        # currently unused
+        image = self.parent.getCurrentImage()
+        label = LoadLabel(self.parent.CurrentLabelFullName(), image.shape[0], image.shape[1])
+        filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
+        if filename.strip():
+            with self.parent.wait_cursor():
+                cv2.imwrite(filename, label)
+                
+    def exportAllMasks(self):
+        with self.parent.wait_cursor():
+            images, labels = getAllImageLabelPairPaths(self.parent.testImagespath,self.parent.testImageLabelspath)
+            folder = self.parent.testImagespath + "/exported_masks/"
+            self.parent.ensureFolder(folder)
+            for i, l in zip(images,labels):
+                image = cv2.imread(i)
+                label = LoadLabel(l, image.shape[0], image.shape[1])
+                name = self.parent.getFilenameFromPath(l)
+                cv2.imwrite(folder+name+'.tif', label)
+            self.hide()
         
     def setScale(self, text):
         # qtvalidator does not have a status request so we need to validate again
@@ -103,24 +136,14 @@ class ResultsWindow(QMainWindow, Window):
             return
         
         with self.parent.wait_cursor():
-            images = glob.glob(os.path.join(self.parent.testImagespath,'*.*'))
-            labels = glob.glob(os.path.join(self.parent.testImageLabelspath,'*.*'))
-
-            labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
-        
-            image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
-            label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
-        
-            intersection = list(set(image_names).intersection(label_names))
-            if intersection == list():
+            _, labels = getAllImageLabelPairPaths(self.parent.testImagespath,self.parent.testImageLabelspath)
+            if labels is None:
                 self.parent.PopupWarning('No predicted files')
                 return
-
-            labels = [each for each in labels if os.path.splitext(os.path.basename(each))[0] in intersection]
-            labels.sort()  
+       
         
-        
-            try:
+            # try:
+            if True:
                 with open(filename, 'w', newline='') as csvfile:
                     csvWriter = csv.writer(csvfile, delimiter = ';')
                     header = ['image name'] + ['object number'] + ['object type'] + ['size']
@@ -143,14 +166,14 @@ class ResultsWindow(QMainWindow, Window):
                     self.parent.ProgressFinished()
                     self.parent.writeStatus('results saved')
                 
-            except: 
-                self.parent.PopupWarning('Cannot write file (already open?)')
-                return
+            # except: 
+            #     self.parent.PopupWarning('Cannot write file (already open?)')
+            #     return
             
             self.hide()
         
     def getSingleLabelFromList(self, contourname):
-        contours = Contour.loadContours(contourname)
+        contours = loadContours(contourname)
         name = os.path.splitext(os.path.basename(contourname))[0]
         x = 0
         rows = []

@@ -150,6 +150,10 @@ class TrainingWindow(QMainWindow, Window):
         self.BTrain.clicked.connect(self.Train)
         
     def show(self):
+        self.toggleParameterStatus()
+        super(TrainingWindow, self).show()
+        
+    def toggleParameterStatus(self):
         if not self.parent.dl.initialized():
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)
@@ -161,8 +165,12 @@ class TrainingWindow(QMainWindow, Window):
             if self.parent.dl.MonoChrome():
                 self.CBMono.setChecked(True)
             else:
-                self.CBRGB.setChecked(True)
-        super(TrainingWindow, self).show()
+                self.CBRGB.setChecked(True) 
+        
+    def hide(self):
+        self.settings_form.hide()
+        self.augmentation_form.hide()
+        super(TrainingWindow, self).hide()
         
     def closeEvent(self, event):       
         self.settings_form.hide()

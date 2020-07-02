@@ -21,3 +21,4 @@ if __name__ == "__main__":
     load_screen.hide()
 #    sys.exit(app.exec_())
     app.exec_()
+

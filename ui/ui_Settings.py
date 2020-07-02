@@ -18,7 +18,7 @@ from ui.style import styleForm
 class Window(object):
     def setupUi(self, Form):
         width = 250
-        height= 365
+        height= 375
         Form.setWindowTitle('Settings') 
         styleForm(Form)
 
@@ -65,9 +65,9 @@ class Window(object):
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
         vlayout.addWidget(self.CBSeparateLabels)
         
-        self.CBSaveTiff = QCheckBox("Save prediction as tiff",self.centralWidget)
-        self.CBSaveTiff.setToolTip('Select to save each predicted image as a tiff-file containing the class labels')
-        vlayout.addWidget(self.CBSaveTiff)
+        self.CBPredictFullImage = QCheckBox("Predict whole image",self.centralWidget)
+        self.CBPredictFullImage.setToolTip('Select to predict an image as a whole, otherwise image is tiled')
+        vlayout.addWidget(self.CBPredictFullImage)
 
         self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
         self.SBThreads.setToolTip('Set number of worker threads')
@@ -139,10 +139,10 @@ class SettingsWindow(QMainWindow, Window):
         self.setupUi(self)
         
         self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
-        self.CBFastDrawing.setChecked(not self.parent.canvas.showConnectingDrawingLine)
+        self.CBFastDrawing.setChecked(self.parent.canvas.fastPainting)
         self.CBInnerContours.setChecked(self.parent.allowInnerContours)
         self.CBSeparateLabels.setChecked(self.parent.separateStackLabels)
-        self.CBSaveTiff.setChecked(self.parent.savePredictedMask)
+        self.CBPredictFullImage.setChecked(self.parent.dl.tryPredictFullImage)
         self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
@@ -154,7 +154,7 @@ class SettingsWindow(QMainWindow, Window):
         self.CBFastDrawing.clicked.connect(self.fastDrawing)
         self.CBInnerContours.clicked.connect(self.allowinnerContours)
         self.CBSeparateLabels.clicked.connect(self.separateLabels)
-        self.CBSaveTiff.clicked.connect(self.saveTiff)
+        self.CBPredictFullImage.clicked.connect(self.predictFullImage)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)
@@ -190,17 +190,16 @@ class SettingsWindow(QMainWindow, Window):
                 self.parent.PopupWarning('GPU settings only take effect upon program start')
     
     def fastDrawing(self):
-        self.parent.canvas.showConnectingDrawingLine = not self.CBFastDrawing.isChecked()
+        self.parent.canvas.fastPainting = self.CBFastDrawing.isChecked()
         
     def allowinnerContours(self):
         self.parent.allowInnerContours = self.CBInnerContours.isChecked()
         
-        
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
         
-    def saveTiff(self):
-        self.parent.savePredictedMask = self.CBSaveTiff.isChecked()
+    def predictFullImage(self):
+        self.parent.dl.tryPredictFullImage = self.CBPredictFullImage.isChecked()
       
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())

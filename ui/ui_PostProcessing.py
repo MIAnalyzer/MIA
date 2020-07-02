@@ -48,7 +48,7 @@ class PostProcessingWindow(QMainWindow, Window):
         super(PostProcessingWindow, self).__init__(parent)
         self.parent = parent
         self.setupUi(self)
-        self.SBminContourSize.setValue(self.parent.canvas.Contours.minSize)
+        self.SBminContourSize.setValue(self.parent.canvas.minContourSize)
         self.CBCalculateSkeleton.setChecked(self.parent.canvas.drawSkeleton)
         self.CBCalculateSkeleton.clicked.connect(self.showSkeleton)
         self.SBminContourSize.valueChanged.connect(self.setminContourSize)
@@ -60,4 +60,4 @@ class PostProcessingWindow(QMainWindow, Window):
         self.parent.canvas.ReloadImage()
     
     def setminContourSize(self):
-        self.parent.canvas.Contours.minSize = self.SBminContourSize.value()
+        self.parent.canvas.setMinimumContourSize(self.SBminContourSize.value())

@@ -124,7 +124,8 @@ class ClassList(QListWidget):
 
     def setClass(self, i):
         item = self.item(i)
-        self.itemWidget(item).rb_select.setChecked(True)
+        if item:
+            self.itemWidget(item).rb_select.setChecked(True)
         
     def getNumberOfClasses(self):
         return self.count()

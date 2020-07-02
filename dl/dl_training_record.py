@@ -15,7 +15,6 @@ class TrainingRecording( Callback):
         self.interrupt = False
         self.currentbatch = 0
         self.currentepoch = 0
-        
         # to do: implement validation loss and metric
 
     def on_train_begin(self, logs=None):

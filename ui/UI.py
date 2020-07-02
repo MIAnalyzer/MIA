@@ -80,8 +80,12 @@ class MainWindow(object):
         
         self.CBLearningMode = QComboBox(self.centralWidget)
         self.CBLearningMode.addItem("Classification")
+        self.CBLearningMode.addItem("Object Counting")
+        self.CBLearningMode.addItem("Object Tracking")
         self.CBLearningMode.addItem("Segmentation")
-        self.CBLearningMode.addItem("Time Series")
+        self.CBLearningMode.addItem("Time Series Segmentation")
+        self.CBLearningMode.addItem("3D Segmentation")
+        self.CBLearningMode.addItem("Instance Segmentation")
         self.CBLearningMode.setToolTip('Select analysis mode')        
         self.CBLearningMode.setObjectName("CBmode")
         self.CBLearningMode.setEditable(False)
@@ -120,63 +124,28 @@ class MainWindow(object):
         self.vlayout.addItem(self.TestImagelayout)
         
 
-        ### segmentation
-        self.SButtonslayout = QHBoxLayout(self.centralWidget)
-        self.SButtonslayout.setContentsMargins(0, 0, 0, 0)
-        self.Bdrag = DCDButton(self.centralWidget)
-        self.Bdrag.setToolTip('Select drag tool')
-        self.Bdrag.setObjectName('drag')
-        self.Bdrag.setMaximumSize(bwidth, bheight)
-        self.Bdrag.setIcon(QIcon('icons/drag.png'))
-        self.SButtonslayout.addWidget(self.Bdrag)
-
-        self.Bdraw = DCDButton(self.centralWidget)
-        self.Bdraw.setMaximumSize(bwidth, bheight)
-        self.Bdraw.setObjectName('draw')
-        self.Bdraw.setToolTip('Select drawing tool')
-        self.Bdraw.setIcon(QIcon('icons/draw.png'))
-        self.SButtonslayout.addWidget(self.Bdraw)
-        
-        self.Bpoly = DCDButton(self.centralWidget)
-        self.Bpoly.setMaximumSize(bwidth, bheight)
-        self.Bpoly.setObjectName('poly')
-        self.Bpoly.setToolTip('Select polygon tool')
-        self.Bpoly.setIcon(QIcon('icons/poly.png'))
-        self.SButtonslayout.addWidget(self.Bpoly)
-
-        self.Bassign = DCDButton(self.centralWidget)
-        self.Bassign.setMaximumSize(bwidth, bheight)
-        self.Bassign.setObjectName('assign')
-        self.Bassign.setToolTip('Select assign class tool')
-        self.Bassign.setIcon(QIcon('icons/assign.png'))
-        self.SButtonslayout.addWidget(self.Bassign)
-        
-        self.Bextend = DCDButton(self.centralWidget)
-        self.Bextend.setMaximumSize(bwidth, bheight)
-        self.Bextend.setObjectName('extend')
-        self.Bextend.setToolTip('Select extend/erase tool')
-        self.Bextend.setIcon(QIcon('icons/expand.png'))
-        self.SButtonslayout.addWidget(self.Bextend)
-        
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
         
-        self.Bdelete = DCDButton(self.centralWidget)
-        self.Bdelete.setMaximumSize(bwidth, bheight)
-        self.Bdelete.setObjectName('delete')
-        self.Bdelete.setToolTip('Select delete shape tool')
-        self.Bdelete.setIcon(QIcon('icons/delete.png'))
-        self.SButtonslayout.addWidget(self.Bdelete)
-
-        self.SegmentButtons = QFrame()
-        self.SegmentButtons.setLayout(self.SButtonslayout)
-        
-        self.vlayout.addWidget(self.SegmentButtons)
-        
-
+        # tools:
+        # drag tool
+        self.Bdrag = DCDButton(self.centralWidget)
+        self.Bdrag.setToolTip('Select drag tool')
+        self.Bdrag.setVisible(False)
+        self.Bdrag.setObjectName('drag')
+        self.Bdrag.setMaximumSize(bwidth, bheight)
+        self.Bdrag.setIcon(QIcon('icons/drag.png'))
+        #draw tool
+        self.Bdraw = DCDButton(self.centralWidget)
+        self.Bdraw.setMaximumSize(bwidth, bheight)
+        self.Bdraw.setVisible(False)
+        self.Bdraw.setObjectName('draw')
+        self.Bdraw.setToolTip('Select drawing tool')
+        self.Bdraw.setIcon(QIcon('icons/draw.png'))
+        # settings for drawing tool
         self.DrawSettingslayout = QHBoxLayout(self.centralWidget)
         self.CBAddShape = QRadioButton(self.centralWidget)
         self.CBAddShape.setText("Add ")
@@ -190,8 +159,28 @@ class MainWindow(object):
         self.DrawSettings = QFrame()
         self.DrawSettings.setLayout(self.DrawSettingslayout)
         self.DrawSettings.hide()
-        self.vlayout.addWidget(self.DrawSettings)
-
+        # polyline tool
+        self.Bpoly = DCDButton(self.centralWidget)
+        self.Bpoly.setMaximumSize(bwidth, bheight)
+        self.Bpoly.setVisible(False)
+        self.Bpoly.setObjectName('poly')
+        self.Bpoly.setToolTip('Select polygon tool')
+        self.Bpoly.setIcon(QIcon('icons/poly.png'))
+        # assign tool
+        self.Bassign = DCDButton(self.centralWidget)
+        self.Bassign.setMaximumSize(bwidth, bheight)
+        self.Bassign.setVisible(False)
+        self.Bassign.setObjectName('assign')
+        self.Bassign.setToolTip('Select assign class tool')
+        self.Bassign.setIcon(QIcon('icons/assign.png'))
+        # extend tool
+        self.Bextend = DCDButton(self.centralWidget)
+        self.Bextend.setMaximumSize(bwidth, bheight)
+        self.Bextend.setVisible(False)
+        self.Bextend.setObjectName('extend')
+        self.Bextend.setToolTip('Select extend/erase tool')
+        self.Bextend.setIcon(QIcon('icons/expand.png'))
+        # settings for extend tool
         self.ExtendSettingslayout = QHBoxLayout(self.centralWidget)
         self.CBExtend = QRadioButton(self.centralWidget)
         self.CBExtend.setText("Expand ")
@@ -210,18 +199,61 @@ class MainWindow(object):
         self.ExtendSettingslayout.addWidget(self.CBErase)
         self.ExtendSettingslayout.addWidget(self.SSize)
         self.ExtendSettings = QFrame()
-#        self.ExtendSettings.setMaximumWidth(200)
         self.ExtendSettings.setLayout(self.ExtendSettingslayout)
         self.ExtendSettings.hide()
+        # delete tool
+        self.Bdelete = DCDButton(self.centralWidget)
+        self.Bdelete.setMaximumSize(bwidth, bheight)
+        self.Bdelete.setVisible(False)
+        self.Bdelete.setObjectName('delete')
+        self.Bdelete.setToolTip('Select delete tool')
+        self.Bdelete.setIcon(QIcon('icons/delete.png'))
+        # set object tool
+        self.BsetObject = DCDButton(self.centralWidget)
+        self.BsetObject.setObjectName('point')
+        self.BsetObject.setVisible(False)
+        self.BsetObject.setMaximumSize(bwidth, bheight)
+        self.BsetObject.setToolTip('select object position tool')
+        self.BsetObject.setIcon(QIcon('icons/dummy.png'))       
+        # shift object tool
+        self.BshiftObject = DCDButton(self.centralWidget)
+        self.BshiftObject.setMaximumSize(bwidth, bheight)
+        self.BshiftObject.setVisible(False)
+        self.BshiftObject.setObjectName('shift')
+        self.BshiftObject.setToolTip('select shift object tool')
+        self.BshiftObject.setIcon(QIcon('icons/dummy.png'))
+        
+        
+        # tool buttons
+        self.ToolButtonslayout = QHBoxLayout(self.centralWidget)
+        self.ToolButtonslayout.setContentsMargins(0, 0, 0, 0)
+        self.ToolButtons = QFrame()
+        self.ToolButtons.setMaximumWidth(self.CBExtend.width()*3)
+        self.ToolButtons.setLayout(self.ToolButtonslayout)
+        self.ToolButtonslayout.addWidget(self.Bdrag)
+        self.ToolButtonslayout.addWidget(self.Bdraw)
+        self.ToolButtonslayout.addWidget(self.BsetObject)
+        self.ToolButtonslayout.addWidget(self.Bpoly)
+        self.ToolButtonslayout.addWidget(self.BshiftObject)
+        self.ToolButtonslayout.addWidget(self.Bassign)
+        self.ToolButtonslayout.addWidget(self.Bextend)
+        self.ToolButtonslayout.addWidget(self.Bdelete)
+        
+        self.vlayout.addWidget(self.ToolButtons)
+
+        
+        # add settings frames
+        self.vlayout.addWidget(self.DrawSettings)
         self.vlayout.addWidget(self.ExtendSettings)
+
         
         
-        ### classification
+        ### classification (not using tools but regular button functions)
         self.CButtonslayout = QHBoxLayout(self.centralWidget)
         self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
         self.BsetClass = DCDButton(self.centralWidget)
         self.BsetClass.setMaximumSize(bwidth, bheight)
-        self.BsetClass.setToolTip('Set active class')
+        self.BsetClass.setToolTip('Assign current class and continue to next image')
         self.BsetClass.setIcon(QIcon('icons/setclass.png'))
         self.CButtonslayout.addWidget(self.BsetClass)
 
@@ -232,9 +264,11 @@ class MainWindow(object):
         self.CButtonslayout.addWidget(self.BassignClass)
         
         self.ClassificationButtons = QFrame()
+        self.ClassificationButtons.hide()
         self.ClassificationButtons.setLayout(self.CButtonslayout)
         self.vlayout.addWidget(self.ClassificationButtons)
         
+
         
         
         line = QFrame(self.centralWidget)
@@ -314,6 +348,10 @@ class MainWindow(object):
         self.classList.addClass('background')
         self.classList.addClass()
         self.vlayout.addWidget(self.classList)
+        
+        
+        
+        
 
         
         self.add_del_layout = QHBoxLayout(self.centralWidget)
@@ -349,6 +387,36 @@ class MainWindow(object):
 
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.vlayout.addItem(verticalSpacer)
+        
+        brightnesslayout = QHBoxLayout(self.centralWidget)
+        self.SBrightness = QSlider(Qt.Horizontal, self.centralWidget)
+        self.SBrightness.setMinimum(-200)
+        self.SBrightness.setMaximum(200)
+        self.SBrightness.setValue(0)
+        self.SBrightness.setToolTip('Change Image Brightness')
+        self.LBrightness = QLabel(self.centralWidget)
+        self.LBrightness.setText(' Brightness')
+        brightnesslayout.addWidget(self.SBrightness, stretch = 2)
+        brightnesslayout.addWidget(self.LBrightness, stretch = 1)
+        
+        contrastlayout = QHBoxLayout(self.centralWidget)
+        self.SContrast = QSlider(Qt.Horizontal, self.centralWidget)
+        self.SContrast.setMinimum(-9)
+        self.SContrast.setMaximum(10)
+        self.SContrast.setValue(0)
+        self.SContrast.setToolTip('Change Image Contrast')
+        self.LContrast = QLabel(self.centralWidget)
+        self.LContrast.setText(' Contrast')
+        contrastlayout.addWidget(self.SContrast, stretch = 2)
+        contrastlayout.addWidget(self.LContrast, stretch = 1)
+        
+        self.vlayout.addItem(brightnesslayout)
+        self.vlayout.addItem(contrastlayout)
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
+        self.vlayout.addWidget(line)
         
         self.nextprev_layout = QHBoxLayout(self.centralWidget)
         self.Bprev = DCDButton(self.centralWidget, "<")
