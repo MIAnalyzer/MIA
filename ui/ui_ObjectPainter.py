@@ -18,6 +18,7 @@ class ObjectPainter(Painter):
     def __init__(self, canvas):
         super(ObjectPainter,self).__init__(canvas)
         self.shapes = Point.Points()
+        self.tools.append(canvasTool.drag)
         self.tools.append(canvasTool.point)
         self.tools.append(canvasTool.shift)
         self.tools.append(canvasTool.assign)
