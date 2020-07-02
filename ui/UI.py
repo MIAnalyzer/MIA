@@ -213,14 +213,14 @@ class MainWindow(object):
         self.BsetObject.setObjectName('point')
         self.BsetObject.setVisible(False)
         self.BsetObject.setMaximumSize(bwidth, bheight)
-        self.BsetObject.setToolTip('select object position tool')
+        self.BsetObject.setToolTip('Select set object position tool')
         self.BsetObject.setIcon(QIcon('icons/dummy.png'))       
         # shift object tool
         self.BshiftObject = DCDButton(self.centralWidget)
         self.BshiftObject.setMaximumSize(bwidth, bheight)
         self.BshiftObject.setVisible(False)
         self.BshiftObject.setObjectName('shift')
-        self.BshiftObject.setToolTip('select shift object tool')
+        self.BshiftObject.setToolTip('Select shift object tool')
         self.BshiftObject.setIcon(QIcon('icons/dummy.png'))
         
         
