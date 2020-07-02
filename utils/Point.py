@@ -74,7 +74,6 @@ def savePoints(points, filename):
     np.savez(filename, *pts)
         
 def loadPoints(filename):
-
     container = np.load(filename)
     data = [container[key] for key in container]
     

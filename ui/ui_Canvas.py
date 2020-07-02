@@ -22,6 +22,7 @@ from skimage.filters import threshold_yen
 from skimage.exposure import rescale_intensity
 from ui.ui_ContourPainter import ContourPainter
 from ui.ui_ObjectPainter import ObjectPainter
+from ui.ui_ImageLabelPainter import ImageLabelPainter
 from ui.ui_NoPainter import NoPainter
 
 from dl.DeepLearning import dlMode
@@ -268,8 +269,8 @@ class Canvas(QGraphicsView):
             self.setMinimumContourSize(self.minContourSize)
         elif mode == dlMode.Object_Counting:
             self.painter = ObjectPainter(self)
-        # elif mode == dlMode.Classification:
-        #     self.painter = ClassPainter(self)
+        elif mode == dlMode.Classification:
+            self.painter = ImageLabelPainter(self)
         else:
             self.painter = NoPainter(self)
         self.parent.setToolButtons()
@@ -308,4 +309,6 @@ class Canvas(QGraphicsView):
         fov.setY(max(0,fov.y()))
         return fov
     
-        
+    def assignImageClass(self):
+        assert isinstance(self.painter,ImageLabelPainter) 
+        self.painter.addImageLabel()
