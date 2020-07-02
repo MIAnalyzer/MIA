@@ -98,9 +98,9 @@ class Window(object):
         self.CBInnerContours.setToolTip('Select to allow contours to have holes')
         vlayout.addWidget(self.CBInnerContours)
         
-        self.CBContourNumbers = QCheckBox("Show Contour Numbers",self.centralWidget)
-        self.CBContourNumbers.setToolTip('Select to show contour number below each contour')
-        vlayout.addWidget(self.CBContourNumbers)
+        self.CBShapeNumbers = QCheckBox("Show Shape Numbers",self.centralWidget)
+        self.CBShapeNumbers.setToolTip('Select to show number below each shape')
+        vlayout.addWidget(self.CBShapeNumbers)
         
         self.CBFastDrawing = QCheckBox("Fast Drawing",self.centralWidget)
         self.CBFastDrawing.setToolTip('Reduces performance needs during drawing. Might be used for large images.')
@@ -138,7 +138,7 @@ class SettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
-        self.CBContourNumbers.setChecked(self.parent.canvas.drawContourNumber)
+        self.CBShapeNumbers.setChecked(self.parent.canvas.drawShapeNumber)
         self.CBFastDrawing.setChecked(self.parent.canvas.fastPainting)
         self.CBInnerContours.setChecked(self.parent.allowInnerContours)
         self.CBSeparateLabels.setChecked(self.parent.separateStackLabels)
@@ -150,7 +150,7 @@ class SettingsWindow(QMainWindow, Window):
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         
         
-        self.CBContourNumbers.clicked.connect(self.showContourNumbers)
+        self.CBShapeNumbers.clicked.connect(self.showContourNumbers)
         self.CBFastDrawing.clicked.connect(self.fastDrawing)
         self.CBInnerContours.clicked.connect(self.allowinnerContours)
         self.CBSeparateLabels.clicked.connect(self.separateLabels)
@@ -213,7 +213,7 @@ class SettingsWindow(QMainWindow, Window):
         self.parent.setWorkers(self.SBThreads.SpinBox.value())
     
     def showContourNumbers(self):
-        self.parent.canvas.drawContourNumber = self.CBContourNumbers.isChecked()
+        self.parent.canvas.drawShapeNumber = self.CBShapeNumbers.isChecked()
         
     def setPenSize(self):
         self.parent.canvas.pen_size = self.SBPenSize.SpinBox.value()
@@ -225,4 +225,4 @@ class SettingsWindow(QMainWindow, Window):
         self.parent.canvas.ContourTransparency = self.STransparency.value()
         
     def closeEvent(self, event):
-        self.parent.canvas.checkForChangedContours()
+        self.parent.canvas.checkForChanges()

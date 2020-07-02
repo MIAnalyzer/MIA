@@ -125,7 +125,7 @@ class ContourPainter(Painter):
         if painter is None:
             painter = self.getPainter(color = color)
         
-        if self.canvas.drawContourNumber:
+        if self.canvas.drawShapeNumber:
             contournumber = self.shapes.getShapeNumber(contour)
             painter.drawText(self.getLabelNumPosition(contour) , str(contournumber))
             

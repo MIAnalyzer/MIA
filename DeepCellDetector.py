@@ -219,14 +219,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()  
         
-    def numOfContoursChanged(self):
+    def numOfShapesChanged(self):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
             if self.canvas.painter.shapes:
                 label.setText(str(len(self.canvas.painter.shapes.getShapesOfClass_x(i))))
             else:
                 label.setText("")
-        self.canvas.SaveCurrentContours()
+        self.canvas.SaveCurrentLabel()
         
     def changeLearningMode(self, i):
         self.dl.Mode = dlMode(i)
@@ -293,7 +293,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.updateCursor()
 
     def clear(self):
-        self.canvas.clearContours()
+        self.canvas.clearLabel()
         self.deleteLabel()
         self.canvas.ReloadImage()
         QApplication.processEvents()
@@ -633,7 +633,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             prediction = self.dl.AutoSegment(image)
             contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             self.canvas.painter.shapes.addShapes(contours)
-            self.canvas.checkForChangedContours()
+            self.canvas.checkForChanges()
         
     # deep learning observer functions
     def dlStarted(self):

@@ -66,10 +66,8 @@ class ObjectPainter(Painter):
         
         painter.drawLine(p1, p2)
         painter.drawLine(p3, p4)
-        
-        # painter.drawPoint(self.canvas.Point2QPoint(p))
-        
-        if self.canvas.drawContourNumber:
+
+        if self.canvas.drawShapeNumber:
             pointnumber = self.shapes.getShapeNumber(p)
             painter.drawText(self.getLabelNumPosition(p) , str(pointnumber))
             
