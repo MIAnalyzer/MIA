@@ -15,7 +15,7 @@ import cv2
 
 import ui.Tools as Tools
 from ui.Tools import canvasTool
-import utils.Contour as Contour
+#import utils.Contour as Contour
 from utils.Point import Points, Point
 
 from skimage.filters import threshold_yen
@@ -76,7 +76,7 @@ class Canvas(QGraphicsView):
         self.enableToggleTools = True
         self.FontSize = 18
         self.ContourTransparency = 50
-        self.drawContourNumber = True
+        self.drawShapeNumber = True
         self.drawSkeleton = False
         self.minContourSize = 100
 
@@ -124,7 +124,7 @@ class Canvas(QGraphicsView):
         if self.image() is not None:
             self.update()
        
-    def checkForChangedContours(self):
+    def checkForChanges(self):
         self.painter.checkForChanges()
         
     def resetView(self, scale=True):
@@ -161,8 +161,8 @@ class Canvas(QGraphicsView):
         if self.parent.CurrentFilePath() is None:
             return
         self.rawimage = self.getCurrentPixmap()
-        self.clearContours()
-        self.getContours()
+        self.clearLabel()
+        self.getLabel()
         self.redrawImage()
         if resetView:
             self.resetView()
@@ -192,26 +192,26 @@ class Canvas(QGraphicsView):
         pix = self.image().scaled(width * factor, height * factor, Qt.KeepAspectRatio)
         self.displayedimage.setPixmap(pix)
         
-    def SaveCurrentContours(self):
+    def SaveCurrentLabel(self):
         self.painter.save()
             
-    def getContours(self):
+    def getLabel(self):
         self.painter.load()
     
     def redrawImage(self):
         if self.rawimage is not None:
             self.displayedimage.setPixmap(self.rawimage.copy())
-            self.drawcontours()
+            self.drawLabel()
             
-    def drawcontours(self):
+    def drawLabel(self):
         if self.image() is None:
             return  
         self.painter.draw()
 
         self.updateImage()
-        self.parent.numOfContoursChanged()
+        self.parent.numOfShapesChanged()
         
-    def clearContours(self):
+    def clearLabel(self):
         self.painter.clear()
         
     def f2intPoint(self, p):
@@ -265,7 +265,7 @@ class Canvas(QGraphicsView):
 
         if mode == dlMode.Segmentation:
             self.painter = ContourPainter(self)
-            self.painter.shapes.minSize = self.minContourSize
+            self.setMinimumContourSize(self.minContourSize)
         elif mode == dlMode.Object_Counting:
             self.painter = ObjectPainter(self)
         # elif mode == dlMode.Classification:
