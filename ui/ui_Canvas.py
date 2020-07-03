@@ -64,7 +64,7 @@ class Canvas(QGraphicsView):
         super(Canvas, self).__init__(parent)
         self.parent = parent
         self.colors = []
-        self.pen_size = 3
+        
         self.bgcolor = QColor(0,0,0)
         self.rawimage = None
         self.zoomstep = 0
@@ -76,11 +76,11 @@ class Canvas(QGraphicsView):
 
         self.enableToggleTools = True
         self.FontSize = 18
+        self.pen_size = 3
         self.ContourTransparency = 50
         self.drawShapeNumber = True
         self.drawSkeleton = False
         self.minContourSize = 100
-
         self.fastPainting = False
         
         self.displayedimage = DrawingImage(QPixmap())

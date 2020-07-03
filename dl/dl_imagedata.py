@@ -146,14 +146,12 @@ class ImageData():
         images = self.getImagePaths(validation)
         masks = self.getLabelPaths(validation)
 
-
         channels = 1 if self.parent.MonoChrome() is True else 3
         train_img = self.readImage(images[index])
         
         width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
         height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
               
-            
         train_mask = LoadLabel(masks[index], train_img.shape[0], train_img.shape[1])
             
         train_img =  cv2.resize(train_img, (width, height))
@@ -216,8 +214,7 @@ class ImageData():
         
         im_channels = 1 if self.parent.MonoChrome() is True else 3
         lb_channels = 2 if self.parent.useWeightedDistanceMap else 1
-        
-    
+      
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
         

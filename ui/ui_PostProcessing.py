@@ -50,7 +50,7 @@ class PostProcessingWindow(QMainWindow, Window):
         self.setupUi(self)
         self.SBminContourSize.setValue(self.parent.canvas.minContourSize)
         self.CBCalculateSkeleton.setChecked(self.parent.canvas.drawSkeleton)
-        self.CBCalculateSkeleton.clicked.connect(self.showSkeleton)
+        self.CBCalculateSkeleton.stateChanged.connect(self.showSkeleton)
         self.SBminContourSize.valueChanged.connect(self.setminContourSize)
         
     def showSkeleton(self):
@@ -61,3 +61,5 @@ class PostProcessingWindow(QMainWindow, Window):
     
     def setminContourSize(self):
         self.parent.canvas.setMinimumContourSize(self.SBminContourSize.value())
+
+        

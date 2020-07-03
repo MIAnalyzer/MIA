@@ -160,9 +160,9 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
         self.SBPredictEvery.SpinBox.setValue(self.parent.parent.predictionRate)
         
-        self.CBIgnoreBackgroundTiles.clicked.connect(self.IgnoreBackgroundChanged)
-        self.CBMemory.clicked.connect(self.InMemoryChanged)
-        self.CBDitanceMap.clicked.connect(self.ShapeSeparationChanged)
+        self.CBIgnoreBackgroundTiles.stateChanged.connect(self.IgnoreBackgroundChanged)
+        self.CBMemory.stateChanged.connect(self.InMemoryChanged)
+        self.CBDitanceMap.stateChanged.connect(self.ShapeSeparationChanged)
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         
         self.RBConstant.clicked.connect(self.LROption)

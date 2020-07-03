@@ -84,7 +84,7 @@ class ResultsWindow(QMainWindow, Window):
         self.setupUi(self)
         self.BExportMasks.clicked.connect(self.exportAllMasks)
         self.BExport.clicked.connect(self.saveResults)
-        self.CBSize.clicked.connect(self.EnableSetScale)
+        self.CBSize.stateChanged.connect(self.EnableSetScale)
         self.BSetScale.clicked.connect(self.setScaleTool)
         self.LEScale.textEdited.connect(self.setScale)
         self.LEScale.setText('1')
