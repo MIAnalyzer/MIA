@@ -150,11 +150,11 @@ class SettingsWindow(QMainWindow, Window):
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         
         
-        self.CBShapeNumbers.clicked.connect(self.showContourNumbers)
-        self.CBFastDrawing.clicked.connect(self.fastDrawing)
-        self.CBInnerContours.clicked.connect(self.allowinnerContours)
-        self.CBSeparateLabels.clicked.connect(self.separateLabels)
-        self.CBPredictFullImage.clicked.connect(self.predictFullImage)
+        self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
+        self.CBFastDrawing.stateChanged.connect(self.fastDrawing)
+        self.CBInnerContours.stateChanged.connect(self.allowinnerContours)
+        self.CBSeparateLabels.stateChanged.connect(self.separateLabels)
+        self.CBPredictFullImage.stateChanged.connect(self.predictFullImage)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
         self.STransparency.valueChanged.connect(self.setTransparency)

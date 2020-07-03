@@ -31,10 +31,14 @@ class ContourPainter(Painter):
         self.tools.append(canvasTool.poly)
         self.tools.append(canvasTool.delete)
 
-
     def draw(self):
-        for c in self.shapes.shapes:  
+        bg = self.shapes.getShapesOfClass_x(0)
+        for c in bg:  
             self.drawcontour(c)
+
+        for c in self.shapes.shapes:  
+            if c.classlabel != 0:
+                self.drawcontour(c) 
     
     def clear(self):
         self.shapes.clear()

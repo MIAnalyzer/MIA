@@ -44,7 +44,8 @@ from ui.ui_utils import DCDButton
 import numpy as np
 
 PREDICT_WORMS = False
-PRELOAD = True
+PREDICT_SPINES = True
+PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
 CPU_ONLY = True
@@ -125,12 +126,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
+
+        if PRELOAD:
+            try:
+                self.dl.LoadModel(PRELOAD_MODEL)
+            except:
+                pass
         if PREDICT_WORMS:
-            if PRELOAD:
-                try:
-                    self.dl.LoadModel(PRELOAD_MODEL)
-                except:
-                    pass
             self.Btrain.setEnabled(False)
             self.BLoadTrainImages.setEnabled(False)
             self.Bsavemodel.setEnabled(False)
@@ -140,6 +142,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.CBLearningMode.setEnabled(False)
             self.ASetTrainingFolder.setEnabled(False)
 
+        if PREDICT_SPINES:
+            self.postprocessing_form.SBminContourSize.setValue(10)
+            self.settings_form.SBFontSize.SpinBox.setValue(10)
+            self.settings_form.CBShapeNumbers.setChecked(False)
+            self.settings_form.SBPenSize.SpinBox.setValue(1)
+            self.settings_form.CBSeparateLabels.setChecked(True)
 
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
@@ -323,12 +331,17 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeImage(self):
         if self.numofImages > 0:
             self.readCurrentImageAsBGR()
-            text = "%d of %i: " % (self.currentImage+1,self.numofImages) + self.CurrentFileName()
-            self.StatusFile.setText(text)
+            self.setImageText()            
         else:
             width = self.canvas.geometry().width()
             height = self.canvas.geometry().height()
             self.canvas.reset(width, height)
+
+    def setImageText(self):
+        text = "%d of %i: " % (self.currentImage+1,self.numofImages) + self.CurrentFileName() 
+        if self.currentImageFile.isStack():
+            text = text + " " + "%d/%i: " % (self.currentFrame+1,self.currentImageFile.numOfImagesInStack())
+        self.StatusFile.setText(text)
             
     def setTrainFolder(self):
         folder = str(QFileDialog.getExistingDirectory(self, "Select Training Image Folder"))
@@ -440,9 +453,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return self.files[self.currentImage]
         
     def CurrentLabelFullName(self):
-        if self.labelpath is None or self.CurrentFileName() is None:
+        if self.labelpath is None or self.CurrentFileName() is None or self.currentImageFile is None:
             return None
-        if self.separateStackLabels:
+        if self.currentImageFile.isStack() and self.separateStackLabels:
             return os.path.join(self.labelpath, self.CurrentFileName()) + '_' + str(self.currentFrame) + ".npz"
         else:
             return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
@@ -469,6 +482,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def FrameChanged(self):
         self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
         self.canvas.ReloadImage(resetView = False)
+        self.setImageText()
         
     def setBrightness(self):
         b = self.SBrightness.value()

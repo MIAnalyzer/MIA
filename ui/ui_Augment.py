@@ -257,8 +257,8 @@ class AugmentWindow(QMainWindow, Window):
         self.SBModelInputSize_x.SpinBox.valueChanged.connect(self.size)
         self.SBModelInputSize_y.SpinBox.valueChanged.connect(self.size)
         
-        self.CBFliplr.clicked.connect(self.flip)
-        self.CBFliptb.clicked.connect(self.flip)
+        self.CBFliplr.stateChanged.connect(self.flip)
+        self.CBFliptb.stateChanged.connect(self.flip)
         
         self.SBNoise.SpinBox.valueChanged.connect(self.noise)
         self.SBPieceWise.SpinBox.valueChanged.connect(self.piecewise)
