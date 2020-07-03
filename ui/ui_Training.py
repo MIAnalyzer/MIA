@@ -195,7 +195,6 @@ class TrainingWindow(QMainWindow, Window):
         self.parent.settings_form.silentlyUpdateScale(self.SBScaleFactor.SpinBox.value())
   
     def Train(self):
-        self.toggleTrainStatus(True)
         self.parent.startTraining()
         
     def toggleTrainStatus(self, training):

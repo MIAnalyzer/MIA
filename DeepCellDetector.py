@@ -365,6 +365,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         if self.testImagespath is not None:
             self.testImageLabelspath = self.testImagespath + "/" + self.LearningMode().name + "_labels"
+
+    def setWorkingLabelImagePaths(self):
+        if self.train_test_dir:
+            self.imagepath = self.trainImagespath
+            self.labelpath = self.trainImageLabelspath
+        else:
+            self.imagepath = self.testImagespath
+            self.labelpath = self.testImageLabelspath
        
     def switchToTrainFolder(self):
         self.train_test_dir = True
@@ -376,12 +384,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def setWorkingFolder(self):
         self.setLabelPaths()
-        if self.train_test_dir:
-            self.imagepath = self.trainImagespath
-            self.labelpath = self.trainImageLabelspath
-        else:
-            self.imagepath = self.testImagespath
-            self.labelpath = self.testImageLabelspath
+        self.setWorkingLabelImagePaths()
         self.getFiles()
         self.changeImage()
         self.setFolderLabels()
@@ -393,7 +396,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not os.path.isdir(foldername):
             os.mkdir(foldername)
 
-        
     def setFolderLabels(self):
         if self.trainImagespath:
             self.BTrainImageFolder.setText('...' + self.trainImagespath[-18:])
@@ -470,14 +472,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             else:
                 self.SFrame.hide()
                 self.canvas.ReloadImage()
+            self.updateLabelPath()
             
+    def updateLabelPath(self):
+        self.setWorkingLabelImagePaths()
+        if self.currentImageFile.isStack():
+            self.labelpath = os.path.join(self.labelpath, self.CurrentFileName()) 
+
     def initFrameSlider(self):
         maxval = self.currentImageFile.numOfImagesInStack()
         self.SFrame.setMaximum(maxval)
         self.currentFrame = 0
         self.SFrame.setValue(maxval)
-        self.canvas.resetView()
-        
+        self.canvas.resetView()     
   
     def FrameChanged(self):
         self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
@@ -657,6 +664,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     # deep learning observer functions
     def dlStarted(self):
+        print('starte')
         self.training_form.toggleTrainStatus(training=True)
         self.plotting_form.toggleTrainStatus(training=True)
         
