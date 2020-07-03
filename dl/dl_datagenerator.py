@@ -30,8 +30,6 @@ class TrainingDataGenerator(Sequence):
             self.images = self.parent.data.getImagePaths(self.validation)
             self.labels = self.parent.data.getLabelPaths(self.validation)
             
-
-            
         self.parent.augmentation.initAugmentation()
         # self.indices = list(range(0,len(self.images)))
         self.indices = self.parent.data.getTileIndices(validation, equalTilesperImage = not self.inMemory)

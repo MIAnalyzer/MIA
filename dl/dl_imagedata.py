@@ -206,11 +206,11 @@ class ImageData():
     
     def loadTrainingDataSet(self, validation = False):
         if not self.initialized():
-            return
+            return None, None
         
         images = self.getImagePaths(validation)
         numImages = len(images)
-       
+
         
         im_channels = 1 if self.parent.MonoChrome() is True else 3
         lb_channels = 2 if self.parent.useWeightedDistanceMap else 1
