@@ -133,10 +133,6 @@ class DeepLearning(dlObservable):
             else: 
                 val_generator = None    
             self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics()) 
-        except:
-            self.notifyError()  
-            
-        try:
             self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
         except:
             self.notifyTrainingFinished()

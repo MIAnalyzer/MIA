@@ -90,14 +90,33 @@ class ImageFile():
             return 1
         else:
             return self._image.shape[0]
-        
+
+    def convert2DeepLearningInput(self, monochrome, image):
+        if len(image.shape) == 4:
+            image = cv2.cvtColor(image, cv2.CV_BGRA2BGR )
+        if len(image.shape) == 2:
+            if not monochrome:
+                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
+            else:
+                image = image[..., np.newaxis]
+        elif len(image.shape) == 3:
+            if monochrome and image.shape[2] > 1:
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
+                # atm I dont know if bgr2gray squeezes
+                if len(image.shape) == 2:
+                    image = image[..., np.newaxis]    
+        return image
+   
     def adjustBrightnessContrast(self, image):
         # in general this can be done more efficient and without the memory use of a 16 bit image
         im = (image.astype(np.int16) * self.contrast) + self.brightness
         im[im<0] = 0
         im[im>255]=255
         return im.astype(np.uint8)
-    
+
+    def getDLInputImage(self,monochrome,frame=0):
+        return self.convert2DeepLearningInput(monochrome, self.getImage(frame))
+
     def getCorrectedImage(self, frame = 0):
         return self.adjustBrightnessContrast(self.getImage(frame))
 

@@ -9,14 +9,13 @@ import os
 import glob
 import cv2
 import dl.dl_utils as dl_utils
-from dl.dl_labels import LoadLabel
-from utils.utility_functions import getAllImageLabelPairPaths
+from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, splitStackLabels
 import numpy as np
 from tensorflow.keras.utils import to_categorical
-from utils.Image import normalizeImage
+from utils.Image import ImageFile
 import random
 import concurrent.futures
-from itertools import repeat
+from itertools import repeat, chain
 import math
 import random
 
@@ -56,29 +55,14 @@ class ImageData():
         else:
             self.TrainingTileIndices.extend(tiles)
         
-    def readImage(self, path):
-        
-        # this should be changed to ImageFile class and should also handle stacks
-        image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+    def readImage(self, path, frame = 0):
 
+        file = ImageFile(path)
         # should we normalize each image or over the dataset?
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
         # con dataset: single image normalization is better suited for different sources, like 8-bit and 16-bit and color images combined
-        image = normalizeImage(image)
-
-        if len(image.shape) == 4:
-            image = cv2.cvtColor(image, cv2.CV_BGRA2BGR )
-        if len(image.shape) == 2:
-            if not self.parent.MonoChrome():
-                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
-            else:
-                image = image[..., np.newaxis]
-        elif len(image.shape) == 3:
-            if self.parent.MonoChrome() and image.shape[2] > 1:
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
-                # atm I dont know if bgr2gray squeezes
-                if len(image.shape) == 2:
-                    image = image[..., np.newaxis]    
+        file.normalizeImage()
+        image = file.getDLInputImage(self.parent.MonoChrome,frame)
         return image
     
     
@@ -87,8 +71,14 @@ class ImageData():
         if images is None or labels is None:
             return None, None
         
+        split = [splitStackLabels(x,y) for x,y in zip(images, labels)]
+        images,labels = zip(*split)
+        images = list(chain.from_iterable(images))
+        labels = list(chain.from_iterable(labels))
+
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))
+
         random.shuffle(z)
         images, labels = zip(*z)
         
@@ -100,7 +90,7 @@ class ImageData():
         self.ValidationImagePaths = images[split:]
         self.ValidationLabelPaths = labels[split:]
         self.ValidationTileIndices = []
-        
+
 
     def initialized(self):
         return True if len(self.TrainingImagePaths) * len(self.TrainingLabelPaths) > 0 else False
@@ -147,12 +137,23 @@ class ImageData():
         masks = self.getLabelPaths(validation)
 
         channels = 1 if self.parent.MonoChrome() is True else 3
-        train_img = self.readImage(images[index])
+
+        # handle image stacks and others
+        if isinstance(masks[index], tuple):
+            mask = masks[index][0]
+            frame = int(masks[index][1])
+            image = images[index][0]
+        else:
+            mask = masks[index]
+            frame = None
+            image = images[index]
+
+        train_img = self.readImage(image, frame)
         
         width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
         height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
               
-        train_mask = LoadLabel(masks[index], train_img.shape[0], train_img.shape[1])
+        train_mask = LoadLabel(mask, train_img.shape[0], train_img.shape[1])
             
         train_img =  cv2.resize(train_img, (width, height))
         train_mask = cv2.resize(train_mask, (width, height), interpolation = cv2.INTER_NEAREST )
@@ -226,6 +227,5 @@ class ImageData():
             self.addTileIndices(tiles, validation)
             img.append(pair[0])
             mask.append(pair[1])
-
         return img, mask
 
