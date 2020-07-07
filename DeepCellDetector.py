@@ -45,10 +45,11 @@ import numpy as np
 
 PREDICT_WORMS = False
 PREDICT_SPINES = True
+OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = True
+CPU_ONLY = False
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -74,7 +75,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.numofImages = 0
         self.currentImageFile = None
         self.currentFrame = 0
-        self.separateStackLabels = False
+        self.separateStackLabels = True
         self.allowInnerContours = True
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
@@ -141,6 +142,22 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
             self.CBLearningMode.setEnabled(False)
             self.ASetTrainingFolder.setEnabled(False)
+            
+        if OBJECT_COUNTING:
+            self.Btrain.setEnabled(False)
+            self.BLoadTestImages.setEnabled(False)
+            self.Bsavemodel.setEnabled(False)
+            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm egg')
+            self.CBLearningMode.setCurrentIndex(1)
+            self.CBLearningMode.setEnabled(False)
+            self.Btrain.setEnabled(False)
+            self.Bpredictall.setEnabled(False)
+            self.Bpredict.setEnabled(False)
+            self.Bloadmodel.setEnabled(False)
+            self.Bsavemodel.setEnabled(False)
+            self.Bautoseg.setEnabled(False)
+            self.Bresetmodel.setEnabled(False)
+
 
         if PREDICT_SPINES:
             self.postprocessing_form.SBminContourSize.setValue(10)
@@ -394,7 +411,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def ensureFolder(self, foldername):
         if not os.path.isdir(foldername):
-            os.mkdir(foldername)
+            os.makedirs(foldername)
+            # os.mkdir(foldername)
 
     def setFolderLabels(self):
         if self.trainImagespath:
@@ -455,10 +473,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return self.files[self.currentImage]
         
     def CurrentLabelFullName(self):
+        self.updateLabelPath()
         if self.labelpath is None or self.CurrentFileName() is None or self.currentImageFile is None:
             return None
         if self.currentImageFile.isStack() and self.separateStackLabels:
-            return os.path.join(self.labelpath, self.CurrentFileName()) + '_' + str(self.currentFrame) + ".npz"
+            return os.path.join(self.labelpath, self.CurrentFileName()) + '_' + "{0:0=3d}".format(self.currentFrame) + ".npz"
         else:
             return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
@@ -472,12 +491,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             else:
                 self.SFrame.hide()
                 self.canvas.ReloadImage()
-            self.updateLabelPath()
             
     def updateLabelPath(self):
         self.setWorkingLabelImagePaths()
-        if self.currentImageFile.isStack():
+        if self.currentImageFile and self.currentImageFile.isStack():
             self.labelpath = os.path.join(self.labelpath, self.CurrentFileName()) 
+
 
     def initFrameSlider(self):
         maxval = self.currentImageFile.numOfImagesInStack()
@@ -579,8 +598,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                return
         self.plotting_form.show()
         self.plotting_form.initialize()
+        self.training_form.toggleTrainStatus(True)
         self.dl.Train(self.trainImagespath,self.trainImageLabelspath)
-    
         
     def predictAllImages(self):
         if self.testImagespath is None or self.testImageLabelspath is None:
@@ -596,22 +615,25 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
             self.initProgress(len(images))
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
-                executor.map(self.predictSingleImageFromStack,images)
+                executor.map(self.predictSingleImageOrStack_async,images)
 
             self.ProgressFinished()
             self.switchToTestFolder()
             self.writeStatus(str(len(images)) + ' images predicted')
         
-    def predictSingleImageFromStack(self, imagepath):
+    def predictSingleImageOrStack_async(self, imagepath):
         # in worker thread
-        image = self.dl.data.readImage(imagepath)
-        pred = self.dl.PredictImage(image)
-        name = self.getFilenameFromPath(imagepath)
-        self.extractAndSaveContours(pred, self.testImageLabelspath, name)
+        image = ImageFile(imagepath)
+        image.normalizeImage()
+        for i in range(image.numOfImagesInStack()):
+            img = image.getDLInputImage(self.dl.MonoChrome, i)
+            pred = self.dl.PredictImage(img)
+            name = self.getFilenameFromPath(imagepath)
+            self.extractAndSaveContours(pred, self.testImageLabelspath, name)
         self.addProgress()
         
     def predictImage_async(self):
-        image = self.dl.data.readImage(self.CurrentFilePath())
+        image = self.dl.data.readImage(self.CurrentFilePath(), self.currentFrame)
         if image is None:
             return
         self.dl.PredictImage_async(image)
@@ -626,7 +648,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         with self.wait_cursor():
             self.clear()
             
-            image = self.dl.data.readImage(self.CurrentFilePath())
+            image = self.dl.data.readImage(self.CurrentFilePath(), self.currentFrame)
             if image is None:
                 self.PopupWarning('Cannot load image')
                 return
@@ -664,7 +686,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     # deep learning observer functions
     def dlStarted(self):
-        print('starte')
         self.training_form.toggleTrainStatus(training=True)
         self.plotting_form.toggleTrainStatus(training=True)
         

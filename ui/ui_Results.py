@@ -13,9 +13,8 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.dl_labels import LoadLabel
+from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths
 from utils.Contour import loadContours
-from utils.utility_functions import getAllImageLabelPairPaths
 from ui.Tools import canvasTool
 from ui.style import styleForm
 from ui.ui_utils import DCDButton
@@ -103,6 +102,9 @@ class ResultsWindow(QMainWindow, Window):
             images, labels = getAllImageLabelPairPaths(self.parent.testImagespath,self.parent.testImageLabelspath)
             folder = self.parent.testImagespath + "/exported_masks/"
             self.parent.ensureFolder(folder)
+            if not images or not labels:
+                self.parent.PopupWarning('No predicted masks')
+                return
             for i, l in zip(images,labels):
                 image = cv2.imread(i)
                 label = LoadLabel(l, image.shape[0], image.shape[1])
