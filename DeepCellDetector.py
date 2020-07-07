@@ -466,6 +466,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if self.CurrentFilePath() is None:
             return None
         return self.getFilenameFromPath(self.CurrentFilePath())
+
+    def CurrentLabelName(self):
+        if self.currentImageFile.isStack():
+            return self.extendNameByFrameNumber(self.CurrentFileName(), self.currentFrame)
+        else:
+            return self.CurrentFileName()
     
     def CurrentFilePath(self):
         if self.files is None:
@@ -473,11 +479,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return self.files[self.currentImage]
         
     def CurrentLabelFullName(self):
-        self.updateLabelPath()
+        self.updateCurrentLabelPath()
         if self.labelpath is None or self.CurrentFileName() is None or self.currentImageFile is None:
             return None
         if self.currentImageFile.isStack() and self.separateStackLabels:
-            return os.path.join(self.labelpath, self.CurrentFileName()) + '_' + "{0:0=3d}".format(self.currentFrame) + ".npz"
+            return self.extendNameByFrameNumber(os.path.join(self.labelpath, self.CurrentFileName()),self.currentFrame) + ".npz"
         else:
             return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
@@ -492,11 +498,16 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.SFrame.hide()
                 self.canvas.ReloadImage()
             
-    def updateLabelPath(self):
+    def updateCurrentLabelPath(self):
         self.setWorkingLabelImagePaths()
         if self.currentImageFile and self.currentImageFile.isStack():
-            self.labelpath = os.path.join(self.labelpath, self.CurrentFileName()) 
+            self.labelpath = self.extendLabelPathByFolder(self.labelpath, self.CurrentFileName()) 
 
+    def extendLabelPathByFolder(self, path, folder):
+        return os.path.join(path, folder) 
+
+    def extendNameByFrameNumber(self,name, frame):
+        return name + '_' + "{0:0=3d}".format(frame)
 
     def initFrameSlider(self):
         maxval = self.currentImageFile.numOfImagesInStack()
@@ -625,11 +636,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         # in worker thread
         image = ImageFile(imagepath)
         image.normalizeImage()
+        name = self.getFilenameFromPath(imagepath)
+        if image.isStack():
+            path = self.extendLabelPathByFolder(self.testImageLabelspath, name)
+        else:
+            path = self.testImageLabelspath
         for i in range(image.numOfImagesInStack()):
-            img = image.getDLInputImage(self.dl.MonoChrome, i)
+            img = image.getDLInputImage(self.dl.MonoChrome(), i)
             pred = self.dl.PredictImage(img)
-            name = self.getFilenameFromPath(imagepath)
-            self.extractAndSaveContours(pred, self.testImageLabelspath, name)
+            if image.isStack():
+                filename = self.extendNameByFrameNumber(name,i)
+            else:
+                filename = name
+            self.extractAndSaveContours(pred, path, filename)
         self.addProgress()
         
     def predictImage_async(self):
@@ -647,7 +666,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         with self.wait_cursor():
             self.clear()
-            
             image = self.dl.data.readImage(self.CurrentFilePath(), self.currentFrame)
             if image is None:
                 self.PopupWarning('Cannot load image')
@@ -656,8 +674,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if prediction is None:
                 self.PopupWarning('Cannot predict image')
                 return
-
-            self.extractAndSaveContours(prediction, self.labelpath, self.CurrentFileName())
+            self.extractAndSaveContours(prediction, self.labelpath, self.CurrentLabelName())
             
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
@@ -705,7 +722,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def dlResult(self, result):
         self.clear()
-        self.extractAndSaveContours(result, self.labelpath, self.CurrentFileName())
+        self.extractAndSaveContours(result, self.labelpath, self.CurrentLabelName())
         self.canvas.ReloadImage()
 
     def dlError(self, err):

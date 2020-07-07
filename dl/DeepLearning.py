@@ -165,8 +165,7 @@ class DeepLearning(dlObservable):
         
         if self.tryPredictFullImage:
             try:
-                pred = self.Predict(image)
-                
+                pred = self.Predict(image) 
             except:
                 # OOM
                 pred = self.predictTiled(image)

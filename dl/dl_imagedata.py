@@ -62,7 +62,7 @@ class ImageData():
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
         # con dataset: single image normalization is better suited for different sources, like 8-bit and 16-bit and color images combined
         file.normalizeImage()
-        image = file.getDLInputImage(self.parent.MonoChrome,frame)
+        image = file.getDLInputImage(self.parent.MonoChrome(),frame)
         return image
     
     
