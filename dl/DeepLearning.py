@@ -12,7 +12,6 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 
 
-
 import math
 from inspect import signature
 import cv2
@@ -23,7 +22,6 @@ from enum import Enum
 import threading
 import traceback
 import sys
-
 
 import dl.dl_datagenerator as dl_datagenerator
 import dl.dl_models as dl_models
@@ -147,6 +145,7 @@ class DeepLearning(dlObservable):
         thread.start()   
         
     def executePrediction(self, image):
+        # prediction would be much faster when all images where predicted from here compared to 1-by-1
         try:
             prediction = self.PredictImage(image)
         except:

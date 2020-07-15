@@ -12,6 +12,7 @@ class ImageFile():
         self._image = None
         self._stack = False
         self.readImage(path)
+        self.path = path
         self.brightness = 0
         self.contrast = 1
         if asBGR:
@@ -71,16 +72,19 @@ class ImageFile():
         # atm always converts 8-bit
         if self._image is None:
             return
-        if self._stack:
-            min_ = np.min(self._image)
-            max_ = np.max(self._image)
-            self._image = (self._image - min_)/(max_-min_) * 255
-            self._image = self._image.astype('uint8')
-            return 
-        else:
-            norm_image = np.zeros(self._image.shape)
-            norm_image = cv2.normalize(self._image,norm_image, 0, 255, cv2.NORM_MINMAX)
-            self._image = norm_image.astype('uint8')
+        min_ = np.min(self._image)
+        max_ = np.max(self._image)
+        self._image = (self._image - min_)/(max_-min_) * 255
+        self._image = self._image.astype('uint8')
+
+            
+    def width(self):
+        ch = 2 if self._stack else 1
+        return self._image.shape[ch]
+        
+    def height(self):
+        ch = 1 if self._stack else 0
+        return self._image.shape[ch]
             
     def isStack(self):
         return True if self._stack else False

@@ -9,13 +9,13 @@ import os
 import glob
 import cv2
 import dl.dl_utils as dl_utils
-from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, splitStackLabels
+from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, unrollPaths
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import ImageFile
 import random
 import concurrent.futures
-from itertools import repeat, chain
+from itertools import repeat
 import math
 import random
 
@@ -56,7 +56,6 @@ class ImageData():
             self.TrainingTileIndices.extend(tiles)
         
     def readImage(self, path, frame = 0):
-
         file = ImageFile(path)
         # should we normalize each image or over the dataset?
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
@@ -70,26 +69,28 @@ class ImageData():
         images, labels = getAllImageLabelPairPaths(imagepath, labelpath)
         if images is None or labels is None:
             return None, None
-        
-        split = [splitStackLabels(x,y) for x,y in zip(images, labels)]
-        images,labels = zip(*split)
-        images = list(chain.from_iterable(images))
-        labels = list(chain.from_iterable(labels))
+             
+        images, labels = unrollPaths(images, labels)
 
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))
 
         random.shuffle(z)
         images, labels = zip(*z)
-        
+
         split = int(self.TrainTestSplit*len(images))
-        self.TrainingImagePaths = images[0:split]
-        self.TrainingLabelPaths = labels[0:split]
-        self.TrainingTileIndices = []
-        
-        self.ValidationImagePaths = images[split:]
-        self.ValidationLabelPaths = labels[split:]
-        self.ValidationTileIndices = []
+
+        if split > 0:
+            self.TrainingImagePaths = images[0:split]
+            self.TrainingLabelPaths = labels[0:split]
+            self.TrainingTileIndices = []
+            self.ValidationImagePaths = images[split:]
+            self.ValidationLabelPaths = labels[split:]
+            self.ValidationTileIndices = []
+        else:
+            self.TrainingImagePaths = images
+            self.TrainingLabelPaths = labels
+            self.TrainingTileIndices = []
 
 
     def initialized(self):
@@ -98,8 +99,19 @@ class ImageData():
     def validationData(self):
         return True if len(self.ValidationImagePaths) * len(self.ValidationLabelPaths) > 0 else False
 
-    def preprocessImage(self, image):
-        return image.astype('float')/255.
+    def preprocessImage(self, image, preprocess = 'scale'):
+        if preprocess == 'imagenet_mean':
+            image = image.astype('float')
+            # bgr mean of imagenet dataset
+            mean = [103.939, 116.779, 123.68]
+            image[...,0] -= mean[0]
+            image[...,1] -= mean[1]
+            image[...,2] -= mean[2]
+            return image
+        if preprocess == 'scale':
+            return image.astype('float')/255
+        if preprocess == 'scale_shift':
+            return image.astype('float')/127.5 -1
         
     def preprocessLabel(self,mask):
         if self.parent.NumClasses() > 2:

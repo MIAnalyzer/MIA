@@ -11,13 +11,12 @@ import utils.Contour as Contour
 
 import glob
 import os
-from itertools import repeat
+from itertools import repeat, chain
 
 def LoadLabel(filename, height, width):
     contours = Contour.loadContours(filename)
     label = np.zeros((height, width, 1), np.uint8)
     return Contour.drawContoursToLabel(label, contours) 
-
 
 
 def getAllImageLabelPairPaths(imagepath, labelpath):
@@ -31,18 +30,7 @@ def getAllImageLabelPairPaths(imagepath, labelpath):
         
     # adds subfolders to labels as image stack labels are saved in folders
     labels.extend([os.path.join(labelpath, f) for f in os.listdir(labelpath) if (os.path.isdir(os.path.join(labelpath, f)) and f in ''.join(os.listdir(os.path.join(labelpath, f))))])
-    
-    # add all sublabels
-    # folders = [os.path.join(labelpath, f) for f in os.listdir(labelpath) if os.path.isdir(os.path.join(labelpath, f))]
-    # folder_names = [os.path.splitext(os.path.basename(each))[0] for each in folders]
-    # intersection_f = list(set(image_names).intersection(folder_names))
-    # labels.extend([os.path.join(labelpath, dir) for dir in intersection_f for f in os.listdir(os.path.join(labelpath, dir)) if dir in f])
-
     label_names = [os.path.splitext(os.path.basename(each))[0] for each in labels]
-
-    # [(labels.append(os.path.join(labelpath, f)), images.append(os.path.join(imagepath, dir))) for dir in intersection_f for f in os.listdir(os.path.join(labelpath, dir)) if dir in f]
-    #[labels.append(os.path.join(labelpath, f)) for f in os.listdir(labelpath) if os.path.isdir(os.path.join(labelpath, f))]
-    #[label_names.append(dir) for dir in subfolders for f in os.listdir(os.path.join(labelpath, dir)) if dir in f]
 
     intersection = list(set(image_names).intersection(label_names))
     if intersection == list():
@@ -58,7 +46,14 @@ def getAllImageLabelPairPaths(imagepath, labelpath):
 
 def splitStackLabels(image, folder):
     if not os.path.isdir(os.path.join(folder)):
-        return image, folder
+        return [image], [folder]
     subfiles = [(os.path.join(folder,f),f[-7:-4]) for f in os.listdir(folder) if os.path.splitext(os.path.basename(folder))[0] in f]
     images = list(repeat((image,'stack'), len(subfiles)))
     return images, subfiles
+
+def unrollPaths(images, labels):
+    split = [splitStackLabels(x,y) for x,y in zip(images, labels)]
+    images,labels = zip(*split)
+    images = list(chain.from_iterable(images))
+    labels = list(chain.from_iterable(labels))
+    return images, labels
