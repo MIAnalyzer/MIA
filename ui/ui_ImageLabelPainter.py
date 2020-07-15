@@ -35,13 +35,13 @@ class ImageLabelPainter(Painter):
 
     def load(self):
         self.clear()
-        if self.canvas.parent.CurrentLabelFullName() is not None and os.path.exists(self.canvas.parent.CurrentLabelFullName()):
-            self.imagelabel = loadImageLabel(self.canvas.parent.CurrentLabelFullName())
+        if self.canvas.parent.files.CurrentLabelPath() is not None and os.path.exists(self.canvas.parent.files.CurrentLabelPath()):
+            self.imagelabel = loadImageLabel(self.canvas.parent.files.CurrentLabelPath())
         
     def save(self):
         if self.imagelabel:
             self.canvas.parent.ensureLabelFolder()
-            saveImageLabel(self.imagelabel, self.canvas.parent.CurrentLabelFullName())
+            saveImageLabel(self.imagelabel, self.canvas.parent.files.CurrentLabelPath())
         else:
             self.canvas.parent.deleteLabel()
         

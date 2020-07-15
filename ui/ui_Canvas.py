@@ -15,7 +15,6 @@ import cv2
 
 import ui.Tools as Tools
 from ui.Tools import canvasTool
-#import utils.Contour as Contour
 from utils.Point import Points, Point
 
 from skimage.filters import threshold_yen
@@ -159,7 +158,7 @@ class Canvas(QGraphicsView):
         self.displayedimage.setPixmap(pix)
         
     def ReloadImage(self, resetView = True):
-        if self.parent.CurrentFilePath() is None:
+        if self.parent.files.CurrentImagePath() is None:
             return
         self.rawimage = self.getCurrentPixmap()
         self.clearLabel()

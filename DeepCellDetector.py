@@ -5,13 +5,11 @@ Created on Thu Oct 10 13:28:08 2019
 @author: Koerber
 """
 
-
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
 from tensorflow import errors
-
 
 import io
 import traceback
@@ -22,7 +20,6 @@ import multiprocessing
 import concurrent.futures
 import time
 from contextlib import contextmanager
-
 
 import dl.DeepLearning as DeepLearning
 from dl.DeepLearning import dlMode
@@ -38,6 +35,7 @@ from ui.ui_TrainPlot import TrainPlotWindow
 import utils.Contour as Contour
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
+from utils.FilesAndFolders import FilesAndFolders
 
 from ui.ui_utils import DCDButton
 
@@ -49,7 +47,7 @@ OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = False
+CPU_ONLY = True
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -58,23 +56,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setupUi(self)
         self.setCallbacks()
         self.show()
-        self.imagepath = None
-        self.labelpath = None
-        self.trainImagespath = None
-        self.trainImageLabelspath = None
-        self.testImagespath = None
-        self.testImageLabelspath = None
-        self.train_test_dir = True
+
         
         self.progresstick = 10
         self.progress = 0
         self.maxworker = 1
         
-        self.files = None
-        self.currentImage = 0
-        self.numofImages = 0
-        self.currentImageFile = None
-        self.currentFrame = 0
+        self.files = FilesAndFolders(self)
+
         self.separateStackLabels = True
         self.allowInnerContours = True
         self.setFocusPolicy(Qt.NoFocus)
@@ -231,7 +220,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
         
     def showResultsWindow(self):
-        if self.testImageLabelspath is None:
+        if self.files.testImageLabelspath is None:
             self.PopupWarning('Prediction folder not selected')
             return
         self.results_form.show()
@@ -272,7 +261,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setWorkingFolder()
         
     def setToolButtons(self):
-        # we need to first set all to invisible as otherwise the widget width is extended 
+        # we need to first set all to invisible as otherwise the widget_width is extended 
         # and somewhat hard to control with pyqt :(
         for tool in canvasTool:
             widget = self.findChild(DCDButton, tool.name)
@@ -330,23 +319,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         QApplication.processEvents()
     
     def deleteLabel(self):
-        if self.CurrentLabelFullName() and os.path.exists(self.CurrentLabelFullName()):
-            os.remove(self.CurrentLabelFullName())
+        if self.files.CurrentLabelPath() and os.path.exists(self.files.CurrentLabelPath()):
+            os.remove(self.files.CurrentLabelPath())
         
     def nextImage(self):
-        self.currentImage += 1
-        if (self.currentImage >= self.numofImages):
-            self.currentImage = 0
+        self.files.nextImage()
         self.changeImage()
         
     def previousImage(self):
-        self.currentImage -= 1
-        if (self.currentImage < 0):
-            self.currentImage = self.numofImages - 1
+        self.files.previousImage()
         self.changeImage()
             
     def changeImage(self):
-        if self.numofImages > 0:
+        if self.files.numofImages > 0:
             self.readCurrentImageAsBGR()
             self.setImageText()            
         else:
@@ -355,73 +340,50 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.canvas.reset(width, height)
 
     def setImageText(self):
-        text = "%d of %i: " % (self.currentImage+1,self.numofImages) + self.CurrentFileName() 
+        text = "%d of %i: " % (self.files.currentImage+1,self.files.numofImages) + self.files.CurrentImageName() 
         if self.currentImageFile.isStack():
-            text = text + " " + "%d/%i: " % (self.currentFrame+1,self.currentImageFile.numOfImagesInStack())
+            text = text + " " + "%d/%i: " % (self.files.currentFrame+1,self.currentImageFile.numOfImagesInStack())
         self.StatusFile.setText(text)
             
     def setTrainFolder(self):
         folder = str(QFileDialog.getExistingDirectory(self, "Select Training Image Folder"))
         if not folder:
             return
-        self.trainImagespath = folder
-        self.train_test_dir = True
+        self.files.setTrainFolder(folder)
         self.setWorkingFolder()
         
     def setTestFolder(self):
         folder = str(QFileDialog.getExistingDirectory(self, "Select Test Image Folder"))
         if not folder:
             return
-        self.testImagespath = folder   
-        self.train_test_dir = False
+        self.files.setTestFolder(folder)
         self.setWorkingFolder()
-        
-    def setLabelPaths(self):
-        if self.trainImagespath is not None:
-            self.trainImageLabelspath = self.trainImagespath + "/" + self.LearningMode().name + "_labels"
-        
-        if self.testImagespath is not None:
-            self.testImageLabelspath = self.testImagespath + "/" + self.LearningMode().name + "_labels"
-
-    def setWorkingLabelImagePaths(self):
-        if self.train_test_dir:
-            self.imagepath = self.trainImagespath
-            self.labelpath = self.trainImageLabelspath
-        else:
-            self.imagepath = self.testImagespath
-            self.labelpath = self.testImageLabelspath
        
     def switchToTrainFolder(self):
-        self.train_test_dir = True
+        self.files.switchToTrainFolder()
         self.setWorkingFolder()
         
     def switchToTestFolder(self):
-        self.train_test_dir = False
+        self.files.switchToTestFolder()
         self.setWorkingFolder()
             
     def setWorkingFolder(self):
-        self.setLabelPaths()
-        self.setWorkingLabelImagePaths()
-        self.getFiles()
+        self.files.getFiles()
         self.changeImage()
         self.setFolderLabels()
         
     def ensureLabelFolder(self):
-        self.ensureFolder(self.labelpath)
-        
-    def ensureFolder(self, foldername):
-        if not os.path.isdir(foldername):
-            os.makedirs(foldername)
-            # os.mkdir(foldername)
+        self.files.ensureLabelFolder()
+
 
     def setFolderLabels(self):
-        if self.trainImagespath:
-            self.BTrainImageFolder.setText('...' + self.trainImagespath[-18:])
+        if self.files.trainImagespath:
+            self.BTrainImageFolder.setText('...' + self.files.trainImagespath[-18:])
             self.BTrainImageFolder.setEnabled(True)
-        if self.testImagespath:
-            self.BTestImageFolder.setText('...' + self.testImagespath[-20:])
+        if self.files.testImagespath:
+            self.BTestImageFolder.setText('...' + self.files.testImagespath[-20:])
             self.BTestImageFolder.setEnabled(True)
-        if self.train_test_dir:
+        if self.files.train_test_dir:
             if self.BTrainImageFolder.isEnabled():
                 self.BTrainImageFolder.setStyleSheet('font:bold; text-align:left')
                 self.BTestImageFolder.setStyleSheet('font:normal;text-align:left')
@@ -429,21 +391,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if self.BTestImageFolder.isEnabled():
                 self.BTrainImageFolder.setStyleSheet('font:normal;text-align:left')
                 self.BTestImageFolder.setStyleSheet('font:bold;text-align:left')
-        
-    def getFiles(self):
-        if self.imagepath is None:
-            return
-        exts = ['*' + x for x in supportedImageFormats()]
-        self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
-        self.files.sort()
-        self.currentImage = 0
-        self.numofImages = len(self.files)
     
     def updateClassList(self):
         try:
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
         except:
             pass
+        
+    def hasStack(self):
+        return self.currentImageFile.isStack()
+            
+    def hasImage(self):
+        return self.currentImageFile is not None
          
     def setCanvasMode(self):
         tool = self.sender().objectName()
@@ -458,66 +417,28 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if 48 <= e.key() <= 57:
             classnum = e.key()-48
             self.classList.setClass(e.key()-48)
-                
-    def getFilenameFromPath(self, path):
-        return os.path.splitext(os.path.basename(path))[0]
 
-    def CurrentFileName(self):
-        if self.CurrentFilePath() is None:
-            return None
-        return self.getFilenameFromPath(self.CurrentFilePath())
-
-    def CurrentLabelName(self):
-        if self.currentImageFile.isStack():
-            return self.extendNameByFrameNumber(self.CurrentFileName(), self.currentFrame)
-        else:
-            return self.CurrentFileName()
-    
-    def CurrentFilePath(self):
-        if self.files is None:
-            return None
-        return self.files[self.currentImage]
-        
-    def CurrentLabelFullName(self):
-        self.updateCurrentLabelPath()
-        if self.labelpath is None or self.CurrentFileName() is None or self.currentImageFile is None:
-            return None
-        if self.currentImageFile.isStack() and self.separateStackLabels:
-            return self.extendNameByFrameNumber(os.path.join(self.labelpath, self.CurrentFileName()),self.currentFrame) + ".npz"
-        else:
-            return os.path.join(self.labelpath, self.CurrentFileName()) + ".npz"
     
     def readCurrentImageAsBGR(self):   
         with self.wait_cursor():
-            self.currentImageFile = ImageFile(self.CurrentFilePath(), asBGR = True)
+            self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
             self.resetBrightnessContrast()
             if self.currentImageFile.isStack():
                 self.SFrame.show()
                 self.initFrameSlider()
             else:
                 self.SFrame.hide()
-                self.canvas.ReloadImage()
-            
-    def updateCurrentLabelPath(self):
-        self.setWorkingLabelImagePaths()
-        if self.currentImageFile and self.currentImageFile.isStack():
-            self.labelpath = self.extendLabelPathByFolder(self.labelpath, self.CurrentFileName()) 
-
-    def extendLabelPathByFolder(self, path, folder):
-        return os.path.join(path, folder) 
-
-    def extendNameByFrameNumber(self,name, frame):
-        return name + '_' + "{0:0=3d}".format(frame)
+            self.canvas.ReloadImage()
 
     def initFrameSlider(self):
         maxval = self.currentImageFile.numOfImagesInStack()
         self.SFrame.setMaximum(maxval)
-        self.currentFrame = 0
+        self.files.currentFrame = 0
         self.SFrame.setValue(maxval)
         self.canvas.resetView()     
   
     def FrameChanged(self):
-        self.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
+        self.files.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
         self.canvas.ReloadImage(resetView = False)
         self.setImageText()
         
@@ -539,7 +460,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.SBrightness.setValue(0)
             
     def getCurrentImage(self):   
-        return self.currentImageFile.getCorrectedImage(self.currentFrame)
+        return self.currentImageFile.getCorrectedImage(self.files.currentFrame)
     
     def setWorkers(self, numWorker):
         self.maxworker = numWorker
@@ -596,7 +517,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.writeStatus('model reset')
     
     def showTrainingWindow(self):
-        if self.trainImagespath is None or self.trainImageLabelspath is None:
+        if self.files.trainImagespath is None:
             self.PopupWarning('Training folder not selected')
             return
  
@@ -610,10 +531,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.plotting_form.show()
         self.plotting_form.initialize()
         self.training_form.toggleTrainStatus(True)
-        self.dl.Train(self.trainImagespath,self.trainImageLabelspath)
+        self.dl.Train(self.files.trainImagespath,self.files.trainImageLabelspath)
         
     def predictAllImages(self):
-        if self.testImagespath is None or self.testImageLabelspath is None:
+        if self.files.testImagespath is None:
             self.PopupWarning('Prediction folder not selected')
             return
 
@@ -621,7 +542,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('No model trained/loaded')
             return
         with self.wait_cursor():
-            images = glob.glob(os.path.join(self.testImagespath,'*.*'))
+            images = glob.glob(os.path.join(self.files.testImagespath,'*.*'))
             images = [x for x in images if (x.endswith(tuple(supportedImageFormats())))]
 
             self.initProgress(len(images))
@@ -636,37 +557,37 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         # in worker thread
         image = ImageFile(imagepath)
         image.normalizeImage()
-        name = self.getFilenameFromPath(imagepath)
+        name = self.files.getFilenameFromPath(imagepath)
         if image.isStack():
-            path = self.extendLabelPathByFolder(self.testImageLabelspath, name)
+            path = self.files.extendLabelPathByFolder(self.files.testImageLabelspath, name)
         else:
-            path = self.testImageLabelspath
+            path = self.files.testImageLabelspath
         for i in range(image.numOfImagesInStack()):
             img = image.getDLInputImage(self.dl.MonoChrome(), i)
             pred = self.dl.PredictImage(img)
             if image.isStack():
-                filename = self.extendNameByFrameNumber(name,i)
+                filename = self.files.extendNameByFrameNumber(name,i)
             else:
                 filename = name
             self.extractAndSaveContours(pred, path, filename)
         self.addProgress()
         
     def predictImage_async(self):
-        image = self.dl.data.readImage(self.CurrentFilePath(), self.currentFrame)
+        image = self.dl.data.readImage(self.files.CurrentImagePath(), self.files.currentFrame)
         if image is None:
             return
         self.dl.PredictImage_async(image)
 
         
     def predictImage(self):
-        if self.CurrentFilePath() is None:
+        if self.files.CurrentImagePath() is None:
             return
         if not self.dl.initialized():
             self.PopupWarning('No model trained/loaded')
             return
         with self.wait_cursor():
             self.clear()
-            image = self.dl.data.readImage(self.CurrentFilePath(), self.currentFrame)
+            image = self.dl.data.readImage(self.files.CurrentImagePath(), self.files.currentFrame)
             if image is None:
                 self.PopupWarning('Cannot load image')
                 return
@@ -674,7 +595,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if prediction is None:
                 self.PopupWarning('Cannot predict image')
                 return
-            self.extractAndSaveContours(prediction, self.labelpath, self.CurrentLabelName())
+            self.extractAndSaveContours(prediction, self.files.labelpath, self.files.CurrentLabelName())
             
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
@@ -683,7 +604,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if prediction is None:
             return
         contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
-        self.ensureFolder(path)
+        self.files.ensureFolder(path)
         Contour.saveContours(contours, os.path.join(path, (name + ".npz")))
 
     def autoSegment(self):
@@ -710,7 +631,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.plotting_form.refresh()
         
     def dlEpoch(self, epoch):
-        if self.train_test_dir or self.predictionRate == 0:
+        if self.files.train_test_dir or self.predictionRate == 0:
             return    
         if (epoch % self.predictionRate) == self.predictionRate - 1:
             self.predictImage_async()
@@ -722,7 +643,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def dlResult(self, result):
         self.clear()
-        self.extractAndSaveContours(result, self.labelpath, self.CurrentLabelName())
+        self.extractAndSaveContours(result, self.files.labelpath, self.files.CurrentLabelName())
         self.canvas.ReloadImage()
 
     def dlError(self, err):

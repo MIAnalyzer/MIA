@@ -13,6 +13,9 @@ import math
 
 from skimage import morphology
 from skimage.morphology import medial_axis, skeletonize
+
+    
+
 BACKGROUNDCLASS = 255
 from utils.Shape import Shape, Shapes, FreeFormContour_ID, FreeFormContour_ID_legacy
 

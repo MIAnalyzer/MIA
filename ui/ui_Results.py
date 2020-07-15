@@ -13,11 +13,12 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths
+from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, unrollPaths
 from utils.Contour import loadContours
 from ui.Tools import canvasTool
 from ui.style import styleForm
 from ui.ui_utils import DCDButton
+from utils.Image import ImageFile
 import cv2
 
 
@@ -91,7 +92,7 @@ class ResultsWindow(QMainWindow, Window):
     def exportMask(self):
         # currently unused
         image = self.parent.getCurrentImage()
-        label = LoadLabel(self.parent.CurrentLabelFullName(), image.shape[0], image.shape[1])
+        label = LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
         filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
         if filename.strip():
             with self.parent.wait_cursor():
@@ -99,17 +100,30 @@ class ResultsWindow(QMainWindow, Window):
                 
     def exportAllMasks(self):
         with self.parent.wait_cursor():
-            images, labels = getAllImageLabelPairPaths(self.parent.testImagespath,self.parent.testImageLabelspath)
-            folder = self.parent.testImagespath + "/exported_masks/"
-            self.parent.ensureFolder(folder)
+            images, labels = getAllImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            images, labels = unrollPaths(images, labels)
+            folder = self.parent.files.testImagespath + os.path.sep + "exported_masks"
+
             if not images or not labels:
                 self.parent.PopupWarning('No predicted masks')
                 return
+            image = None
             for i, l in zip(images,labels):
-                image = cv2.imread(i)
-                label = LoadLabel(l, image.shape[0], image.shape[1])
-                name = self.parent.getFilenameFromPath(l)
-                cv2.imwrite(folder+name+'.tif', label)
+                if isinstance(l, tuple):
+                    l = l[0]
+                    if not image or image.path != i[0]:                
+                        image = ImageFile(i[0])
+                    label = LoadLabel(l, image.height(), image.width())
+                    name = self.parent.files.getFilenameFromPath(l)
+                    f = self.parent.files.extendLabelPathByFolder(folder, self.parent.files.getFilenameFromPath(i[0]))
+                    self.parent.files.ensureFolder(f)
+                    cv2.imwrite(os.path.join(f,name)+'.tif', label)
+                else:
+                    image = ImageFile(i)
+                    label = LoadLabel(l, image.height(), image.width())
+                    name = self.parent.files.getFilenameFromPath(l)
+                    self.parent.files.ensureFolder(folder)
+                    cv2.imwrite(os.path.join(folder,name)+'.tif', label)
             self.hide()
         
     def setScale(self, text):
@@ -138,12 +152,11 @@ class ResultsWindow(QMainWindow, Window):
             return
         
         with self.parent.wait_cursor():
-            _, labels = getAllImageLabelPairPaths(self.parent.testImagespath,self.parent.testImageLabelspath)
+            _, labels = getAllImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            _, labels = unrollPaths(_, labels)
             if labels is None:
                 self.parent.PopupWarning('No predicted files')
                 return
-       
-        
             # try:
             if True:
                 with open(filename, 'w', newline='') as csvfile:
@@ -175,6 +188,8 @@ class ResultsWindow(QMainWindow, Window):
             self.hide()
         
     def getSingleLabelFromList(self, contourname):
+        if isinstance(contourname, tuple):
+            contourname = contourname[0]
         contours = loadContours(contourname)
         name = os.path.splitext(os.path.basename(contourname))[0]
         x = 0

@@ -33,13 +33,13 @@ class ObjectPainter(Painter):
 
     def load(self):
         self.clear()
-        if self.canvas.parent.CurrentLabelFullName() is not None and os.path.exists(self.canvas.parent.CurrentLabelFullName()):
-            self.shapes.load(self.canvas.parent.CurrentLabelFullName())
+        if self.canvas.parent.files.CurrentLabelPath() is not None and os.path.exists(self.canvas.parent.files.CurrentLabelPath()):
+            self.shapes.load(self.canvas.parent.files.CurrentLabelPath())
         
     def save(self):
         if not self.shapes.empty():
             self.canvas.parent.ensureLabelFolder()
-            self.shapes.save(self.canvas.parent.CurrentLabelFullName())
+            self.shapes.save(self.canvas.parent.files.CurrentLabelPath())
         else:
             self.canvas.parent.deleteLabel()
         
