@@ -66,7 +66,6 @@ class ImageFile():
                 self._image = cv2.cvtColor(self._image, cv2.COLOR_GRAY2BGR )
             if self._image.shape[2] == 4:
                 self._image = cv2.cvtColor(self._image, cv2.COLOR_BGRA2BGR )
-
  
     def normalizeImage(self):
         # atm always converts 8-bit

@@ -14,13 +14,11 @@ from ui.style import styleForm, getHighlightColor, getBackgroundColor, getBright
 
 class MainWindow(object):
     def setupUi(self, Form):
-
         screen_resolution = QDesktopWidget().screenGeometry()
 
         height = screen_resolution.height() - 150
         width = height * 4/3
-        
-        
+
         Form.setWindowTitle('DeepCellDetector') 
         Form.setWindowIcon(QIcon('icons/logo.png'))
         Form.resize(width, height)
@@ -49,20 +47,15 @@ class MainWindow(object):
         self.FileMenu.addSeparator()
         self.AExit = QAction("Quit", self)
         self.FileMenu.addAction(self.AExit)
-        
         self.EditMenu = self.menubar.addMenu("Edit")
         self.ASettings = QAction("Settings")
         self.EditMenu.addAction(self.ASettings)
-        
         self.AboutMenu = self.menubar.addMenu("About")
-        
         self.setMenuBar(self.menubar)
-
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.hlayout.setContentsMargins(3, 3, 3, 3)
         self.hlayout.setSpacing(6)
         self.centralWidget.setLayout(self.hlayout)
-        
         
         self.vlayout = QVBoxLayout()
         verticalSpacer = QSpacerItem(20, 40)
@@ -77,7 +70,6 @@ class MainWindow(object):
 
         self.vlayout.addWidget(self.BSettings)
         
-        
         self.CBLearningMode = QComboBox(self.centralWidget)
         self.CBLearningMode.addItem("Classification")
         self.CBLearningMode.addItem("Object Counting")
@@ -91,7 +83,6 @@ class MainWindow(object):
         self.CBLearningMode.setEditable(False)
         self.CBLearningMode.setFocus(False)
         self.vlayout.addWidget(self.CBLearningMode)
-        
         
         bwidth = 28
         bheight = 28

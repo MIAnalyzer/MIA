@@ -24,7 +24,7 @@ from ui.ui_ObjectPainter import ObjectPainter
 from ui.ui_ImageLabelPainter import ImageLabelPainter
 from ui.ui_NoPainter import NoPainter
 
-from dl.DeepLearning import dlMode
+from dl.dl_mode import dlMode
 
 import time
 
@@ -262,7 +262,6 @@ class Canvas(QGraphicsView):
         self.updateCursor()
         
     def setCanvasMode(self, mode):
-
         if mode == dlMode.Segmentation:
             self.painter = ContourPainter(self)
             self.setMinimumContourSize(self.minContourSize)

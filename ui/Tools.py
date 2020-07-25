@@ -399,6 +399,7 @@ class ShiftTool(AbstractTool):
         self.type = canvasTool.shift
         self.shiftedShape = None
         self.shifting = False
+        self.origin_coordinates = None
 
     @validTool    
     def mouseMoveEvent(self, e):
@@ -410,10 +411,16 @@ class ShiftTool(AbstractTool):
 
     @validTool    
     def mouseReleaseEvent(self,e):
+        if not self.shiftedShape:
+            return
         self.shifting = False
+        self.canvas.painter.shapes.deleteShape(self.shiftedShape)
+        if self.canvas.painter.shapes.getShape([self.shiftedShape.coordinates], self.canvas.painter.shapes.mindistance):
+            self.shiftedShape.coordinates = self.origin_coordinates
+        
+        self.canvas.painter.shapes.addShape(self.shiftedShape)
         self.shiftedShape = None
-        if self.canvas.fastPainting:
-                self.canvas.redrawImage()
+        self.canvas.redrawImage()
 
     @validTool     
     def mousePressEvent(self,e):
@@ -427,7 +434,7 @@ class ShiftTool(AbstractTool):
         if shape is not None:
             self.shifting = True
             self.shiftedShape = shape
-            # self.canvas.painter.shapes.deleteShape(shape)
+            self.origin_coordinates = shape.coordinates
 
 
     def Cursor(self):
@@ -457,11 +464,11 @@ class ScaleTool(AbstractTool):
         if e.button() == Qt.LeftButton:
             if self.num == 0:
                 self.p1 = self.canvas.mapToScene(e.pos())
-                self.canvas.addTriangle(self.p1, self.size, self.color)
+                self.canvas.painter.addTriangle(self.p1, self.size, self.color)
                 self.num += 1
             else:  
                 p2 = self.canvas.mapToScene(e.pos())
-                self.canvas.addTriangle(p2, self.size, self.color)
+                self.canvas.painter.addTriangle(p2, self.size, self.color)
                 dist_inpixel = abs(self.p1.x() - p2.x())
                 dist_inum,ok = QInputDialog.getInt(self.canvas.parent, "Set Scale","enter distance in \u03BCm")
                 if ok and dist_inum > 0:

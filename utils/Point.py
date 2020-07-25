@@ -10,15 +10,22 @@ Created on Thu Jun 25 15:22:17 2020
 import numpy as np
 import math
 from utils.Shape import Shape, Shapes, PointContour_ID
+from utils.Contour import findContours
+import cv2
 
 
 class Points(Shapes):
     def __init__(self):
         super(Points,self).__init__(PointContour_ID)
+        self.mindistance = 3
 
-        
+    def addShapes(self,pts):
+        for p in pts:
+            self.addShape(p)
+
     def ShapeAlreadyExist(self,s):
-        return next((True for elem in self.shapes if all(elem.coordinates == s.coordinates)), False)
+        # return next((True for elem in self.shapes if all(elem.coordinates == s.coordinates)), False)
+        return next((True for elem in self.shapes if distance_p1_p2(elem.coordinates,s.coordinates) < self.mindistance), False)
     
     def load(self, filename):
         self.shapes = loadPoints(filename)
@@ -52,7 +59,7 @@ class Points(Shapes):
 
 class Point(Shape):
     def __init__(self, classlabel, point):
-        self.coordinates = point
+        self.coordinates = np.asarray(point).astype(int)
         super(Point,self).__init__(classlabel, PointContour_ID)
         
     def inside(self, point, distance):
@@ -84,3 +91,32 @@ def loadPoints(filename):
         ret = [Point(x,y) for x,y in zip(label,array)]
     return ret
 
+def extractPointsFromLabel(image):
+    numclasses = np.max(image)
+    points = []
+    for i in range(1,numclasses+1):
+        pts = np.where(image == i)
+        p = zip(pts[1], pts[0])
+        points.extend([Point(i, (x,y)) for x,y in p])
+
+    return points
+
+
+def extractPointsFromContours(image, minsize, offset = (0,0)):
+    contours, _ = findContours(image, ext_only = True, offset=offset)
+    points = []
+    for c in contours:
+        if cv2.contourArea(c) < minsize:
+            continue
+        M = cv2.moments(c)
+        if M["m00"] == 0:
+            continue
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        points.append(Point(1, (cX, cY)))
+    return points
+
+def drawPointsToLabel(image, points):
+    for p in points:
+        image[p.coordinates[1],p.coordinates[0]] = p.classlabel      
+    return image

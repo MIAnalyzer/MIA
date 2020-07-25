@@ -13,7 +13,7 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, unrollPaths
+from dl.dl_labels import getAllImageLabelPairPaths, unrollPaths
 from utils.Contour import loadContours
 from ui.Tools import canvasTool
 from ui.style import styleForm
@@ -92,7 +92,7 @@ class ResultsWindow(QMainWindow, Window):
     def exportMask(self):
         # currently unused
         image = self.parent.getCurrentImage()
-        label = LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
+        label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
         filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
         if filename.strip():
             with self.parent.wait_cursor():
@@ -113,14 +113,14 @@ class ResultsWindow(QMainWindow, Window):
                     l = l[0]
                     if not image or image.path != i[0]:                
                         image = ImageFile(i[0])
-                    label = LoadLabel(l, image.height(), image.width())
+                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width())
                     name = self.parent.files.getFilenameFromPath(l)
                     f = self.parent.files.extendLabelPathByFolder(folder, self.parent.files.getFilenameFromPath(i[0]))
                     self.parent.files.ensureFolder(f)
                     cv2.imwrite(os.path.join(f,name)+'.tif', label)
                 else:
                     image = ImageFile(i)
-                    label = LoadLabel(l, image.height(), image.width())
+                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width())
                     name = self.parent.files.getFilenameFromPath(l)
                     self.parent.files.ensureFolder(folder)
                     cv2.imwrite(os.path.join(folder,name)+'.tif', label)

@@ -154,7 +154,7 @@ class TrainingWindow(QMainWindow, Window):
         super(TrainingWindow, self).show()
         
     def toggleParameterStatus(self):
-        if not self.parent.dl.initialized():
+        if not self.parent.dl.initialized:
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)
             self.CBModel.setEnabled(True)
@@ -162,7 +162,7 @@ class TrainingWindow(QMainWindow, Window):
             self.CBMono.setEnabled(False)
             self.CBRGB.setEnabled(False)
             self.CBModel.setEnabled(False)
-            if self.parent.dl.MonoChrome():
+            if self.parent.dl.MonoChrome:
                 self.CBMono.setChecked(True)
             else:
                 self.CBRGB.setChecked(True) 

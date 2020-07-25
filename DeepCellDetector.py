@@ -22,7 +22,7 @@ import time
 from contextlib import contextmanager
 
 import dl.DeepLearning as DeepLearning
-from dl.DeepLearning import dlMode
+from dl.dl_mode import dlMode
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
@@ -33,6 +33,7 @@ from ui.ui_PostProcessing import PostProcessingWindow
 from ui.ui_TrainPlot import TrainPlotWindow
 
 import utils.Contour as Contour
+import utils.Point as Point
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
@@ -47,12 +48,13 @@ OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = True
+CPU_ONLY = False
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
+        
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -71,7 +73,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         height = self.canvas.geometry().height()    
         
         self.predictionRate = 0
-
+        
         self.dl = DeepLearning.DeepLearning()
         # init observer
         self.dlobserver = QtObserver()
@@ -112,7 +114,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.updateClassList()
         self.classList.setClass(1)
-        
+
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
@@ -243,7 +245,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.SaveCurrentLabel()
         
     def changeLearningMode(self, i):
-        self.dl.Mode = dlMode(i)
+        self.dl.WorkingMode = dlMode(i)
         self.setCanvasTool(canvasTool.drag.name)
 
         # classification is not handeld via tools as now interaction besides dragging with the image is required
@@ -492,7 +494,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     ## deep learning  
     def LearningMode(self):
-        return self.dl.Mode
+        return self.dl.WorkingMode
 
     def loadModel(self):
         filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
@@ -502,7 +504,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.writeStatus('model loaded')
 
     def saveModel(self):
-        if not self.dl.initialized():
+        if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
         filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
@@ -524,7 +526,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.training_form.show()
         
     def startTraining(self):
-        if not self.dl.initialized() or not self.dl.parameterFit(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
+        if not self.dl.parameterFit(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
             if not self.dl.initModel(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
                self.PopupWarning('Cannot initialize model') 
                return
@@ -538,7 +540,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('Prediction folder not selected')
             return
 
-        if not self.dl.initialized():
+        if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
         with self.wait_cursor():
@@ -563,13 +565,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         else:
             path = self.files.testImageLabelspath
         for i in range(image.numOfImagesInStack()):
-            img = image.getDLInputImage(self.dl.MonoChrome(), i)
-            pred = self.dl.PredictImage(img)
+            img = image.getDLInputImage(self.dl.MonoChrome, i)
+            pred = self.dl.Mode.PredictImage(img)
             if image.isStack():
                 filename = self.files.extendNameByFrameNumber(name,i)
             else:
                 filename = name
-            self.extractAndSaveContours(pred, path, filename)
+            self.extractAndSavePredictedResults(pred, path, filename)
         self.addProgress()
         
     def predictImage_async(self):
@@ -582,7 +584,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def predictImage(self):
         if self.files.CurrentImagePath() is None:
             return
-        if not self.dl.initialized():
+        if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
         with self.wait_cursor():
@@ -591,21 +593,22 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if image is None:
                 self.PopupWarning('Cannot load image')
                 return
-            prediction = self.dl.PredictImage(image)
+            prediction = self.dl.Mode.PredictImage(image)
             if prediction is None:
                 self.PopupWarning('Cannot predict image')
                 return
-            self.extractAndSaveContours(prediction, self.files.labelpath, self.files.CurrentLabelName())
+            self.extractAndSavePredictedResults(prediction, self.files.labelpath, self.files.CurrentLabelName())
             
             self.canvas.ReloadImage()
             self.writeStatus('image predicted')
             
-    def extractAndSaveContours(self, prediction, path, name):
+    def extractAndSavePredictedResults(self, prediction, path, name):
         if prediction is None:
             return
-        contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours)
+        
         self.files.ensureFolder(path)
-        Contour.saveContours(contours, os.path.join(path, (name + ".npz")))
+        contours = self.dl.Mode.extractShapesFromPrediction(prediction, not self.allowInnerContours)
+        self.dl.Mode.saveShapes(contours, os.path.join(path, (name + ".npz")))
 
     def autoSegment(self):
         with self.wait_cursor():
@@ -618,8 +621,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if image is None:
                 self.PopupWarning('No image loaded')
             prediction = self.dl.AutoSegment(image)
-            contours = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
-            self.canvas.painter.shapes.addShapes(contours)
+            if self.LearningMode() == dlMode.Segmentation:
+                shapes = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
+            elif self.LearningMode() == dlMode.Object_Counting:
+                shapes = Point.extractPointsFromContours(prediction, self.canvas.minContourSize ,offset = (int(fov.x()),int(fov.y())))
+            else:
+                return
+            self.canvas.painter.shapes.addShapes(shapes)
+            # autosegmentation puts all contours in class 1
+            self.classList.setClass(1)
             self.canvas.checkForChanges()
         
     # deep learning observer functions
@@ -643,7 +653,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def dlResult(self, result):
         self.clear()
-        self.extractAndSaveContours(result, self.files.labelpath, self.files.CurrentLabelName())
+        self.extractAndSavePredictedResults(result, self.files.labelpath, self.files.CurrentLabelName())
         self.canvas.ReloadImage()
 
     def dlError(self, err):
