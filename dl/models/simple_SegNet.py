@@ -9,7 +9,7 @@ from tensorflow.keras.layers import Activation, MaxPooling2D,BatchNormalization,
 from tensorflow.keras import regularizers
 from tensorflow.keras.models import Model
 
-def simple_SegNet(num_classes, monochrome = False): 
+def simple_SegNet(num_classes, monochrome = False, addoutputfunc = True): 
     channels = 1 if monochrome is True else 3
     img_input = Input((None, None, channels))
     n_filters = 64
@@ -20,6 +20,8 @@ def simple_SegNet(num_classes, monochrome = False):
         out_act_func = 'sigmoid'
         outputlayer = 1
     
+    if addoutputfunc == False:
+        out_act_func = None
     conv_act = 'relu'
     regularizer = regularizers.l2(1e-4)
     

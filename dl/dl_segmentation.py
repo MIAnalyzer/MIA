@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 22 14:04:30 2020
+
+@author: Koerber
+"""
+
+from dl.dl_mode import LearningMode, dlMode
+from dl.dl_pixelbasedprediction import PixelBasedPrediction
+import dl.models.resnet50_SegNet as resnet50_SegNet
+import dl.models.simple_SegNet as simple_SegNet
+import utils.Contour as Contour
+import numpy as np
+
+class Segmentation(PixelBasedPrediction, LearningMode):
+    def __init__(self, parent):
+        super(Segmentation,self).__init__(parent)
+        self.type = dlMode.Segmentation
+        
+    def LoadLabel(self, filename, height, width):
+        label = np.zeros((height, width, 1), np.uint8)
+        contours = Contour.loadContours(filename)
+        return Contour.drawContoursToLabel(label, contours)
+        
+    def preprocessLabel(self, mask):
+        if self.parent.NumClasses > 2:
+            if self.parent.useWeightedDistanceMap:                 
+                label = mask[...,0]
+                weights = mask[...,1]
+                label = to_categorical(label, num_classes=self.parent.NumClasses)
+                mask = np.concatenate((label, weights[...,np.newaxis]), axis = 3) 
+            else:
+                mask = to_categorical(mask, num_classes=self.parent.NumClasses)
+        else:
+            mask = mask.astype('float')
+        return mask
+
+    def getModel(self, nclasses, monochr):
+        if self.parent.ModelType == 0:
+            return simple_SegNet.simple_SegNet(nclasses, monochr, True)
+        elif self.parent.ModelType == 1:    
+            return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, True)
+        
+    def extractShapesFromPrediction(self, prediction, innercontours):
+        return Contour.extractContoursFromLabel(prediction, innercontours)
+    
+    def saveShapes(self, contours, path):
+        Contour.saveContours(contours, path)
+        
+    def convert2Image(self,prediction):
+        if self.parent.NumClasses > 2:
+            prediction = np.squeeze(np.argmax(prediction, axis = 3))
+        else:
+            prediction = np.squeeze(prediction)
+            prediction[prediction>0.5] = 1
+            prediction[prediction<=0.5] = 0
+        return prediction

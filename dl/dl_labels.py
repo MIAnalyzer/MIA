@@ -6,17 +6,21 @@ Created on Fri Jun 26 10:37:21 2020
 """
 
 
-import numpy as np
-import utils.Contour as Contour
+# import utils.Contour as Contour
+# import utils.Point as Point
 
 import glob
 import os
 from itertools import repeat, chain
 
-def LoadLabel(filename, height, width):
-    contours = Contour.loadContours(filename)
-    label = np.zeros((height, width, 1), np.uint8)
-    return Contour.drawContoursToLabel(label, contours) 
+# def LoadLabel(filename, height, width):
+#     label = np.zeros((height, width, 1), np.uint8)
+#     if labeltype == 'contour':
+#         contours = Contour.loadContours(filename)
+#         return Contour.drawContoursToLabel(label, contours)
+#     if labeltype == 'points':
+#         points = Point.loadPoints(filename)
+#         return Point.drawPointsToLabel(label, points)
 
 
 def getAllImageLabelPairPaths(imagepath, labelpath):

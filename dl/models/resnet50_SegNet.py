@@ -9,13 +9,16 @@ from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.layers import Activation, MaxPooling2D,BatchNormalization, Input, Flatten, Dense, Dropout, Conv2D, multiply, add, LeakyReLU, GlobalAveragePooling2D, concatenate, Concatenate, UpSampling2D, Conv2DTranspose, Cropping2D, ZeroPadding2D
 from tensorflow.keras.models import Model
 
-def resnet50_SegNet(num_classes, monochrome = False):
+def resnet50_SegNet(num_classes, monochrome = False, addoutputfunc = True):
     if num_classes > 2:
         out_act_func = 'softmax'
         outputlayer = num_classes
     else :
         out_act_func = 'sigmoid'
         outputlayer = 1
+           
+    if addoutputfunc == False:
+        out_act_func = None
     
     resnetmodel = ResNet50(include_top = False, weights='imagenet')
     x = resnetmodel.output

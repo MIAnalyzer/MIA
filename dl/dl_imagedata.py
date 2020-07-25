@@ -9,7 +9,7 @@ import os
 import glob
 import cv2
 import dl.dl_utils as dl_utils
-from dl.dl_labels import LoadLabel, getAllImageLabelPairPaths, unrollPaths
+from dl.dl_labels import getAllImageLabelPairPaths, unrollPaths
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import ImageFile
@@ -61,7 +61,7 @@ class ImageData():
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
         # con dataset: single image normalization is better suited for different sources, like 8-bit and 16-bit and color images combined
         file.normalizeImage()
-        image = file.getDLInputImage(self.parent.MonoChrome(),frame)
+        image = file.getDLInputImage(self.parent.MonoChrome,frame)
         return image
     
     
@@ -113,24 +113,15 @@ class ImageData():
         if preprocess == 'scale_shift':
             return image.astype('float')/127.5 -1
         
-    def preprocessLabel(self,mask):
-        if self.parent.NumClasses() > 2:
-            if self.parent.useWeightedDistanceMap:                 
-                label = mask[...,0]
-                weights = mask[...,1]
-                label = to_categorical(label, num_classes=self.parent.NumClasses())
-                mask = np.concatenate((label, weights[...,np.newaxis]), axis = 3) 
-            else:
-                mask = to_categorical(mask, num_classes=self.parent.NumClasses())
-        else:
-            mask = mask.astype('float')
-        return mask
+    def preprocessLabel(self,label):
+        return self.parent.Mode.preprocessLabel(label)
     
     
-    def removeUnlabelledData(self, image, label):
+    def removeUnlabelledData(self, image, label, removeunlabelleddata = True):
         # remove unlabelled data
-        _, thresh = cv2.threshold(label, 0, 255,  cv2.THRESH_BINARY)
-        image = cv2.bitwise_and(image,image, mask=thresh)
+        if removeunlabelleddata:
+            _, thresh = cv2.threshold(label, 0, 255,  cv2.THRESH_BINARY)
+            image = cv2.bitwise_and(image,image, mask=thresh)
             
         # remove background
         label[np.where(label == 255)] = 0
@@ -148,7 +139,7 @@ class ImageData():
         images = self.getImagePaths(validation)
         masks = self.getLabelPaths(validation)
 
-        channels = 1 if self.parent.MonoChrome() is True else 3
+        channels = 1 if self.parent.MonoChrome is True else 3
 
         # handle image stacks and others
         if isinstance(masks[index], tuple):
@@ -165,7 +156,7 @@ class ImageData():
         width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
         height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
               
-        train_mask = LoadLabel(mask, train_img.shape[0], train_img.shape[1])
+        train_mask = self.parent.Mode.LoadLabel(mask, train_img.shape[0], train_img.shape[1])
             
         train_img =  cv2.resize(train_img, (width, height))
         train_mask = cv2.resize(train_mask, (width, height), interpolation = cv2.INTER_NEAREST )
@@ -225,7 +216,7 @@ class ImageData():
         numImages = len(images)
 
         
-        im_channels = 1 if self.parent.MonoChrome() is True else 3
+        im_channels = 1 if self.parent.MonoChrome is True else 3
         lb_channels = 2 if self.parent.useWeightedDistanceMap else 1
       
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
