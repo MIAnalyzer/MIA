@@ -48,7 +48,7 @@ OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = False
+CPU_ONLY = True
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -174,8 +174,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
         
-        self.BassignClass.clicked.connect(self.assignImageClass)
-        self.BsetClass.clicked.connect(self.setImageClass)
+        self.BassignClass.clicked.connect(self.setCanvasMode)
+        self.BsetClass.clicked.connect(self.setCanvasMode)
         
         self.BsetObject.clicked.connect(self.setCanvasMode)
         self.BshiftObject.clicked.connect(self.setCanvasMode)
@@ -238,31 +238,26 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def numOfShapesChanged(self):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
-            if self.canvas.painter.shapes:
-                label.setText(str(len(self.canvas.painter.shapes.getShapesOfClass_x(i))))
+            if i == 0:
+                text = str(len(self.canvas.painter.backgroundshapes))
+            elif self.canvas.painter.shapes:
+                text = str(len(self.canvas.painter.shapes.getShapesOfClass_x(i)))
             else:
-                label.setText("")
+                text = ""
+            label.setText(text)
         self.canvas.SaveCurrentLabel()
         
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
-        self.setCanvasTool(canvasTool.drag.name)
-
-        # classification is not handeld via tools as now interaction besides dragging with the image is required
-        if self.LearningMode() == dlMode.Classification: 
-            self.ClassificationButtons.show()
-            self.canvas.enableToggleTools = False
-            self.ToolButtons.setVisible(False)
-        else:
-            self.ClassificationButtons.hide()
-            self.canvas.enableToggleTools = True
-            self.ToolButtons.setVisible(True)
-
-
         self.canvas.setCanvasMode(self.LearningMode())
         self.setWorkingFolder()
         
     def setToolButtons(self):
+        if self.activeClass() == 0:
+            self.canvas.painter.enableDrawBackgroundMode()                
+        else:
+            self.canvas.painter.disableDrawBackgroundMode()
+            
         # we need to first set all to invisible as otherwise the widget_width is extended 
         # and somewhat hard to control with pyqt :(
         for tool in canvasTool:
@@ -270,18 +265,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if not widget:
                 continue
             widget.setVisible(False)
-        for tool in self.canvas.painter.tools:
+        for tool in self.canvas.painter.tools:          
             widget = self.findChild(DCDButton, tool.name)
             if not widget:
                 continue
             widget.setVisible(True)
+        if self.canvas.tool.type not in self.canvas.painter.tools:
+            self.setCanvasTool(canvasTool.drag.name)
 
-    def assignImageClass(self):
-        self.canvas.assignImageClass()
-
-    def setImageClass(self):
-        self.canvas.assignImageClass()
-        self.nextImage()
         
     def addClass(self):
         self.classList.addClass()
@@ -309,6 +300,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.updateCursor()
 
     def classChanged(self):
+        self.setToolButtons()
         self.updateCursor()
 
     def updateCursor(self):

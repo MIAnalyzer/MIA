@@ -56,6 +56,8 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         
     def convert2Image(self,prediction):
         prediction = np.squeeze(prediction)
+        # threshold ?!
+        prediction[prediction<0.075] = 0
         result = np.zeros(prediction.shape)
         if self.parent.NumClasses > 2:
             for i in range(1,result.shape[2]):
@@ -64,5 +66,4 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         else:
             peaks = peak_local_max(prediction, min_distance=2, indices = False)
             result[peaks] = 1
-
         return result

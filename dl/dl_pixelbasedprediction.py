@@ -23,7 +23,6 @@ class PixelBasedPrediction(ABC):
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
         
         pred = self.predictTiled(image)
-
         pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return pred
     

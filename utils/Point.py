@@ -10,7 +10,7 @@ Created on Thu Jun 25 15:22:17 2020
 import numpy as np
 import math
 from utils.Shape import Shape, Shapes, PointContour_ID
-from utils.Contour import findContours
+from utils.Contour import findContours, packContours, unpackContours
 import cv2
 
 
@@ -28,7 +28,7 @@ class Points(Shapes):
         return next((True for elem in self.shapes if distance_p1_p2(elem.coordinates,s.coordinates) < self.mindistance), False)
     
     def load(self, filename):
-        self.shapes = loadPoints(filename)
+        self.shapes, _ = loadPoints(filename)
         
     def save(self, filename):
         savePoints(self.shapes, filename)
@@ -73,23 +73,35 @@ class Point(Shape):
 def distance_p1_p2(p1,p2):
     return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
-def savePoints(points, filename):
-    f1 = lambda x: x.classlabel
-    f2 = lambda x: x.coordinates
-    pts = [f(x) for x in points for f in (f1, f2)]
-    pts.insert(0,points[0].labeltype)
+def savePoints(points, filename, background = None):
+    bg = packContours(background)
+    if len(points) > 0:   
+        f1 = lambda x: x.classlabel
+        f2 = lambda x: x.coordinates
+        labels = [f1(x) for x in points]
+        coords = [f2(x) for x in points]
+        pts = [points[0].labeltype, np.stack(labels), np.stack(coords)]
+    else:
+        if bg:
+            pts = [PointContour_ID, [], []]
+    if bg:
+        pts.extend(bg)
     np.savez(filename, *pts)
-        
+
+    
 def loadPoints(filename):
     container = np.load(filename)
-    data = [container[key] for key in container]
-    
+    data = [container[key] for key in container] 
     ret = []
     if data[0] == PointContour_ID:
-        label = data[1::2]
-        array = data[2::2]
+        label = data[1]
+        array = data[2]
         ret = [Point(x,y) for x,y in zip(label,array)]
-    return ret
+        if len(data) > 3:
+            bg = unpackContours(data[3:])
+        else:
+            bg = None
+    return ret, bg
 
 def extractPointsFromLabel(image):
     numclasses = np.max(image)
@@ -117,6 +129,8 @@ def extractPointsFromContours(image, minsize, offset = (0,0)):
     return points
 
 def drawPointsToLabel(image, points):
+    # add drawing of background 
+    # also add background removal in dl    
     for p in points:
         image[p.coordinates[1],p.coordinates[0]] = p.classlabel      
     return image

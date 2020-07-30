@@ -116,14 +116,14 @@ class Window(object):
         
         self.h2layout = QHBoxLayout(self.centralWidget)
         self.STransparency = QSlider(Qt.Horizontal, self.centralWidget)
-        self.STransparency.setToolTip('Set transparency of contours')
+        self.STransparency.setToolTip('Set opacity of contours')
         self.STransparency.setMinimum(0)
         self.STransparency.setMaximum(255)
-        self.LTransparency = QLabel(self.centralWidget)
-        self.LTransparency.setText(' Contour Transparency')
         
-        self.h2layout.addWidget(self.STransparency)
-        self.h2layout.addWidget(self.LTransparency)
+        self.LTransparency = QLabel(self.centralWidget)
+        self.LTransparency.setText(' Contour Opacity')
+        self.h2layout.addWidget(self.STransparency, stretch = 1)
+        self.h2layout.addWidget(self.LTransparency, stretch = 1)
         vlayout.addLayout(self.h2layout)
         groupBox.setLayout(vlayout)
         return groupBox

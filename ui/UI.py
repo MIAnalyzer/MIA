@@ -213,7 +213,18 @@ class MainWindow(object):
         self.BshiftObject.setObjectName('shift')
         self.BshiftObject.setToolTip('Select shift object tool')
         self.BshiftObject.setIcon(QIcon('icons/shift.png'))
-        
+        # assign class tool
+        self.BassignClass = DCDButton(self.centralWidget)
+        self.BassignClass.setMaximumSize(bwidth, bheight)
+        self.BassignClass.setObjectName('assignimageclass')
+        self.BassignClass.setToolTip('Assign current class')
+        self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
+        # set class tool
+        self.BsetClass = DCDButton(self.centralWidget)
+        self.BsetClass.setMaximumSize(bwidth, bheight)
+        self.BsetClass.setObjectName('setimageclass')
+        self.BsetClass.setToolTip('Assign current class and continue to next image')
+        self.BsetClass.setIcon(QIcon('icons/setclass.png'))
         
         # tool buttons
         self.ToolButtonslayout = QHBoxLayout(self.centralWidget)
@@ -229,6 +240,8 @@ class MainWindow(object):
         self.ToolButtonslayout.addWidget(self.Bassign)
         self.ToolButtonslayout.addWidget(self.Bextend)
         self.ToolButtonslayout.addWidget(self.Bdelete)
+        self.ToolButtonslayout.addWidget(self.BassignClass)
+        self.ToolButtonslayout.addWidget(self.BsetClass)
         
         self.vlayout.addWidget(self.ToolButtons)
 
@@ -239,25 +252,25 @@ class MainWindow(object):
 
         
         
-        ### classification (not using tools but regular button functions)
-        self.CButtonslayout = QHBoxLayout(self.centralWidget)
-        self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
-        self.BsetClass = DCDButton(self.centralWidget)
-        self.BsetClass.setMaximumSize(bwidth, bheight)
-        self.BsetClass.setToolTip('Assign current class and continue to next image')
-        self.BsetClass.setIcon(QIcon('icons/setclass.png'))
-        self.CButtonslayout.addWidget(self.BsetClass)
+        # ### classification (not using tools but regular button functions)
+        # self.CButtonslayout = QHBoxLayout(self.centralWidget)
+        # self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
+        # self.BsetClass = DCDButton(self.centralWidget)
+        # self.BsetClass.setMaximumSize(bwidth, bheight)
+        # self.BsetClass.setToolTip('Assign current class and continue to next image')
+        # self.BsetClass.setIcon(QIcon('icons/setclass.png'))
+        # self.CButtonslayout.addWidget(self.BsetClass)
 
-        self.BassignClass = DCDButton(self.centralWidget)
-        self.BassignClass.setMaximumSize(bwidth, bheight)
-        self.BassignClass.setToolTip('Assign current class')
-        self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
-        self.CButtonslayout.addWidget(self.BassignClass)
+        # self.BassignClass = DCDButton(self.centralWidget)
+        # self.BassignClass.setMaximumSize(bwidth, bheight)
+        # self.BassignClass.setToolTip('Assign current class')
+        # self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
+        # self.CButtonslayout.addWidget(self.BassignClass)
         
-        self.ClassificationButtons = QFrame()
-        self.ClassificationButtons.hide()
-        self.ClassificationButtons.setLayout(self.CButtonslayout)
-        self.vlayout.addWidget(self.ClassificationButtons)
+        # self.ClassificationButtons = QFrame()
+        # self.ClassificationButtons.hide()
+        # self.ClassificationButtons.setLayout(self.CButtonslayout)
+        # self.vlayout.addWidget(self.ClassificationButtons)
         
 
         

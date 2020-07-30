@@ -19,12 +19,21 @@ class ImageLabelPainter(Painter):
     def __init__(self, canvas):
         super(ImageLabelPainter,self).__init__(canvas)
         self.tools.append(canvasTool.drag)
+        self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.assignimageclass)
         self.imagelabel = None
 
+    def disableDrawBackgroundMode(self):
+        super(ImageLabelPainter, self).disableDrawBackgroundMode()
+        self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.assignimageclass)
+
     def draw(self):
+        super(ImageLabelPainter, self).draw()
         self.drawLabel()
     
     def clear(self):
+        super(ImageLabelPainter, self).clear()
         self.imagelabel = None
 
     def addImageLabel(self,classlabel=None):
@@ -35,13 +44,15 @@ class ImageLabelPainter(Painter):
 
     def load(self):
         self.clear()
-        if self.canvas.parent.files.CurrentLabelPath() is not None and os.path.exists(self.canvas.parent.files.CurrentLabelPath()):
-            self.imagelabel = loadImageLabel(self.canvas.parent.files.CurrentLabelPath())
-        
+        if self.canvas.parent.files.CurrentLabelPath() is not None and os.path.exists(self.canvas.parent.files.CurrentLabelPath()):    
+            self.imagelabel, background = loadImageLabel(self.canvas.parent.files.CurrentLabelPath())
+            if background:
+                self.contours.addShapes(background)
+
     def save(self):
-        if self.imagelabel:
+        if self.imagelabel or not self.contours.empty():
             self.canvas.parent.ensureLabelFolder()
-            saveImageLabel(self.imagelabel, self.canvas.parent.files.CurrentLabelPath())
+            saveImageLabel(self.imagelabel, self.canvas.parent.files.CurrentLabelPath(), background = self.backgroundshapes)
         else:
             self.canvas.parent.deleteLabel()
         

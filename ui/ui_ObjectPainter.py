@@ -17,31 +17,77 @@ from ui.Tools import canvasTool
 class ObjectPainter(Painter):
     def __init__(self, canvas):
         super(ObjectPainter,self).__init__(canvas)
-        self.shapes = Point.Points()
+        self.points = Point.Points()
+        self.backgroundmode = False
+
+    @property
+    def shapes(self):
+        if self.backgroundmode:
+            return self.contours
+        else:
+            return self.points
+
+    def enableDrawBackgroundMode(self):
+        super(ObjectPainter, self).enableDrawBackgroundMode()
+        self.backgroundmode = True
+
+    def disableDrawBackgroundMode(self):
+        super(ObjectPainter, self).disableDrawBackgroundMode()
         self.tools.append(canvasTool.drag)
         self.tools.append(canvasTool.point)
         self.tools.append(canvasTool.shift)
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.delete)
+        self.backgroundmode = False
         
     def draw(self):
-        for p in self.shapes.shapes:  
-            self.drawpoint(p)
+        super(ObjectPainter, self).draw()
+        for x in range(self.canvas.parent.NumOfClasses()):
+            self.drawClass(x)
+
+    def drawClass(self, x):  
+        painter = self.getPainter()
+        path = QPainterPath()
+        shapes = self.points.getShapesOfClass_x(x)
+        color = self.canvas.parent.ClassColor(x)
+        self.setPainterColor(painter, color)
+        for p in shapes:
+            qp = self.canvas.Point2QPoint(p)
+            p1 = QPoint(qp.x() - self.canvas.FontSize, qp.y())
+            p2 = QPoint(qp.x() + self.canvas.FontSize, qp.y())
+            p3 = QPoint(qp.x(), qp.y() - self.canvas.FontSize)
+            p4 = QPoint(qp.x(), qp.y() + self.canvas.FontSize)
+                     
+            path.moveTo(p1)
+            path.lineTo(p2)
+            path.moveTo(p3)
+            path.lineTo(p4)
+
+            if self.canvas.drawShapeNumber:
+                pointnumber = self.points.getShapeNumber(p)
+                painter.drawText(self.getLabelNumPosition(p) , str(pointnumber))
+        painter.drawPath(path)   
     
     def clear(self):
-        self.shapes.clear()
+        super(ObjectPainter, self).clear()
+        self.points.clear()
 
     def load(self):
         self.clear()
-        if self.canvas.parent.files.CurrentLabelPath() is not None and os.path.exists(self.canvas.parent.files.CurrentLabelPath()):
-            self.shapes.load(self.canvas.parent.files.CurrentLabelPath())
+        path = self.canvas.parent.files.CurrentLabelPath()
+        if path is not None and os.path.exists(path):
+            points, background = Point.loadPoints(path)
+            self.points.addShapes(points)
+            if background:
+                self.contours.addShapes(background)
         
     def save(self):
-        if not self.shapes.empty():
+        if not self.points.empty() or not self.contours.empty():
             self.canvas.parent.ensureLabelFolder()
-            self.shapes.save(self.canvas.parent.files.CurrentLabelPath())
+            Point.savePoints(self.points.shapes, self.canvas.parent.files.CurrentLabelPath(), background = self.backgroundshapes)
         else:
             self.canvas.parent.deleteLabel()
+
         
     def checkForChanges(self):
         # to do
@@ -51,26 +97,9 @@ class ObjectPainter(Painter):
     def addPoint(self, point, classlabel=None):
         if classlabel == None:
             classlabel = self.canvas.parent.activeClass()
-        self.shapes.addShape(Point.Point(classlabel,self.canvas.QPoint2npPoint(point)))
+        self.points.addShape(Point.Point(classlabel,self.canvas.QPoint2npPoint(point)))
         self.canvas.redrawImage()
 
-    def drawpoint(self,p):
-        painter = self.getPainter()
-        color = self.canvas.parent.ClassColor(p.classlabel)
-        self.setPainterColor(painter, color)
-        
-        qp = self.canvas.Point2QPoint(p)
-        p1 = QPoint(qp.x() - self.canvas.FontSize, qp.y())
-        p2 = QPoint(qp.x() + self.canvas.FontSize, qp.y())
-        p3 = QPoint(qp.x(), qp.y() - self.canvas.FontSize)
-        p4 = QPoint(qp.x(), qp.y() + self.canvas.FontSize)
-        
-        painter.drawLine(p1, p2)
-        painter.drawLine(p3, p4)
-
-        if self.canvas.drawShapeNumber:
-            pointnumber = self.shapes.getShapeNumber(p)
-            painter.drawText(self.getLabelNumPosition(p) , str(pointnumber))
             
     def getLabelNumPosition(self, point):
         coo = point.coordinates
