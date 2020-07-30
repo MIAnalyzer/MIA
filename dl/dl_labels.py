@@ -13,16 +13,6 @@ import glob
 import os
 from itertools import repeat, chain
 
-# def LoadLabel(filename, height, width):
-#     label = np.zeros((height, width, 1), np.uint8)
-#     if labeltype == 'contour':
-#         contours = Contour.loadContours(filename)
-#         return Contour.drawContoursToLabel(label, contours)
-#     if labeltype == 'points':
-#         points = Point.loadPoints(filename)
-#         return Point.drawPointsToLabel(label, points)
-
-
 def getAllImageLabelPairPaths(imagepath, labelpath):
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
@@ -56,6 +46,8 @@ def splitStackLabels(image, folder):
     return images, subfiles
 
 def unrollPaths(images, labels):
+    if not images or not labels:
+        return None, None
     split = [splitStackLabels(x,y) for x,y in zip(images, labels)]
     images,labels = zip(*split)
     images = list(chain.from_iterable(images))

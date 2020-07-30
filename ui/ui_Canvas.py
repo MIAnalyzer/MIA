@@ -172,6 +172,9 @@ class Canvas(QGraphicsView):
         if image is None:
             self.parent.PopupWarning('No image loaded')
             return
+        return self.convert2Pixmap(image)
+        
+    def convert2Pixmap(self, image):
         image = QImage(image, image.shape[1], image.shape[0], image.shape[1] * 3,QImage.Format_RGB888).rgbSwapped() 
         return QPixmap(image)
         
@@ -198,18 +201,19 @@ class Canvas(QGraphicsView):
     def getLabel(self):
         self.painter.load()
     
-    def redrawImage(self):
+    def redrawImage(self, quickdraw=False):
         if self.rawimage is not None:
             self.displayedimage.setPixmap(self.rawimage.copy())
-            self.drawLabel()
+            self.drawLabel(not quickdraw)
             
-    def drawLabel(self):
+            
+    def drawLabel(self, shapeschanged=True):
         if self.image() is None:
             return  
         self.painter.draw()
-
         self.updateImage()
-        self.parent.numOfShapesChanged()
+        if shapeschanged:
+            self.parent.numOfShapesChanged()
         
     def clearLabel(self):
         self.painter.clear()
@@ -256,12 +260,18 @@ class Canvas(QGraphicsView):
             self.tool = Tools.PointTool(self)
         if tool == canvasTool.shift.name:
             self.tool = Tools.ShiftTool(self)
+        if tool == canvasTool.setimageclass.name:
+            self.tool = Tools.setImageClassTool(self)
+        if tool == canvasTool.assignimageclass.name:
+            self.tool = Tools.assignImageClassTool(self)
         
+        self.tool.initialize()
         self.tool.ShowSettings()
         self.parent.writeStatus('Current Tool: ' + self.tool.Text) 
         self.updateCursor()
         
     def setCanvasMode(self, mode):
+        self.enableToggleTools = True
         if mode == dlMode.Segmentation:
             self.painter = ContourPainter(self)
             self.setMinimumContourSize(self.minContourSize)
@@ -269,8 +279,10 @@ class Canvas(QGraphicsView):
             self.painter = ObjectPainter(self)
         elif mode == dlMode.Classification:
             self.painter = ImageLabelPainter(self)
+            self.enableToggleTools = False
         else:
             self.painter = NoPainter(self)
+            self.enableToggleTools = False
         self.parent.setToolButtons()
         
     def updateCursor(self):

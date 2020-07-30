@@ -28,6 +28,8 @@ class canvasTool(Enum):
     scale =  'scale'
     shift = 'shift'
     point = 'point'
+    setimageclass = 'setimageclass'
+    assignimageclass = 'assignimageclass'
     
     
 
@@ -64,6 +66,9 @@ class AbstractTool(ABC):
 
     @abstractmethod
     def Cursor(self):
+        pass
+    
+    def initialize(self):
         pass
 
     def ShowSettings(self):
@@ -407,7 +412,7 @@ class ShiftTool(AbstractTool):
             p = self.canvas.mapToScene(e.pos())
             self.shiftedShape.coordinates = self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p))
             if not self.canvas.fastPainting:
-                self.canvas.redrawImage()
+                self.canvas.redrawImage(True)
 
     @validTool    
     def mouseReleaseEvent(self,e):
@@ -483,3 +488,65 @@ class ScaleTool(AbstractTool):
 
     def Cursor(self):
         return Qt.UpArrowCursor
+    
+    
+class DummyTool(AbstractTool):
+    # dummy tool, that executes on Button press,
+    # no interaction with canvas
+    def __init__(self, canvas, text):
+        super().__init__(canvas)
+        self.Text = text
+        print('base')
+        self.canvas.setnewTool(canvasTool.drag.name)
+        
+    def mouseMoveEvent(self, e):
+        pass
+    def mouseReleaseEvent(self,e):
+        pass
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
+    
+class setImageClassTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Set image class"
+        self.type = canvasTool.setimageclass
+        
+    def initialize(self):
+        # a bit hacky and poor designed as this is the execute
+        self.canvas.assignImageClass()
+        self.canvas.parent.nextImage()
+        self.canvas.setnewTool(canvasTool.drag.name)
+
+    def mouseReleaseEvent(self,e):
+        pass
+    def mouseMoveEvent(self,e):
+        pass
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
+        
+        
+class assignImageClassTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Assign image class"
+        self.type = canvasTool.assignimageclass
+        
+    def initialize(self):
+        self.canvas.assignImageClass()
+        self.canvas.setnewTool(canvasTool.drag.name)
+        
+    def mouseReleaseEvent(self,e):
+        pass
+    def mouseMoveEvent(self,e):
+        pass
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  

@@ -27,11 +27,9 @@ class Contours(Shapes):
         
     def ShapeAlreadyExist(self,c):
         return checkIfContourInListOfContours(c, self.shapes) and c.isValid(self.minSize)
-
             
     def addShapes(self,cts):
         cnts = getContoursNotinListOfContours(cts, self.shapes)
-
         new_cnts = [ x for x in cnts if x.labeltype == self.labeltype and x.isValid(self.minSize)]
         self.shapes.extend(new_cnts)
 
@@ -317,10 +315,9 @@ def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
     ret_contours.reverse()
     return ret_contours
 
-
-def saveContours(contours, filename):
+def packContours(contours):
     if len(contours) == 0:
-        return
+        return None
 
     f1 = lambda x: x.classlabel
     f2 = lambda x: x.points
@@ -328,12 +325,9 @@ def saveContours(contours, filename):
     f3 = lambda x: x.packedInnerContours()
     cnts = [f(x) for x in contours if x.isValid() for f in (f1, f2, f3)]
     cnts.insert(0,contours[0].labeltype)
-    np.savez(filename, *cnts)
-        
-def loadContours(filename):
-    container = np.load(filename)
-    data = [container[key] for key in container]
+    return cnts
     
+def unpackContours(data):
     ret = []
     
     if data[0] == FreeFormContour_ID_legacy:
@@ -347,7 +341,15 @@ def loadContours(filename):
         ret = [Contour(x,y,z) for x,y,z in zip(label,array,inner)]
     return ret
 
-
+def saveContours(contours, filename):
+    cnts = packContours(contours)
+    if cnts:
+        np.savez(filename, *cnts)
+        
+def loadContours(filename):
+    container = np.load(filename)
+    data = [container[key] for key in container]
+    return unpackContours(data)
 
 def findContours(image, ext_only = False, offset=(0,0)):
     structure = cv2.RETR_EXTERNAL if ext_only else cv2.RETR_CCOMP 

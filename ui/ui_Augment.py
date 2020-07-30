@@ -47,10 +47,12 @@ class Window(object):
         sizelayout.setContentsMargins(1, 1, 1, 1)
         self.SBModelInputSize_x = LabelledSpinBox(' Input width', self.centralWidget)
         self.SBModelInputSize_x.setToolTip('Set model input width')
-        self.SBModelInputSize_x.SpinBox.setRange(1,1024)
+        self.SBModelInputSize_x.SpinBox.setRange(32,1024)
+        self.SBModelInputSize_x.SpinBox.setSingleStep(32)
         self.SBModelInputSize_y = LabelledSpinBox(' Input height', self.centralWidget)
         self.SBModelInputSize_y.setToolTip('Set model input height')
         self.SBModelInputSize_y.SpinBox.setRange(1,1024)
+        self.SBModelInputSize_y.SpinBox.setSingleStep(32)
 
         sizelayout.addWidget(self.SBModelInputSize_x)
         sizelayout.addWidget(self.SBModelInputSize_y)
