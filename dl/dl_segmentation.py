@@ -55,3 +55,6 @@ class Segmentation(PixelBasedPrediction, LearningMode):
             prediction[prediction>0.5] = 1
             prediction[prediction<=0.5] = 0
         return prediction
+    
+    def resizeLabel(self, label, shape):
+        return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)

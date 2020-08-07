@@ -46,3 +46,11 @@ class LearningMode(ABC):
     @abstractmethod
     def PredictImage(self, image):
         pass
+    
+    @abstractmethod
+    def resizeLabel(self, label, shape):
+        pass
+
+        
+        
+        

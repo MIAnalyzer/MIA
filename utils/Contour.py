@@ -251,13 +251,14 @@ def drawContoursToLabel(label, contours):
        target = bg_contours if c.classlabel == 0 else target_contours
        target.append(c)
        
-    if bg_contours == list():
-        label[:] = (BACKGROUNDCLASS)
-    else:
-        for c in bg_contours:
-            cnt = c.points
-            if c.numPoints() > 0: 
-                cv2.drawContours(label, [cnt], 0, (BACKGROUNDCLASS), -1)        
+    label = drawbackgroundToLabel(label, bg_contours)
+    # if bg_contours == list():
+    #     label[:] = (BACKGROUNDCLASS)
+    # else:
+    #     for c in bg_contours:
+    #         cnt = c.points
+    #         if c.numPoints() > 0: 
+    #             cv2.drawContours(label, [cnt], 0, (BACKGROUNDCLASS), -1)        
         
     for c in target_contours:
         cnt = c.points
@@ -267,6 +268,16 @@ def drawContoursToLabel(label, contours):
             # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
             cv2.drawContours(label, c.innercontours, -1, (int(c.classlabel)), 1)
 
+    return label
+
+def drawbackgroundToLabel(label, background):
+    if not background or background == list():
+        label[:] = (BACKGROUNDCLASS)
+    else:
+        for c in background:
+            cnt = c.points
+            if c.numPoints() > 0: 
+                cv2.drawContours(label, [cnt], 0, (BACKGROUNDCLASS), -1)  
     return label
        
 def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
@@ -316,7 +327,7 @@ def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
     return ret_contours
 
 def packContours(contours):
-    if len(contours) == 0:
+    if not contours or len(contours) == 0:
         return None
 
     f1 = lambda x: x.classlabel

@@ -117,11 +117,9 @@ class ImageData():
         return self.parent.Mode.preprocessLabel(label)
     
     
-    def removeUnlabelledData(self, image, label, removeunlabelleddata = True):
-        # remove unlabelled data
-        if removeunlabelleddata:
-            _, thresh = cv2.threshold(label, 0, 255,  cv2.THRESH_BINARY)
-            image = cv2.bitwise_and(image,image, mask=thresh)
+    def removeUnlabelledData(self, image, label):
+        _, thresh = cv2.threshold(label, 0, 255,  cv2.THRESH_BINARY)
+        image = cv2.bitwise_and(image,image, mask=thresh)
             
         # remove background
         label[np.where(label == 255)] = 0
@@ -157,11 +155,10 @@ class ImageData():
         height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
               
         train_mask = self.parent.Mode.LoadLabel(mask, train_img.shape[0], train_img.shape[1])
-            
-        train_img =  cv2.resize(train_img, (width, height))
-        train_mask = cv2.resize(train_mask, (width, height), interpolation = cv2.INTER_NEAREST )
 
         train_img, train_mask = self.removeUnlabelledData(train_img, train_mask) 
+        train_img =  cv2.resize(train_img, (width, height))
+        train_mask = self.parent.Mode.resizeLabel(train_mask, (width, height))
 
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)

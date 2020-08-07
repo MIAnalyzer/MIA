@@ -150,7 +150,7 @@ class DeepLearning(dlObservable):
     def executeTraining(self, trainingimages_path, traininglabels_path):
         try:
             self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
-            if not self.data.initialized:
+            if not self.data.initialized():
                 return
 
             train_generator = dl_datagenerator.TrainingDataGenerator(self)

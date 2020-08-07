@@ -19,7 +19,6 @@ class Classification(LearningMode):
     def preprocessLabel(self, label):
         return label
 
-
     def getModel(self, nclasses, monochr):
         return None
 
@@ -31,3 +30,6 @@ class Classification(LearningMode):
     
     def PredictImage(self, image):
         pass
+    
+    def resizeLabel(self, label, shape):
+        return label
