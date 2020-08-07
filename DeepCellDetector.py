@@ -612,7 +612,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
             if image is None:
                 self.PopupWarning('No image loaded')
-            prediction = self.dl.AutoSegment(image)
+                return
+            try:
+                prediction = self.dl.AutoSegment(image)
+            except:
+                self.PopupWarning('Auto prediction not possible')
+                return
             if self.LearningMode() == dlMode.Segmentation:
                 shapes = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             elif self.LearningMode() == dlMode.Object_Counting:
