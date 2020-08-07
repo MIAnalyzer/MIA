@@ -1,7 +1,6 @@
 
 
 import cv2
-
 # see https://github.com/opencv/opencv/blob/master/samples/dnn/edge_detection.py
 
 class CropLayer(object):
@@ -36,9 +35,15 @@ class HED_Segmentation():
         cv2.dnn_registerLayer('Crop', CropLayer)
         proto = './hed/deploy.prototxt'
         model = './hed/hed_pretrained_bsds.caffemodel'
-        self.net = cv2.dnn.readNet(proto, model)
+        try:
+            self.net = cv2.dnn.readNet(proto, model)
+        except:
+            # can not load file
+            self.net = None
 
     def applyHED(self, image):
+        if not self.net:
+            raise # model not loaded
         if image.dtype == 'uint16':
             image = (image/256).astype('uint8')
             
