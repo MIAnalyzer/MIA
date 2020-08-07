@@ -13,8 +13,6 @@ def main():
     
 
 # 1111111111111111111111111111111111111111111111111111111111    
-#    command = r"python -m PyInstaller --onefile DeepCellDetector.py"
-#    add following
 #import sys
 #sys.setrecursionlimit(5000)
    
@@ -29,7 +27,7 @@ def main():
 
     
  
-# ☺333333333333333333333333333333333333333333
+# 333333333333333333333333333333333333333333
 #from PyInstaller.utils.hooks import collect_submodules   
 #hiddenimports=collect_submodules('tensorflow_core')
 
@@ -40,20 +38,22 @@ def main():
 # hookspath=['hooks'],
 
 # 5555555555555555555
-# copy / add google_api_python_client-xxx
+# added_files = [
+#        ('./add/google_api_python_client-1.8.2.dist-info/*.*', './google_api_python_client-1.8.2.dist-info')
+#		]
+
+
+# 66666666666666666
+# excludes=['torch'], 
+# only necessary for one-file removes warning upon start
     
 
+# update: relevant are only 1,5,6 and probably 2 depending on system
+
     
-    added_files = [
-        ('C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml', './dask'),
-		('P:/abteilung9/90/nils/DeepCellDetector/icons', 'icons'),
-        ('P:/abteilung9/90/nils/DeepCellDetector/icons/*.png', 'icons')
-        ]
-    
-    
-    
+
     build_exe = r"python -m PyInstaller --noconfirm startup.spec"
-    spec = r"pyi-makespec -F --noconsole --noupx --log-level=WARN -i ../icons/logo.ico --additional-hooks-dir=hooks ../startup.py"
+    spec = r"pyi-makespec -F --noconsole --noupx --log-level=WARN --exclude-module=torch -i ../icons/logo.ico  ../startup.py"
     spec_debug = r"pyi-makespec -D --noupx --debug all --log-level=DEBUG ../startup.py"
     spec_test = r"pyi-makespec -D --noupx --debug all --log-level=DEBUG testbuild.py"
     build_test = r"python -m PyInstaller --noconfirm testbuild.spec"
