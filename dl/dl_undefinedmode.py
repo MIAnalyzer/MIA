@@ -31,3 +31,6 @@ class UndefinedMode(LearningMode):
     
     def PredictImage(self, image):
         pass
+    
+    def resizeLabel(self, label, shape):
+        return label

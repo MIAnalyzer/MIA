@@ -48,7 +48,7 @@ OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = True
+CPU_ONLY = False
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):

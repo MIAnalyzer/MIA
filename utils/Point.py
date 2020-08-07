@@ -10,7 +10,7 @@ Created on Thu Jun 25 15:22:17 2020
 import numpy as np
 import math
 from utils.Shape import Shape, Shapes, PointContour_ID
-from utils.Contour import findContours, packContours, unpackContours
+from utils.Contour import findContours, packContours, unpackContours, drawbackgroundToLabel
 import cv2
 
 
@@ -75,6 +75,7 @@ def distance_p1_p2(p1,p2):
 
 def savePoints(points, filename, background = None):
     bg = packContours(background)
+    pts = []
     if len(points) > 0:   
         f1 = lambda x: x.classlabel
         f2 = lambda x: x.coordinates
@@ -86,21 +87,22 @@ def savePoints(points, filename, background = None):
             pts = [PointContour_ID, [], []]
     if bg:
         pts.extend(bg)
-    np.savez(filename, *pts)
+    if pts:
+        np.savez(filename, *pts)
 
     
 def loadPoints(filename):
     container = np.load(filename)
     data = [container[key] for key in container] 
     ret = []
+    bg = None
     if data[0] == PointContour_ID:
         label = data[1]
         array = data[2]
         ret = [Point(x,y) for x,y in zip(label,array)]
         if len(data) > 3:
             bg = unpackContours(data[3:])
-        else:
-            bg = None
+            
     return ret, bg
 
 def extractPointsFromLabel(image):
@@ -128,9 +130,9 @@ def extractPointsFromContours(image, minsize, offset = (0,0)):
         points.append(Point(1, (cX, cY)))
     return points
 
-def drawPointsToLabel(image, points):
-    # add drawing of background 
-    # also add background removal in dl    
+def drawPointsToLabel(image, points, bg_contours): 
+    image = drawbackgroundToLabel(image, bg_contours)
+    
     for p in points:
         image[p.coordinates[1],p.coordinates[0]] = p.classlabel      
     return image
