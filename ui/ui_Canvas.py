@@ -293,7 +293,8 @@ class Canvas(QGraphicsView):
             return
             
         if self.tool.type == canvasTool.drag:
-            self.setnewTool(self.lasttool.type.name)
+            if self.lasttool.type in self.painter.tools:
+                self.setnewTool(self.lasttool.type.name)
         else:
             self.setnewTool(canvasTool.drag.name)
             

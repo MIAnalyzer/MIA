@@ -31,7 +31,7 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
 
         if self.parent.NumClasses > 2:
             # convert to an 1-hot encoded heatmap representing with the point coordinates in its maxima
-            one_hot = np.eye(self.parent.NumClasses)[np.squeeze(label, axis=-1)]
+            one_hot = np.eye(self.parent.NumClasses)[np.squeeze(label.astype(int), axis=-1)]
             for i in range(label.shape[0]):
                 one_hot[i,...] = cv2.filter2D(one_hot[i,...],-1, kernel)
                 one_hot[i,...,0] = one_hot[i,...,0]-(1-np.max(kernel))
