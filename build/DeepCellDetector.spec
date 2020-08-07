@@ -3,27 +3,19 @@
 block_cipher = None
 import sys
 sys.setrecursionlimit(5000)
-from PyInstaller.utils.hooks import collect_submodules   
-#hiddenimports=collect_submodules('tensorflow_core')
 
 added_files = [
-        ('C:/Users/Koerber/.conda/envs/nils_dev/Lib/site-packages/dask/dask.yaml', './dask'),
-		('C:/cudnn-10.1-windows10-x64-v7.6.3.30/cuda/bin/cudnn64_7.dll', '.'),
-		('./add/msvcp140.dll', '.'),
-		('./add/msvcp140_1.dll', '.')
-#		('P:/abteilung9/90/nils/DeepCellDetector/icons', 'icons'),
-#		('P:/abteilung9/90/nils/DeepCellDetector/icons/*.png', './icons')
-        ]
+        ('./add/google_api_python_client-1.8.2.dist-info/*.*', './google_api_python_client-1.8.2.dist-info')
+		]
 
-
-a = Analysis(['..\\DeepCellDetector.py'],
-             pathex=['P:\\abteilung9\\90\\nils\\DeepCellDetector\\build'],
+a = Analysis(['..\\startup.py'],
+             pathex=['C:\\Users\\User\\Documents\\deep learning\\bfr\\DeepCellDetector\\build'],
              binaries=[],
              datas=added_files,
-             hiddenimports=collect_submodules('tensorflow_core'),
-             hookspath=['hooks'],
+             hiddenimports=[],
+             hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['torch'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
