@@ -43,7 +43,7 @@ from ui.ui_utils import DCDButton
 import numpy as np
 
 PREDICT_WORMS = False
-PREDICT_SPINES = True
+PREDICT_SPINES = False
 OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
