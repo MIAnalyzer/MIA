@@ -13,6 +13,8 @@ from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
 from ui.style import styleForm
 from dl.optimizer.optimizer import dlOptim
 from dl.dl_lrschedule import lrMode
+from dl.metric.metrics import dlMetric
+from dl.loss.losses import dlLoss
 
 class Window(object):
     def setupUi(self, Form):
@@ -60,11 +62,8 @@ class Window(object):
         self.CBMetrics.addItem("IoU")
         self.CBMetrics.setToolTip('Set metric to measure network perforance')
         self.CBOptimizer = QComboBox(self.centralWidget)
-        self.CBOptimizer.addItem("Adam")
-        self.CBOptimizer.addItem("AdaDelta")
-        self.CBOptimizer.addItem("AdaGrad")
-        self.CBOptimizer.addItem("AdaMax")
-        self.CBOptimizer.addItem("SGDNesterov")
+        for opt in dlOptim:
+            self.CBOptimizer.addItem(opt.name)
         self.CBOptimizer.setToolTip('Set optimizer to minimize loss function')
         hlayout.addWidget(self.CBLoss)
         hlayout.addWidget(self.CBMetrics)
@@ -164,7 +163,9 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBMemory.stateChanged.connect(self.InMemoryChanged)
         self.CBDitanceMap.stateChanged.connect(self.ShapeSeparationChanged)
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
-        
+        self.CBMetrics.currentIndexChanged.connect(self.changeMetric)
+        self.CBLoss.currentIndexChanged.connect(self.changeLoss)
+
         self.RBConstant.clicked.connect(self.LROption)
         self.RBRlroP.clicked.connect(self.LROption)
         self.RBLRschedule.clicked.connect(self.LROption)
@@ -179,7 +180,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         
         self.RBConstant.setChecked(True)
         self.LROption()
-
+        self.updateLossesAndMetrics()
 
     def InMemoryChanged(self):
         self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
@@ -214,7 +215,6 @@ class TrainSettingsWindow(QMainWindow, Window):
             self.parent.parent.dl.lrschedule.setMode(lrMode.Schedule)
         self.SBEveryx.SpinBox.setValue(self.parent.parent.dl.lrschedule.ReduceEveryXEpoch)
         self.SBReduction.SpinBox.setValue(self.parent.parent.dl.lrschedule.ReductionFactor)
-
             
     def changeReductionFactor(self):
         self.parent.parent.dl.lrschedule.ReductionFactor = self.SBReduction.SpinBox.value() 
@@ -227,7 +227,6 @@ class TrainSettingsWindow(QMainWindow, Window):
     def changeIntervall(self):
         self.parent.parent.dl.lrschedule.ReduceEveryXEpoch = self.SBEveryx.SpinBox.value()
  
-        
     def changeLR(self):
         self.parent.SBLearningRate.SpinBox.setValue(self.SBlr.SpinBox.value())
             
@@ -235,4 +234,25 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.SBlr.SpinBox.blockSignals(True)
         self.SBlr.SpinBox.setValue(value)
         self.SBlr.SpinBox.blockSignals(False)
+
+    def changeLoss(self):
+        if self.CBLoss.currentText() != '': 
+            self.parent.parent.dl.Mode.loss.loss = dlLoss[self.CBLoss.currentText()]
+
+    def changeMetric(self):
+        if self.CBMetrics.currentText() != '':
+            self.parent.parent.dl.Mode.metric.metric = dlMetric[self.CBMetrics.currentText()]
+
+    def updateLossesAndMetrics(self):
+        self.CBLoss.clear()
+        self.CBMetrics.clear()
+        default_loss = self.parent.parent.dl.Mode.loss.loss.name
+        default_metric = self.parent.parent.dl.Mode.metric.metric.name
+        for loss in self.parent.parent.dl.Mode.loss.supportedlosses:
+            self.CBLoss.addItem(loss.name)
+        for metric in self.parent.parent.dl.Mode.metric.supportedmetrics:
+            self.CBMetrics.addItem(metric.name)
+        self.CBLoss.setCurrentIndex(self.CBLoss.findText(default_loss))
+        self.CBMetrics.setCurrentIndex(self.CBMetrics.findText(default_metric))
+
 

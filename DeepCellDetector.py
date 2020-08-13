@@ -250,6 +250,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
         self.canvas.setCanvasMode(self.LearningMode())
+        try:
+            self.training_form.settings_form.updateLossesAndMetrics()
+        except:
+            pass
+            # not initialized
         self.setWorkingFolder()
         
     def setToolButtons(self):
