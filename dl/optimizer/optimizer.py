@@ -9,17 +9,17 @@ from tensorflow.keras.optimizers import Adam, Adamax, Adadelta, Adagrad, SGD
 from enum import Enum
 
 class dlOptim(Enum):
-    Adam = 1
-    AdaMax = 2
-    AdaDelta = 3
-    AdaGrad = 4
+    adam = 1
+    adamax = 2
+    adadelta = 3
+    adagrad = 4
     SGDNesterov = 5
 
 
 class Optimizer():
     def __init__(self,parent):
         self.parent = parent
-        self.Optimizer = dlOptim.Adam
+        self.Optimizer = dlOptim.adam
         
     def getOptimizer(self):
         print(self.Optimizer)
