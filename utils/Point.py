@@ -20,11 +20,11 @@ class Points(Shapes):
         self.mindistance = 3
 
     def addShapes(self,pts):
-        for p in pts:
-            self.addShape(p)
+        # atm it is not checked whether pts are within self.mindistance
+        ext = [x for x in pts if x.labeltype == self.labeltype and not self.ShapeAlreadyExist(x)]
+        self.shapes.extend(ext)
 
     def ShapeAlreadyExist(self,s):
-        # return next((True for elem in self.shapes if all(elem.coordinates == s.coordinates)), False)
         return next((True for elem in self.shapes if distance_p1_p2(elem.coordinates,s.coordinates) < self.mindistance), False)
     
     def load(self, filename):
@@ -100,6 +100,7 @@ def loadPoints(filename):
         label = data[1]
         array = data[2]
         ret = [Point(x,y) for x,y in zip(label,array)]
+        
         if len(data) > 3:
             bg = unpackContours(data[3:])
             

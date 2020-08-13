@@ -140,9 +140,14 @@ class ImageData():
         channels = 1 if self.parent.MonoChrome is True else 3
 
         # handle image stacks and others
+        # using same label for complete stack unhandled atm
         if isinstance(masks[index], tuple):
             mask = masks[index][0]
-            frame = int(masks[index][1])
+            try:
+                frame = int(masks[index][1])
+            except:
+                print(masks[index][1])
+                raise # not a valid label for a stack
             image = images[index][0]
         else:
             mask = masks[index]

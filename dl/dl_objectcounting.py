@@ -13,11 +13,18 @@ from skimage.feature import peak_local_max
 import utils.Point as Point
 import numpy as np
 import cv2
+from dl.loss.regression_losses import RegressionLosses
+from dl.metric.regression_metrics import RegressionMetrics
+
+
 
 class ObjectCounting(PixelBasedPrediction, LearningMode):
     def __init__(self, parent):
-        super(ObjectCounting,self).__init__(parent)
+        PixelBasedPrediction.__init__(self,parent)  
+        LearningMode.__init__(self, parent)
         self.type = dlMode.Object_Counting
+        self.metric = RegressionMetrics(parent)
+        self.loss = RegressionLosses(parent)
         
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
@@ -41,7 +48,8 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
                 label[i,...,0] = cv2.filter2D(label[i,...],-1, kernel)
 
         # do we need to scale when using regression as output
-        scale = 1/np.max(kernel)
+        # scale = 1/np.max(kernel)
+        scale = 150
         return label*scale
 
     def getModel(self, nclasses, monochr):
@@ -59,12 +67,14 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
     def convert2Image(self,prediction):
         prediction = np.squeeze(prediction)
         result = np.zeros(prediction.shape)
+        # threshold?
+        prediction[prediction < 1] = 0
         if self.parent.NumClasses > 2:
             for i in range(1,result.shape[2]):
-                peaks = peak_local_max(prediction[...,i], min_distance=2, indices = False)
+                peaks = peak_local_max(prediction[...,i], min_distance=3, indices = False)
                 result[peaks] = i
         else:
-            peaks = peak_local_max(prediction, min_distance=2, indices = False)
+            peaks = peak_local_max(prediction, min_distance=3, indices = False)
             result[peaks] = 1
         return result
     
@@ -74,12 +84,13 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         if self.parent.NumClasses > 2:
             for i in range(1,np.max(label)):
                 indices = np.where(label==i)
-                idx_0 = (indices[0] / label.shape[0] * shape[0]).astype(int)
-                idx_1 = (indices[1] / label.shape[1] * shape[1]).astype(int)
-                newlabel[(idx_0, idx_1)] = i
+                idx_0 = (indices[0] / label.shape[0] * shape[1]).astype(int)
+                idx_1 = (indices[1] / label.shape[1] * shape[0]).astype(int)
+                newlabel[(idx_1, idx_0)] = i
         else:
             indices = np.where(label==1) 
-            idx_0 = (indices[0] / label.shape[0] * shape[0]).astype(int)
-            idx_1 = (indices[1] / label.shape[1] * shape[1]).astype(int)
+            idx_0 = (indices[0] / label.shape[0] * shape[1]).astype(int)
+            idx_1 = (indices[1] / label.shape[1] * shape[0]).astype(int)
+
             newlabel[(idx_0, idx_1)] = 1
         return newlabel

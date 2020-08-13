@@ -22,6 +22,8 @@ class LearningMode(ABC):
     def __init__(self, parent):
         self.type = None
         self.parent = parent
+        self.metric = None
+        self.loss = None
         
     @abstractmethod
     def LoadLabel(self, filename, height, width):

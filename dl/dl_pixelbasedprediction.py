@@ -23,7 +23,9 @@ class PixelBasedPrediction(ABC):
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
         
         pred = self.predictTiled(image)
-        pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
+
+        # pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
+        pred = self.resizeLabel(pred, (width, height))
         return pred
     
     def predictTiled(self, image):
@@ -75,5 +77,9 @@ class PixelBasedPrediction(ABC):
     
     @abstractmethod
     def convert2Image(self,prediction):
+        pass
+    
+    @abstractmethod
+    def resizeLabel(self, label, shape):
         pass
         

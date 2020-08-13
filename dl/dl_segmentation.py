@@ -11,12 +11,18 @@ import dl.models.resnet50_SegNet as resnet50_SegNet
 import dl.models.simple_SegNet as simple_SegNet
 import utils.Contour as Contour
 import numpy as np
+import cv2
+from dl.loss.segmentation_losses import SegmentationLosses
+from dl.metric.segmentation_metrics import SegmentationMetrics
 
 class Segmentation(PixelBasedPrediction, LearningMode):
     def __init__(self, parent):
-        super(Segmentation,self).__init__(parent)
+        PixelBasedPrediction.__init__(self,parent)  
+        LearningMode.__init__(self, parent)
         self.type = dlMode.Segmentation
-        
+        self.metric = SegmentationMetrics(parent)
+        self.loss = SegmentationLosses(parent)
+
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
         contours = Contour.loadContours(filename)
@@ -37,9 +43,9 @@ class Segmentation(PixelBasedPrediction, LearningMode):
 
     def getModel(self, nclasses, monochr):
         if self.parent.ModelType == 0:
-            return simple_SegNet.simple_SegNet(nclasses, monochr, True)
+            return simple_SegNet.simple_SegNet(nclasses, monochr, False)
         elif self.parent.ModelType == 1:    
-            return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, True)
+            return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, False)
         
     def extractShapesFromPrediction(self, prediction, innercontours):
         return Contour.extractContoursFromLabel(prediction, innercontours)
