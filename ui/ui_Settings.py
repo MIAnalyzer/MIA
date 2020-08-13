@@ -36,8 +36,6 @@ class Window(object):
         
         self.dispParams = self.DispGroup()
         self.vlayout.addWidget(self.dispParams)
-
-        
         
     def DLGroup(self):
         groupBox = QGroupBox("Deep Learning Settings")
@@ -63,6 +61,7 @@ class Window(object):
         
         self.CBSeparateLabels = QCheckBox("Separate Labels of Stacks",self.centralWidget)
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
+        self.CBSeparateLabels.setEnabled(False)
         vlayout.addWidget(self.CBSeparateLabels)
 
 

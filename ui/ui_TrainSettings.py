@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
 from ui.style import styleForm
-from dl.DeepLearning import dlOptim
+from dl.optimizer.optimizer import dlOptim
 from dl.dl_lrschedule import lrMode
 
 class Window(object):
@@ -155,7 +155,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.TrainInMemory)
         
         self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
-        self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.Optimizer.name))
+        self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.optimizer.Optimizer.name))
         self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
         self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
         self.SBPredictEvery.SpinBox.setValue(self.parent.parent.predictionRate)
@@ -194,7 +194,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
         
     def changeOptimizer(self, i):
-        self.parent.parent.dl.setOptimizer(dlOptim[self.CBOptimizer.currentText()])
+        self.parent.parent.dl.optimizer.setOptimizer(dlOptim[self.CBOptimizer.currentText()])
         self.parent.SBLearningRate.SpinBox.setValue(self.parent.parent.dl.learning_rate)
         
     def LROption(self):

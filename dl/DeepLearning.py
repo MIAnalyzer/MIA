@@ -5,7 +5,7 @@ Created on Thu Nov  7 13:54:36 2019
 @author: Koerber
 """
 
-from tensorflow.keras.optimizers import Adam, Adamax, Adadelta, Adagrad, SGD
+
 from tensorflow.keras import losses
 from tensorflow.keras.metrics import MeanIoU
 from tensorflow.keras.models import load_model
@@ -24,9 +24,6 @@ import traceback
 import sys
 
 import dl.dl_datagenerator as dl_datagenerator
-# import dl.dl_models as dl_models
-import dl.dl_losses as dl_losses
-import dl.dl_metrics as dl_metrics
 import dl.dl_training_record as dl_training_record
 import dl.dl_hed as dl_hed
 import dl.dl_imagedata as dl_imagedata
@@ -37,27 +34,13 @@ from dl.dl_objectcounting import ObjectCounting
 from dl.dl_classification import Classification
 from dl.dl_undefinedmode import UndefinedMode
 from dl.dl_mode import dlMode
+from dl.optimizer.optimizer import Optimizer
 
 from utils.Observer import dlObservable
 
+
 import utils.Contour
 import multiprocessing
-
-
-class dlLoss(Enum):
-    focal = 1
-    # add optional class weights
-
-class dlMetric(Enum):
-    iou = 1
-
-class dlOptim(Enum):
-    Adam = 1
-    AdaMax = 2
-    AdaDelta = 3
-    AdaGrad = 4
-    SGDNesterov = 5
-    
 
 class DeepLearning(dlObservable):
     def __init__(self):
@@ -76,8 +59,7 @@ class DeepLearning(dlObservable):
         # split factor need to be reworked and reasonable, get it from network
         self.split_factor = 48
 
-        
-        # self.Models = dl_models.Models()
+    
         self.Mode = Segmentation(self)
         
         self.observer = None
@@ -89,9 +71,7 @@ class DeepLearning(dlObservable):
         self.lrschedule = dl_schedule.LearningRateSchedule(self)
 
 
-        self.Loss = dlLoss.focal
-        self.Metric = dlMetric.iou
-        self.Optimizer = dlOptim.Adam
+        self.optimizer = Optimizer(self)
 
     @property
     def NumClasses(self):
@@ -158,7 +138,7 @@ class DeepLearning(dlObservable):
                 val_generator = dl_datagenerator.TrainingDataGenerator(self, validation = True)
             else: 
                 val_generator = None    
-            self.Model.compile(optimizer=self._getOptimizer(), loss=self._getLoss(), metrics=self._getMetrics()) 
+            self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
             self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
         except:
             self.notifyTrainingFinished()
@@ -192,10 +172,8 @@ class DeepLearning(dlObservable):
         pred = self.hed.applyHED(image)
         _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret = cv2.resize(thresh, (width, height), interpolation=cv2.INTER_NEAREST)
-        
         return ret
-
-            
+       
     def parameterFit(self, nclasses, mono):
         if not self.initialized:
             return False    
@@ -205,7 +183,6 @@ class DeepLearning(dlObservable):
             return True       
         else:
             return False
-            
             
     def Reset(self):
         self.Model = None
@@ -224,37 +201,13 @@ class DeepLearning(dlObservable):
             callbacks.append(lr)
         return callbacks
     
-    def _getLoss(self):
-        if self.Loss == dlLoss.focal:
-            return dl_losses.focal_loss_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
+    # def _getLoss(self):
+    #     if self.Loss == dlLoss.focal:
+    #         return dl_losses.focal_loss_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
+    #     if self.Loss == dlLoss.mse:
+    #         return dl_losses.mean_squared_error()
 
-    def _getMetrics(self):
-        if self.Metric == dlMetric.iou:
-            return dl_metrics.iou_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
-
-    def _getOptimizer(self):
-        if self.Optimizer == dlOptim.Adam:
-            optim = Adam(learning_rate=self.learning_rate)
-        if self.Optimizer == dlOptim.AdaMax:
-            optim = AdaMax(learning_rate=self.learning_rate)
-        if self.Optimizer == dlOptim.AdaDelta:
-            optim = AdaDelta(learning_rate=self.learning_rate)
-        if self.Optimizer == dlOptim.AdaGrad:
-            optim = Adagrad(learning_rate=self.learning_rate)
-        if self.Optimizer == dlOptim.SGDNesterov:
-            optim = SGD(learning_rate=self.learning_rate, momentum=0.9, nesterov=True)  
-        return optim
-    
-    def setOptimizer(self, opti):
-        self.Optimizer = opti
-        if self.Optimizer == dlOptim.Adam:
-            fun = Adam
-        if self.Optimizer == dlOptim.AdaMax:
-            fun = Adamax
-        if self.Optimizer == dlOptim.AdaDelta:
-            fun = Adadelta
-        if self.Optimizer == dlOptim.AdaGrad:
-            fun = Adagrad
-        if self.Optimizer == dlOptim.SGDNesterov:
-            fun = SGD  
-        self.learning_rate = signature(fun).parameters['learning_rate'].default
+    # def _getMetrics(self):
+    #     if self.Metric == dlMetric.iou:
+    #         return dl_metrics.iou_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
+        
