@@ -22,7 +22,7 @@ import time
 from contextlib import contextmanager
 
 import dl.DeepLearning as DeepLearning
-from dl.dl_mode import dlMode
+from dl.method.mode import dlMode
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
@@ -32,8 +32,8 @@ from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
 from ui.ui_TrainPlot import TrainPlotWindow
 
-import utils.Contour as Contour
-import utils.Point as Point
+import utils.shapes.Contour as Contour
+import utils.shapes.Point as Point
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
@@ -65,6 +65,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.maxworker = 1
         
         self.files = FilesAndFolders(self)
+        self.currentImageFile = None
 
         self.separateStackLabels = True
         self.allowInnerContours = True
@@ -252,6 +253,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.canvas.setCanvasMode(self.LearningMode())
         try:
             self.training_form.settings_form.updateLossesAndMetrics()
+            if self.LearningMode() == dlMode.Segmentation:
+                self.training_form.settings_form.CBDitanceMap.show()
+            else:
+                self.training_form.settings_form.CBDitanceMap.hide()
         except:
             pass
             # not initialized
@@ -442,11 +447,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setImageText()
         
     def setBrightness(self):
-        b = self.SBrightness.value()
-        self.currentImageFile.brightness = b
+        if not self.currentImageFile:
+            return
+        self.currentImageFile.brightness = self.SBrightness.value()
         self.canvas.ReloadImage(resetView = False)
         
     def setContrast(self):
+        if not self.currentImageFile:
+            return
         c = self.SContrast.value()
         if c > 1:
             self.currentImageFile.contrast = 1 + c/10 

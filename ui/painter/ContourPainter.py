@@ -14,8 +14,8 @@ from PyQt5.QtCore import *
 import os
 import numpy as np
 import cv2
-from ui.ui_Painter import Painter
-import utils.Contour as Contour
+from ui.painter.Painter import Painter
+import utils.shapes.Contour as Contour
 from ui.Tools import canvasTool
 
 

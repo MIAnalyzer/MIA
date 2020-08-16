@@ -13,7 +13,6 @@ import tensorflow as tf
 
 
 import math
-from inspect import signature
 import cv2
 import glob
 import os
@@ -23,23 +22,23 @@ import threading
 import traceback
 import sys
 
-import dl.dl_datagenerator as dl_datagenerator
-import dl.dl_training_record as dl_training_record
-import dl.dl_hed as dl_hed
-import dl.dl_imagedata as dl_imagedata
-import dl.dl_augment as dl_augment
-import dl.dl_lrschedule as dl_schedule
-from dl.dl_segmentation import Segmentation
-from dl.dl_objectcounting import ObjectCounting
-from dl.dl_classification import Classification
-from dl.dl_undefinedmode import UndefinedMode
-from dl.dl_mode import dlMode
+import dl.training.datagenerator as datagenerator
+import dl.training.training_record as training_record
+import dl.training.augment as augment
+import dl.training.lrschedule as schedule
+import dl.models.hed as hed
+import dl.data.imagedata as imagedata
+from dl.method.segmentation import Segmentation
+from dl.method.objectcounting import ObjectCounting
+from dl.method.classification import Classification
+from dl.method.undefinedmode import UndefinedMode
+from dl.method.mode import dlMode
 from dl.optimizer.optimizer import Optimizer
 
 from utils.Observer import dlObservable
 
 
-import utils.Contour
+import utils.shapes.Contour
 import multiprocessing
 
 class DeepLearning(dlObservable):
@@ -49,10 +48,10 @@ class DeepLearning(dlObservable):
         self.useWeightedDistanceMap = False
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
-        self.hed = dl_hed.HED_Segmentation()
-        self.data = dl_imagedata.ImageData(self)
-        self.augmentation = dl_augment.ImageAugment()
-        self.record = dl_training_record.TrainingRecording(self)
+        self.hed = hed.HED_Segmentation()
+        self.data = imagedata.ImageData(self)
+        self.augmentation = augment.ImageAugment()
+        self.record = training_record.TrainingRecording(self)
         
         self.ModelType = 0
         self.Model = None
@@ -68,7 +67,7 @@ class DeepLearning(dlObservable):
         self.batch_size = 4
         self.epochs = 100
         self.learning_rate = 0.001
-        self.lrschedule = dl_schedule.LearningRateSchedule(self)
+        self.lrschedule = schedule.LearningRateSchedule(self)
 
 
         self.optimizer = Optimizer(self)
@@ -133,9 +132,9 @@ class DeepLearning(dlObservable):
             if not self.data.initialized():
                 return
 
-            train_generator = dl_datagenerator.TrainingDataGenerator(self)
+            train_generator = datagenerator.TrainingDataGenerator(self)
             if self.data.validationData():
-                val_generator = dl_datagenerator.TrainingDataGenerator(self, validation = True)
+                val_generator = datagenerator.TrainingDataGenerator(self, validation = True)
             else: 
                 val_generator = None    
             self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
@@ -201,13 +200,4 @@ class DeepLearning(dlObservable):
             callbacks.append(lr)
         return callbacks
     
-    # def _getLoss(self):
-    #     if self.Loss == dlLoss.focal:
-    #         return dl_losses.focal_loss_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
-    #     if self.Loss == dlLoss.mse:
-    #         return dl_losses.mean_squared_error()
 
-    # def _getMetrics(self):
-    #     if self.Metric == dlMetric.iou:
-    #         return dl_metrics.iou_function(binary = self.NumClasses <= 2, weighted = self.useWeightedDistanceMap)
-        

@@ -5,7 +5,7 @@ Created on Wed Jul 22 16:24:31 2020
 @author: Koerber
 """
 
-from dl.dl_mode import LearningMode, dlMode
+from dl.method.mode import LearningMode, dlMode
 
 
 class Classification(LearningMode):

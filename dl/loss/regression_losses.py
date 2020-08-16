@@ -11,17 +11,17 @@ from dl.loss.loss_functions import *
 class RegressionLosses(Losses):
     def __init__(self,parent):
         super(RegressionLosses,self).__init__(parent)
-        self.supportedlosses.append(dlLoss.mse)
-        self.supportedlosses.append(dlLoss.mae)
-        self.supportedlosses.append(dlLoss.msle)
-        self._loss = dlLoss.mse
+        self.supportedlosses.append(dlLoss.mean_squared_err)
+        self.supportedlosses.append(dlLoss.mean_squared_log_err)
+        self.supportedlosses.append(dlLoss.mean_abs_err)
+        self.loss = dlLoss.mean_squared_err
 
     def getLoss(self):
-        if self._loss == dlLoss.mse:
+        if self.loss == dlLoss.mean_squared_err:
             return mean_squared_error()
-        if self._loss == dlLoss.mae:
+        if self.loss == dlLoss.mean_abs_err:
             return mean_absolute_error()
-        if self._loss == dlLoss.msle:
+        if self.loss == dlLoss.mean_squared_log_err:
             return mean_squared_logarithmic_error()
         else:
             raise # not supported

@@ -13,14 +13,14 @@ class SegmentationMetrics(Metrics):
     def __init__(self,parent):
         super(SegmentationMetrics,self).__init__(parent)
         self.supportedmetrics.append(dlMetric.iou)
-        self.supportedmetrics.append(dlMetric.dice)
+        self.supportedmetrics.append(dlMetric.dice_coeff)
         self.supportedmetrics.append(dlMetric.pixel_accuracy)
         self.metric = dlMetric.iou
         
     def getMetric(self):
         if self.metric == dlMetric.iou:
             return self.mean_iou_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
-        if self.metric == dlMetric.dice:
+        if self.metric == dlMetric.dice_coeff:
             return self.dice_coefficient_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
         if self.metric == dlMetric.pixel_accuracy:
             return self.pixel_accuracy_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
@@ -43,14 +43,14 @@ class SegmentationMetrics(Metrics):
     def dice_coefficient_function(self, binary, weighted):
         if binary:
             if weighted:
-                return [dice_coeffient_binary_weighted]
+                return [dice_coefficient_binary_weighted]
             else:
-                return [dice_coeffient_binary]
+                return [dice_coefficient_binary]
         else:
             if weighted:
-                return [dice_coeffient_weighted]
+                return [dice_coefficient_weighted]
             else:
-                return [dice_coeffient]
+                return [dice_coefficient]
         
     def pixel_accuracy_function(self, binary, weighted):
         if binary:

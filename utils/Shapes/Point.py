@@ -9,8 +9,8 @@ Created on Thu Jun 25 15:22:17 2020
 # PointContour_ID = 987654321
 import numpy as np
 import math
-from utils.Shape import Shape, Shapes, PointContour_ID
-from utils.Contour import findContours, packContours, unpackContours, drawbackgroundToLabel
+from utils.shapes.Shape import Shape, Shapes, PointContour_ID
+from utils.shapes.Contour import findContours, packContours, unpackContours, drawbackgroundToLabel
 import cv2
 
 
