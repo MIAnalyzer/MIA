@@ -8,8 +8,8 @@ Created on Thu Apr 16 14:56:23 2020
 import os
 import glob
 import cv2
-import dl.dl_utils as dl_utils
-from dl.dl_labels import getAllImageLabelPairPaths, unrollPaths
+import dl.utils.dl_utils as dl_utils
+from dl.data.labels import getAllImageLabelPairPaths, unrollPaths
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import ImageFile

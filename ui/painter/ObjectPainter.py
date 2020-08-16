@@ -9,8 +9,8 @@ Created on Mon Jun 29 16:11:55 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from ui.ui_Painter import Painter
-import utils.Point as Point
+from ui.painter.Painter import Painter
+import utils.shapes.Point as Point
 import os
 from ui.Tools import canvasTool
 

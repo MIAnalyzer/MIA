@@ -81,15 +81,15 @@ def dice_coefficient_binary(y_true, y_pred):
 
 def dice_coefficient_weighted(y_true, y_pred):
     y_true = y_true[...,:-1]
-    return dice_coeffient(y_true, y_pred)
+    return dice_coefficient(y_true, y_pred)
 
 def dice_coefficient_binary_weighted(y_true, y_pred):
     y_true = y_true[...,:-1]
-    return dice_coeffient_binary(y_true, y_pred)
+    return dice_coefficient_binary(y_true, y_pred)
 
 def pixel_accuracy_binary(y_true, y_pred):
     y_pred = K.cast(K.greater(y_pred, .5), dtype='float32')
-    return K.mean(tf.count_nonzero(ypred == ytrue))
+    return K.mean(tf.math.count_nonzero(y_pred == y_true))
 
 def pixel_accuracy_binary_weighted(y_true, y_pred):
     y_true = y_true[...,:-1]
@@ -98,7 +98,7 @@ def pixel_accuracy_binary_weighted(y_true, y_pred):
 def pixel_accuracy(y_true, y_pred):
     true_pixels = K.argmax(y_true, axis=-1) 
     pred_pixels = K.argmax(y_pred, axis=-1)
-    return K.mean(tf.count_nonzero(true_pixels == pred_pixels))
+    return K.mean(tf.math.count_nonzero(true_pixels == pred_pixels))
 
 def pixel_accuracy_weighted(y_true, y_pred):
     y_true = y_true[...,:-1]
@@ -111,7 +111,7 @@ get_custom_objects()['mean_iou_weighted'] = mean_iou_weighted
 get_custom_objects()['mean_iou_binary'] = mean_iou_binary
 get_custom_objects()['mean_iou_binary_weighted'] = mean_iou_binary_weighted
 
-get_custom_objects()['dice_coeffient'] = dice_coefficient
-get_custom_objects()['dice_coeffient_binary'] = dice_coefficient_binary
-get_custom_objects()['dice_coeffient_weighted'] = dice_coefficient_weighted
-get_custom_objects()['dice_coeffient_binary_weighted'] = dice_coefficient_binary_weighted
+get_custom_objects()['dice_coefficient'] = dice_coefficient
+get_custom_objects()['dice_coefficient_binary'] = dice_coefficient_binary
+get_custom_objects()['dice_coefficient_weighted'] = dice_coefficient_weighted
+get_custom_objects()['dice_coefficient_binary_weighted'] = dice_coefficient_binary_weighted

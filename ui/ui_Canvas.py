@@ -15,16 +15,16 @@ import cv2
 
 import ui.Tools as Tools
 from ui.Tools import canvasTool
-from utils.Point import Points, Point
+from utils.shapes.Point import Points, Point
 
 from skimage.filters import threshold_yen
 from skimage.exposure import rescale_intensity
-from ui.ui_ContourPainter import ContourPainter
-from ui.ui_ObjectPainter import ObjectPainter
-from ui.ui_ImageLabelPainter import ImageLabelPainter
-from ui.ui_NoPainter import NoPainter
+from ui.painter.ContourPainter import ContourPainter
+from ui.painter.ObjectPainter import ObjectPainter
+from ui.painter.ImageLabelPainter import ImageLabelPainter
+from ui.painter.NoPainter import NoPainter
 
-from dl.dl_mode import dlMode
+from dl.method.mode import dlMode
 
 import time
 

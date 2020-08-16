@@ -12,13 +12,13 @@ from PyQt5.QtCore import *
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
 from ui.style import styleForm
 from dl.optimizer.optimizer import dlOptim
-from dl.dl_lrschedule import lrMode
+from dl.training.lrschedule import lrMode
 from dl.metric.metrics import dlMetric
 from dl.loss.losses import dlLoss
 
 class Window(object):
     def setupUi(self, Form):
-        width = 300
+        width = 400
         height= 450
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
@@ -41,8 +41,6 @@ class Window(object):
         self.SBPredictEvery.SpinBox.setRange(0,100)
         self.SBPredictEvery.SpinBox.setValue(0)
         
-        
-
         self.vlayout.addWidget(self.CBMemory)
         self.vlayout.addWidget(self.CBIgnoreBackgroundTiles)
         self.vlayout.addWidget(self.SBPredictEvery)

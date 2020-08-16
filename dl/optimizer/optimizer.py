@@ -7,6 +7,7 @@ Created on Wed Aug 12 16:03:00 2020
 
 from tensorflow.keras.optimizers import Adam, Adamax, Adadelta, Adagrad, SGD
 from enum import Enum
+from inspect import signature
 
 class dlOptim(Enum):
     adam = 1
@@ -22,14 +23,13 @@ class Optimizer():
         self.Optimizer = dlOptim.adam
         
     def getOptimizer(self):
-        print(self.Optimizer)
-        if self.Optimizer == dlOptim.Adam:
+        if self.Optimizer == dlOptim.adam:
             return Adam(learning_rate=self.parent.learning_rate)
-        if self.Optimizer == dlOptim.AdaMax:
+        if self.Optimizer == dlOptim.adamax:
             return AdaMax(learning_rate=self.parent.learning_rate)
-        if self.Optimizer == dlOptim.AdaDelta:
+        if self.Optimizer == dlOptim.adadelta:
             return AdaDelta(learning_rate=self.parent.learning_rate)
-        if self.Optimizer == dlOptim.AdaGrad:
+        if self.Optimizer == dlOptim.adagrad:
             return Adagrad(learning_rate=self.parent.learning_rate)
         if self.Optimizer == dlOptim.SGDNesterov:
             return SGD(learning_rate=self.parent.learning_rate, momentum=0.9, nesterov=True) 
@@ -38,13 +38,13 @@ class Optimizer():
     
     def setOptimizer(self, opti):
         self.Optimizer = opti
-        if self.Optimizer == dlOptim.Adam:
+        if self.Optimizer == dlOptim.adam:
             fun = Adam
-        elif self.Optimizer == dlOptim.AdaMax:
+        elif self.Optimizer == dlOptim.adamax:
             fun = Adamax
-        elif self.Optimizer == dlOptim.AdaDelta:
+        elif self.Optimizer == dlOptim.adadelta:
             fun = Adadelta
-        elif self.Optimizer == dlOptim.AdaGrad:
+        elif self.Optimizer == dlOptim.adagrad:
             fun = Adagrad
         elif self.Optimizer == dlOptim.SGDNesterov:
             fun = SGD  

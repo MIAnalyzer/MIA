@@ -1,7 +1,7 @@
 
-from utils.Shape import Shape, IMAGELABEL_ID
+from utils.shapes.Shape import Shape, IMAGELABEL_ID
 import numpy as np
-from utils.Contour import packContours, unpackContours
+from utils.shapes.Contour import packContours, unpackContours
 
 class ImageLabel(Shape):
     def __init__(self, classlabel):

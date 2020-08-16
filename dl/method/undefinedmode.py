@@ -5,7 +5,7 @@ Created on Wed Jul 22 16:25:49 2020
 @author: Koerber
 """
 
-from dl.dl_mode import LearningMode, dlMode
+from dl.method.mode import LearningMode, dlMode
 
 
 class UndefinedMode(LearningMode):

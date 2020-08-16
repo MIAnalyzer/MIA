@@ -12,20 +12,20 @@ from dl.metric.metric_functions import *
 class RegressionMetrics(Metrics):
     def __init__(self,parent):
         super(RegressionMetrics,self).__init__(parent)
-        self.supportedmetrics.append(dlMetric.mse)
-        self.supportedmetrics.append(dlMetric.rmse)
-        self.supportedmetrics.append(dlMetric.mae)
-        self.supportedmetrics.append(dlMetric.msle)
-        self._metric = dlMetric.mae
+        self.supportedmetrics.append(dlMetric.mean_squared_err)
+        self.supportedmetrics.append(dlMetric.root_mean_squared_err)
+        self.supportedmetrics.append(dlMetric.mean_abs_err)
+        self.supportedmetrics.append(dlMetric.mean_squared_log_err)
+        self.metric = dlMetric.mean_abs_err
   
     def getMetric(self):
-        if self._metric == dlMetric.mse:
+        if self.metric == dlMetric.mean_squared_err:
             return [mean_squared_error()]
-        if self._metric == dlMetric.mae:
+        if self.metric == dlMetric.mean_abs_err:
             return [mean_absolute_error()]
-        if self._metric == dlMetric.msle:
-            return [mean_squared_logarithmic_error]
-        if self._metric == dlMetric.rmse:
+        if self.metric == dlMetric.mean_squared_log_err:
+            return [mean_squared_logarithmic_error()]
+        if self.metric == dlMetric.root_mean_squared_err:
             return [root_mean_squared_error()]
         else:
             raise # not supported

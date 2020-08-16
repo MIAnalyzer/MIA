@@ -16,7 +16,7 @@ import numpy as np
 import threading
 
 import time
-import utils.Contour as Contour
+import utils.shapes.Contour as Contour
 
 class canvasTool(Enum):
     drag = 'drag'

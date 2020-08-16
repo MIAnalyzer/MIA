@@ -6,7 +6,7 @@ Created on Mon Jun 29 16:39:13 2020
 """
 
 
-from ui.ui_Painter import Painter
+from ui.painter.Painter import Painter
 
 class NoPainter(Painter):
     def __init__(self, canvas):

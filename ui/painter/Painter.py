@@ -14,7 +14,7 @@ from PyQt5.QtCore import *
 from abc import ABC, abstractmethod
 import numpy as np
 import cv2
-import utils.Contour as Contour
+import utils.shapes.Contour as Contour
 from ui.Tools import canvasTool
 
 class Painter(ABC):

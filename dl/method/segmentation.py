@@ -5,11 +5,11 @@ Created on Wed Jul 22 14:04:30 2020
 @author: Koerber
 """
 
-from dl.dl_mode import LearningMode, dlMode
-from dl.dl_pixelbasedprediction import PixelBasedPrediction
+from dl.method.mode import LearningMode, dlMode
+from dl.method.pixelbasedprediction import PixelBasedPrediction
 import dl.models.resnet50_SegNet as resnet50_SegNet
 import dl.models.simple_SegNet as simple_SegNet
-import utils.Contour as Contour
+import utils.shapes.Contour as Contour
 import numpy as np
 import cv2
 from dl.loss.segmentation_losses import SegmentationLosses

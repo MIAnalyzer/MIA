@@ -13,8 +13,8 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.dl_labels import getAllImageLabelPairPaths, unrollPaths
-from utils.Contour import loadContours
+from dl.data.labels import getAllImageLabelPairPaths, unrollPaths
+from utils.shapes.Contour import loadContours
 from ui.Tools import canvasTool
 from ui.style import styleForm
 from ui.ui_utils import DCDButton

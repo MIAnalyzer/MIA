@@ -10,13 +10,13 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 class dlLoss(Enum):
-    focal = 1
+    focal_loss = 1
     cross_entropy = 2
-    dice_coefficient = 3
+    dice_loss = 3
     kl_divergence = 4
-    mse = 5
-    mae = 6
-    msle = 7
+    mean_squared_err = 5
+    mean_abs_err = 6
+    mean_squared_log_err = 7
 
 
 class Losses(ABC):

@@ -9,11 +9,11 @@ Created on Mon Jul 01 13:18:35 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from ui.ui_Painter import Painter
+from ui.painter.Painter import Painter
 
 import os
 from ui.Tools import canvasTool
-from utils.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel
+from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel
 
 class ImageLabelPainter(Painter):
     def __init__(self, canvas):

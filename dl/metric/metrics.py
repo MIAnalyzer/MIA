@@ -11,12 +11,12 @@ from enum import Enum
 
 class dlMetric(Enum):
     iou = 1
-    dice = 2
+    dice_coeff = 2
     pixel_accuracy = 3
-    mse = 4
-    rmse = 5
-    mae = 6
-    msle = 7
+    mean_squared_err = 4
+    root_mean_squared_err = 5
+    mean_abs_err = 6
+    mean_squared_log_err = 7
 
 
 class Metrics(ABC):
