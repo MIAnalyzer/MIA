@@ -25,7 +25,7 @@ if __name__ == "__main__":
         e = sys.exc_info()[0]
         print( "<p>Error: %s</p>" % e )
         
-        
+        ()
     load_screen.hide()
 #    sys.exit(app.exec_())
     app.exec_()

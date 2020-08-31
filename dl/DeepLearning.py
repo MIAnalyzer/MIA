@@ -34,6 +34,7 @@ from dl.method.classification import Classification
 from dl.method.undefinedmode import UndefinedMode
 from dl.method.mode import dlMode
 from dl.optimizer.optimizer import Optimizer
+from dl.postprocessing.tracking import ObjectTracking
 
 from utils.Observer import dlObservable
 
@@ -57,6 +58,8 @@ class DeepLearning(dlObservable):
         self.Model = None
         # split factor need to be reworked and reasonable, get it from network
         self.split_factor = 48
+        
+        self.tracking = ObjectTracking(self)
 
     
         self.Mode = Segmentation(self)
@@ -172,6 +175,9 @@ class DeepLearning(dlObservable):
         _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret = cv2.resize(thresh, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
+       
+    def calculateTracking(self, labelsequence):
+        self.tracking.performTracking(labelsequence)
        
     def parameterFit(self, nclasses, mono):
         if not self.initialized:

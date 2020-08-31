@@ -13,7 +13,7 @@ import glob
 import os
 from itertools import repeat, chain
 
-def getAllImageLabelPairPaths(imagepath, labelpath):
+def getAllImageLabelPairPaths(imagepath, labelpath, unroll=True):
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
           
@@ -36,7 +36,10 @@ def getAllImageLabelPairPaths(imagepath, labelpath):
     images.sort()
     labels.sort()
     
-    return images, labels
+    if unroll:
+        return unrollPaths(images, labels)
+    else:
+        return images, labels
 
 def splitStackLabels(image, folder):
     if not os.path.isdir(os.path.join(folder)):

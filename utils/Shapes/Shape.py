@@ -11,7 +11,7 @@ FreeFormContour_ID = 12345678910
 PointContour_ID = 987654321
 IMAGELABEL_ID = 1234554321
 UNKNOWN = -1
-
+import numpy as np
 
 class Shapes(ABC):
     def __init__(self, labeltype):
@@ -35,7 +35,12 @@ class Shapes(ABC):
         return len(self.shapes)
     
     def getShapeNumber(self, s):
-        return self.shapes.index(s)+1
+        idx = self.shapes.index(s)
+        num = self.shapes[idx].objectNumber
+        if num != -1:
+            return num
+        else:
+            return idx+1
     
     def empty(self):
         return not self.shapes
@@ -45,7 +50,7 @@ class Shapes(ABC):
         for c in self.shapes:
             if c.classlabel == x:
                 l.append(c)
-        return l  
+        return l
     
     def getShapeOfClass_x(self,x, position, distance):
         shapes = self.getShapesOfClass_x(x)
@@ -74,12 +79,21 @@ class Shapes(ABC):
     
 class Shape(ABC):
     def __init__(self, classlabel, shapeid):
-        self.classlabel = classlabel
+
+        if isinstance(classlabel, np.ndarray) and classlabel.size > 1:
+            self.classlabel = classlabel[0]
+            self.objectNumber = classlabel[1]
+        else:
+            self.classlabel = classlabel
+            self.objectNumber = -1
         self.labeltype = shapeid
 
     
-    def setClassLabel(self,n):
+    def setClassLabel(self, n):
         self.classlabel = n
+        
+    def setObjectNumber(self, n):
+        self.objectNumber = n
         
     @abstractmethod
     def inside(self, point, maxdistance):

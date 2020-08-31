@@ -330,7 +330,7 @@ def packContours(contours):
     if not contours or len(contours) == 0:
         return None
 
-    f1 = lambda x: x.classlabel
+    f1 = lambda x: np.array((x.classlabel, x.objectNumber),dtype=int)
     f2 = lambda x: x.points
 #    f3 = lambda x: x.innercontours # we need to allow_pickle = True in np.load then
     f3 = lambda x: x.packedInnerContours()

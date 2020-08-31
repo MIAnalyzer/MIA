@@ -94,3 +94,11 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
 
             newlabel[(idx_0, idx_1)] = 1
         return newlabel
+    
+    def LabelDistance(self,l1, l2):
+        return Point.distance_p1_p2(l1,l2)
+    
+    def LoadShapes(self,filename):
+        points, bg = Point.loadPoints(filename)
+        return points
+        

@@ -37,6 +37,8 @@ import utils.shapes.Point as Point
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
+from dl.data.labels import getAllImageLabelPairPaths
+
 
 from ui.ui_utils import DCDButton
 
@@ -48,7 +50,7 @@ OBJECT_COUNTING = False
 PRELOAD = False
 PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
 LOG_FILENAME = 'log/logfile.log'
-CPU_ONLY = False
+CPU_ONLY = True
 
 
 class DeepCellDetectorUI(QMainWindow, MainWindow):
@@ -235,6 +237,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setWindowTitle("Warning")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()  
+        
+    def ConfirmPopup(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(message)
+        msg.setWindowTitle("Confirmation")
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        return msg.exec_() == QMessageBox.Ok
         
     def numOfShapesChanged(self):
         for i in range (self.NumOfClasses()):
@@ -496,6 +506,16 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def writeStatus(self,msg):
         self.Status.setText(msg)
+        
+    def calcTracking(self):
+        if not self.files.testImagespath or not self.files.testImageLabelspath:
+            self.PopupWarning('No predicted files')
+            return
+        with self.wait_cursor():
+            _, labels = getAllImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
+            self.dl.calculateTracking(labels)
+            self.canvas.ReloadImage()
+        
 
     ## deep learning  
     def LearningMode(self):
@@ -548,7 +568,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
+        if not self.ConfirmPopup('Are you sure to predict all images in the test folder?'):
+            return
         with self.wait_cursor():
+            
             images = glob.glob(os.path.join(self.files.testImagespath,'*.*'))
             images = [x for x in images if (x.endswith(tuple(supportedImageFormats())))]
 

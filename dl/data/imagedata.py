@@ -9,7 +9,7 @@ import os
 import glob
 import cv2
 import dl.utils.dl_utils as dl_utils
-from dl.data.labels import getAllImageLabelPairPaths, unrollPaths
+from dl.data.labels import getAllImageLabelPairPaths
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 from utils.Image import ImageFile
@@ -70,7 +70,6 @@ class ImageData():
         if images is None or labels is None:
             return None, None
              
-        images, labels = unrollPaths(images, labels)
 
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))

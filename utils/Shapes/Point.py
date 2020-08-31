@@ -77,7 +77,7 @@ def savePoints(points, filename, background = None):
     bg = packContours(background)
     pts = []
     if len(points) > 0:   
-        f1 = lambda x: x.classlabel
+        f1 = lambda x: np.array((x.classlabel, x.objectNumber),dtype=int)
         f2 = lambda x: x.coordinates
         labels = [f1(x) for x in points]
         coords = [f2(x) for x in points]
