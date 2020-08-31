@@ -21,7 +21,7 @@ import os
 class Window(object):
     def setupUi(self, Form):
         width = 400
-        height= 200
+        height= 300
         Form.setWindowTitle('Manual Shift') 
         Form.setStyleSheet("background-color: rgb(250, 250, 250)")
         
@@ -246,6 +246,9 @@ class ImageStitcher(QWidget):
         super(ImageStitcher, self).__init__()
         
         layout = QVBoxLayout(self)
+        self.image1Name = QLabel(self)
+        self.image2Name = QLabel(self)
+        
         self.RegisterAllButton = QPushButton(self)
         self.RegisterAllButton.setText('Register All')
         self.RegisterAllButton.clicked.connect(self.RegisterAll)
@@ -277,6 +280,11 @@ class ImageStitcher(QWidget):
         self.SaveImage.clicked.connect(self.saveImage)
         self.SaveImage.setEnabled(False)
         
+        self.FillImage = QCheckBox(self)
+        self.FillImage.setText('Fill empty spaces')
+        self.FillImage.setChecked(True)
+        self.FillImage.clicked.connect(self.ShowResult)
+        
         self.Merge = QCheckBox(self)
         self.Merge.setText('Merge Result')
         self.Merge.setChecked(True)
@@ -298,11 +306,15 @@ class ImageStitcher(QWidget):
         layout3.addWidget(self.usesecond)
         
         
+        
+        layout.addWidget(self.image1Name)
+        layout.addWidget(self.image2Name)
         layout.addWidget(self.RegisterAllButton)
         layout.addWidget(self.RegisterButton)
         layout.addWidget(self.SelectSpot)
         layout.addLayout(layout2)
         layout.addWidget(self.SaveImage)
+        layout.addWidget(self.FillImage)
         layout.addWidget(self.Merge)
         layout.addWidget(self.primaryImage)
         
@@ -385,7 +397,8 @@ class ImageStitcher(QWidget):
             else:
                 return
         
-
+        self.image1Name.setText(filenames[0])
+        self.image2Name.setText(filenames[1])
         self.Register()
         self.ShowResult()
 
@@ -478,9 +491,7 @@ class ImageStitcher(QWidget):
             
             manualShiftImage[self.y2_shift:self.y2_shift+h2,self.x2_shift:self.x2_shift+w2] = (image2 + manualShiftImage[self.y2_shift:self.y2_shift+h2,self.x2_shift:self.x2_shift+w2])
             manualShiftImage[self.y2_shift:self.y2_shift+h2,self.x2_shift:self.x2_shift+w2] = overlap
-            manualShiftImage =  manualShiftImage.astype(np.uint8)
-            
-            
+            manualShiftImage = manualShiftImage.astype(np.uint8)
             self.SaveImage.setEnabled(True)
             
         manualShiftImage = manualShiftImage[min(self.y1_shift, self.y2_shift):,min(self.x1_shift, self.x2_shift):]
@@ -550,9 +561,17 @@ class ImageStitcher(QWidget):
             self.start()
         else:
             return False
+    
+    def fillwithMean(self, image):
+        if self.FillImage.isChecked():
+            image = image.copy()
+            maen = (np.mean(self.image1) + np.mean(self.image2))/2
+            image[image==0] = maen.astype(np.uint8)
+        return image
+    
         
     def ShowResult(self):
-        image = self.RegisteredImage
+        image = self.fillwithMean(self.RegisteredImage)
         width = image.shape[1]
         height = image.shape[0]
         
@@ -600,7 +619,7 @@ class ImageStitcher(QWidget):
         
         self.combineImages()
 
-        
+
     def combineImages(self):
         width1 = self.image1.shape[1]
         height1 = self.image1.shape[0]
@@ -636,6 +655,9 @@ class ImageStitcher(QWidget):
         resheight = max(im2_y + height2,im1_y + height1) 
         result = np.zeros((resheight, reswidth), np.uint16)
         
+        
+        
+        
         if self.mergeResult:
             result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
             result[im2_y:im2_y+height2,im2_x:im2_x+width2] = (self.image2 + result[im2_y:im2_y+height2,im2_x:im2_x+width2])
@@ -647,8 +669,8 @@ class ImageStitcher(QWidget):
             else:
                 result[im1_y:im1_y+height1,im1_x:im1_x+width1] = self.image1
                 result[im2_y:im2_y+height2,im2_x:im2_x+width2] = self.image2
-            
-        self.RegisteredImage  = result.astype(np.uint8)
+                
+        self.RegisteredImage = result.astype(np.uint8)
 
 
 if __name__ == "__main__":
