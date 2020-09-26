@@ -38,7 +38,7 @@ class LearningMode(ABC):
         pass
     
     @abstractmethod
-    def extractShapesFromPrediction(self, prediction, optArg):
+    def extractShapesFromPrediction(self, prediction, optArg1, optArg2):
         pass
     
     @abstractmethod

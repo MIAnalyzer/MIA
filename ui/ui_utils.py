@@ -75,6 +75,8 @@ class LabelledAdaptiveDoubleSpinBox(QWidget):
         self.SpinBox.setToolTip(tooltip)
 
 class DCDButton(QPushButton):
+    isclicked = pyqtSignal()
+    
     def __init__(self, parent, text=None):
         super(DCDButton, self).__init__(parent)
         self.parent = parent
@@ -83,6 +85,12 @@ class DCDButton(QPushButton):
             self.setStyleSheet('text-align:left')
         self.setStyleSheet('QPushButton:hover:!pressed { border: 1px solid lightblue}')
         self.setFlat(True)
+        self.clicked.connect(self.on_clicked)
+        
+    def on_clicked(self):
+        self.isclicked.emit()
+        self.parent.setFocus()
+        
         
     def resetStyle(self):
         self.setStyleSheet('QPushButton:hover:!pressed { border: 1px solid lightblue}')

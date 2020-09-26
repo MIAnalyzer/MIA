@@ -150,10 +150,10 @@ class TrainingWindow(QMainWindow, Window):
         self.BTrain.clicked.connect(self.Train)
         
     def show(self):
-        self.toggleParameterStatus()
+        self.setParameterStatus()
         super(TrainingWindow, self).show()
         
-    def toggleParameterStatus(self):
+    def setParameterStatus(self):
         if not self.parent.dl.initialized:
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)

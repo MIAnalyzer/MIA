@@ -58,8 +58,8 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         elif self.parent.ModelType == 1:    
             return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, True)
         
-    def extractShapesFromPrediction(self, prediction, unused):
-        return Point.extractPointsFromLabel(prediction)
+    def extractShapesFromPrediction(self, prediction, unused, offset=(0,0)):
+        return Point.extractPointsFromLabel(prediction, offset)
     
     def saveShapes(self, contours, path):
         Point.savePoints(contours, path)

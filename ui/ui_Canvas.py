@@ -26,8 +26,6 @@ from ui.painter.NoPainter import NoPainter
 
 from dl.method.mode import dlMode
 
-import time
-
 # to do: derive QGraphicsItem to display whole slide image
 # get the viewpoint via "self.mapToScene(self.viewport().geometry()).boundingRect()"
 # and paint target region
@@ -37,25 +35,42 @@ class DrawingImage(QGraphicsItem):
     # like this we can draw directly on the pixmap, avoid unnecessary copies
     def __init__(self, pixmap, parent=None):
         super(DrawingImage, self).__init__(parent)
-        self.pmap = pixmap
+        self.BackgroundImage = pixmap
+        self.invisibleCanvas = QPixmap()
         
-    def setPixmap(self, pixmap):
+    def setImage(self, pixmap):
         if pixmap:
-            self.pmap = pixmap
-   
-    def pixmap(self):
-        if self.pmap == QPixmap():
-            return None
+            self.BackgroundImage = pixmap
+            self.invisibleCanvas = QPixmap(self.BackgroundImage.size())
+            self.invisibleCanvas.fill(QColor.fromRgb(0,0,0,0))
+
+            
+    def setCanvas(self, pixmap):
+        self.invisibleCanvas = pixmap
+        
+    
+    def getCanvas(self):
+        if self.hasImage():
+            return self.invisibleCanvas
         else:
-            return self.pmap
+            return None
+        
+    def hasImage(self):
+        return self.BackgroundImage.width()*self.BackgroundImage.height() != 0    
+    
+            
+    def reset(self):
+        self.invisibleCanvas.fill(QColor.fromRgb(0,0,0,0))
         
     def boundingRect(self):
-        if self.pmap is None:
+        if self.BackgroundImage is None:
             return QRectF()
-        return QRectF(0, 0, self.pmap.width(), self.pmap.height())
+        return QRectF(0, 0, self.BackgroundImage.width(), self.BackgroundImage.height())
     
     def paint(self, painter, option, widget):
-        painter.drawPixmap(0, 0, self.pmap)
+        painter.drawPixmap(0, 0, self.BackgroundImage)
+        painter.drawPixmap(0, 0, self.invisibleCanvas)
+
 
 
 class Canvas(QGraphicsView):
@@ -65,7 +80,6 @@ class Canvas(QGraphicsView):
         self.colors = []
         
         self.bgcolor = QColor(0,0,0)
-        self.rawimage = None
         self.zoomstep = 0
         self.tool = Tools.DragTool(self)
         self.lasttool = Tools.DrawTool(self)
@@ -79,6 +93,7 @@ class Canvas(QGraphicsView):
         self.ContourTransparency = 50
         self.drawShapeNumber = True
         self.drawSkeleton = False
+        self.skeletonsmoothingfactor = 11
         self.minContourSize = 100
         self.fastPainting = False
         
@@ -118,7 +133,7 @@ class Canvas(QGraphicsView):
             self.tool.wheelEvent(e)
             
     def image(self):
-        return self.displayedimage.pixmap()
+        return self.displayedimage.getCanvas()
             
     def updateImage(self):
         if self.image() is not None:
@@ -153,17 +168,21 @@ class Canvas(QGraphicsView):
         h = scenerect.height() / rect.height()
         return (w,h)
 
-    def reset(self, width, height):
-        pix = QPixmap(width, height).fill(self.bgcolor)
-        self.displayedimage.setPixmap(pix)
-        
+    def reset(self):
+        self.displayedimage.setImage(QPixmap())
+
     def ReloadImage(self, resetView = True):
         if self.parent.files.CurrentImagePath() is None:
             return
-        self.rawimage = self.getCurrentPixmap()
+        self.displayedimage.setImage(self.getCurrentPixmap())
+        self.ReloadLabels(resetView)
+
+            
+    def ReloadLabels(self, resetView = True):
         self.clearLabel()
         self.getLabel()
         self.redrawImage()
+
         if resetView:
             self.resetView()
                     
@@ -172,6 +191,7 @@ class Canvas(QGraphicsView):
         if image is None:
             self.parent.PopupWarning('No image loaded')
             return
+        
         return self.convert2Pixmap(image)
         
     def convert2Pixmap(self, image):
@@ -179,7 +199,7 @@ class Canvas(QGraphicsView):
         return QPixmap(image)
         
     def hasImage(self):
-        return self.image() is not None
+        return self.displayedimage.hasImage()
     
     def setScale(self,scale_ppmm):
         if scale_ppmm <= 0:
@@ -193,7 +213,7 @@ class Canvas(QGraphicsView):
         height = self.geometry().height()
         factor = 1 + self.zoomstep/10 
         pix = self.image().scaled(width * factor, height * factor, Qt.KeepAspectRatio)
-        self.displayedimage.setPixmap(pix)
+        self.displayedimage.setImage(pix)
         
     def SaveCurrentLabel(self):
         self.painter.save()
@@ -202,10 +222,28 @@ class Canvas(QGraphicsView):
         self.painter.load()
     
     def redrawImage(self, quickdraw=False):
-        if self.rawimage is not None:
-            self.displayedimage.setPixmap(self.rawimage.copy())
+        if self.hasImage():
+            self.displayedimage.reset()
             self.drawLabel(not quickdraw)
+
             
+    def copyRect(self, source, target, rec):
+        p = QPainter(target)
+        p.setCompositionMode(QPainter.CompositionMode_Source)
+        p.drawPixmap(rec, source , rec)     
+        
+    def getActiveDrawingRect(self, newpoint=None):
+        x,y,w,h = self.painter.NewContour.getBoundingBox()
+        i = self.pen_size
+        if newpoint:
+            if w*h == 0:
+                bbox = QRect(min(x-i,newpoint.x()-i),min(y-i,newpoint.y()-i),abs(newpoint.x()-x)+2*i,abs(newpoint.y()-y)+2*i)
+            else:
+                bbox = QRect(min(x-i,newpoint.x()),min(y-i,newpoint.y()),max(w,newpoint.x()-x)+2*i,max(h+2*i,newpoint.y()-y)+2*i)
+        else:
+            bbox = QRect(x-i,y-i,w+i,h+i)
+        fov = self.getFieldOfViewRect()
+        return bbox.intersected(fov.toRect())
             
     def drawLabel(self, shapeschanged=True):
         if self.image() is None:
@@ -304,15 +342,17 @@ class Canvas(QGraphicsView):
         if isinstance(self.painter, ContourPainter):
             self.painter.shapes.minSize = self.minContourSize
 
-    def getFieldOfViewImage(self):
+    def getFieldOfViewImage(self, image=None):
+        if image is None:
+            image = self.parent.getCurrentImage() 
         fov = self.getFieldOfViewRect()
-        image = self.parent.getCurrentImage() 
         y0 = int(fov.x())
         y1 = int(fov.x() + fov.width())
         x0 = int(fov.y())
         x1 = int(fov.y() + fov.height())
         image = image[x0:x1,y0:y1]
         return image
+    
         
     def getFieldOfViewRect(self):
         fov = self.mapToScene(self.viewport().geometry()).boundingRect()

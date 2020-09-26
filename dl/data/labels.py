@@ -12,13 +12,16 @@ Created on Fri Jun 26 10:37:21 2020
 import glob
 import os
 from itertools import repeat, chain
+from utils.Image import supportedImageFormats
 
 def getAllImageLabelPairPaths(imagepath, labelpath, unroll=True):
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
-          
-    # to do: check if images in one of supported image formats
+              
+
     labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
+    images = [x for x in images if x.endswith(tuple(supportedImageFormats()))]
+
     
     image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
         
@@ -56,4 +59,5 @@ def unrollPaths(images, labels):
     images,labels = zip(*split)
     images = list(chain.from_iterable(images))
     labels = list(chain.from_iterable(labels))
+
     return images, labels

@@ -87,6 +87,7 @@ class Contour(Shape):
             
     def addPoint(self, point):
         self.points = np.concatenate([self.points, [point]])
+        self.boundingbox = None
             
     def closeContour(self):
         self.points = np.concatenate([self.points, self.points[0].reshape(1,1,2)])
@@ -132,7 +133,10 @@ class Contour(Shape):
 
     def getBoundingBox(self):
         if self.boundingbox is None:
-            self.boundingbox = cv2.boundingRect(self.points)
+            if self.numPoints() == 1:
+                return self.points[0][0][0], self.points[0][0][1], 0,0
+            else:
+                self.boundingbox = cv2.boundingRect(self.points)
         return self.boundingbox
     
     def getMoments(self):
@@ -189,16 +193,16 @@ class Contour(Shape):
         cY = int(M["m01"] / M["m00"])
         return (cX, cY)
     
-    def getSkeletonLength(self):
+    def getSkeletonLength(self, smoothing):
         if self.skeleton is None:
-            self.skeleton = self.getSkeleton()
+            self.skeleton = self.getSkeleton(smoothing)
         if self.skeleton is None:
             return 0
         else:
             return sum([cv2.arcLength(c, True) for c in self.skeleton])/2
 #            return cv2.arcLength(self.skeleton, False)/2
     
-    def getSkeleton(self):
+    def getSkeleton(self, smoothing):
         if self.skeleton is not None:
             return self.skeleton
         t = self.points[self.points[..., 1].argmin()][0][1]
@@ -220,7 +224,7 @@ class Contour(Shape):
         cv2.drawContours(image, inner, -1, (0), -1)
         
         
-        blurred = cv2.medianBlur(image, 11)
+        blurred = cv2.medianBlur(image, smoothing)
 
         skel = morphology.skeletonize(blurred>0,  method='lee')
 

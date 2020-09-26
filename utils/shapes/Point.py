@@ -106,13 +106,13 @@ def loadPoints(filename):
             
     return ret, bg
 
-def extractPointsFromLabel(image):
+def extractPointsFromLabel(image, offset):
     numclasses = np.max(image)
     points = []
     for i in range(1,numclasses+1):
         pts = np.where(image == i)
         p = zip(pts[1], pts[0])
-        points.extend([Point(i, (x,y)) for x,y in p])
+        points.extend([Point(i, (x+offset[0],y+offset[1])) for x,y in p])
 
     return points
 
