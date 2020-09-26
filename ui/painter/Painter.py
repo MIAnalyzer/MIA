@@ -90,12 +90,13 @@ class Painter(ABC):
         elif transparency == 0:       # transparent
             color.setAlpha(self.canvas.ContourTransparency)
         painter.setBrush(QBrush(QColor(color),Qt.SolidPattern))
+        
 
     def setPainterColor(self, painter, color):
         color.setAlpha(255)
         painter.setPen(QPen(color, self.canvas.pen_size, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin))
         painter.setBrush(QBrush(QColor(color),Qt.SolidPattern))
-        
+
         
     def addline(self, p1 ,p2, color = None, dashed = False):
         p = self.getPainter(color)
@@ -148,15 +149,13 @@ class Painter(ABC):
         self.setPainterColor(painter, color)
         bg = self.contours.getShapesOfClass_x(0)
         if len(bg) > 0:
-            pm = self.canvas.displayedimage.pixmap().copy()
-            self.canvas.displayedimage.pixmap().fill(QColor(0, 0, 0, 255)) 
-            painter.setOpacity((255-self.canvas.ContourTransparency)/255)
-            painter.drawPixmap(0, 0, pm)
+            pm = self.canvas.displayedimage.getCanvas().copy()
+            self.canvas.displayedimage.getCanvas().fill(QColor(0, 0, 0, self.canvas.ContourTransparency))
+            painter.setCompositionMode(QPainter.CompositionMode_Source)
         
         for c in bg:  
             path = self.contour2Path(c)
             brush = QBrush(pm)             
-            painter.setOpacity(1)
             painter.fillPath(path,brush)
             self.setColorTransparency(painter, color,-1)
             painter.drawPath(path)
@@ -192,10 +191,11 @@ class Painter(ABC):
             self.addline(p_last,p_image)
             
     def prepareNewContour(self):
-        width = self.canvas.image().width()
-        height = self.canvas.image().height()
-        self.sketch = np.zeros((height, width, 1), np.uint8)
-        Contour.drawContoursToImage(self.sketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
+        if self.canvas.hasImage():
+            width = self.canvas.image().width()
+            height = self.canvas.image().height()
+            self.sketch = np.zeros((height, width, 1), np.uint8)
+            Contour.drawContoursToImage(self.sketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
     
     def getFinalContours(self):
         if self.sketch is None:
@@ -231,7 +231,7 @@ class Painter(ABC):
             painter.drawText(self.getLabelNumPosition(contour) , str(contournumber))
             
         if self.canvas.drawSkeleton:
-            skeleton = contour.getSkeleton()         
+            skeleton = contour.getSkeleton(self.canvas.skeletonsmoothingfactor)         
             
             skelpath = QPainterPath()
             if skeleton is not None:

@@ -220,6 +220,7 @@ class ResultsWindow(QMainWindow, Window):
         if isinstance(contourname, tuple):
             contourname = contourname[0]
         contours = loadContours(contourname)
+        contours = [x for x in contours if x.isValid(self.parent.canvas.minContourSize)]
         name = os.path.splitext(os.path.basename(contourname))[0]
         x = 0
         rows = []
@@ -229,7 +230,7 @@ class ResultsWindow(QMainWindow, Window):
             if self.CBSize.isChecked():
                 row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
             if self.parent.canvas.drawSkeleton:   
-                length = c.getSkeletonLength()   
+                length = c.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)   
                 row += ['%.0f'%length]
                 if self.CBSize.isChecked():
                     row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]

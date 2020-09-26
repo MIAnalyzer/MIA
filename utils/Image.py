@@ -3,7 +3,6 @@ import cv2
 from PIL import Image
 import numpy as np
 
-
 def supportedImageFormats():
     return ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']
 
@@ -18,6 +17,7 @@ class ImageFile():
         if asBGR:
             self.normalizeImage()
             self.convertToBGR()
+
         
     def readImage(self, path):
         try: # open stack
@@ -96,7 +96,7 @@ class ImageFile():
 
     def convert2DeepLearningInput(self, monochrome, image):
         if len(image.shape) == 4:
-            image = cv2.cvtColor(image, cv2.CV_BGRA2BGR )
+            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR )
         if len(image.shape) == 2:
             if not monochrome:
                 image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
@@ -111,6 +111,8 @@ class ImageFile():
         return image
    
     def adjustBrightnessContrast(self, image):
+        if self.contrast == 1 and self.brightness == 0:
+            return image
         # in general this can be done more efficient and without the memory use of a 16 bit image
         im = (image.astype(np.int16) * self.contrast) + self.brightness
         im[im<0] = 0

@@ -11,13 +11,13 @@ import cv2
 import dl.utils.dl_utils as dl_utils
 from dl.data.labels import getAllImageLabelPairPaths
 import numpy as np
-from tensorflow.keras.utils import to_categorical
 from utils.Image import ImageFile
 import random
 import concurrent.futures
 from itertools import repeat
 import math
 import random
+import time
 
 class ImageData():
     def __init__(self, parent):
@@ -132,7 +132,6 @@ class ImageData():
         return label
             
     def createImageLabelPair(self, index, validation=False):
-
         images = self.getImagePaths(validation)
         masks = self.getLabelPaths(validation)
 
@@ -152,9 +151,8 @@ class ImageData():
             mask = masks[index]
             frame = None
             image = images[index]
-
+            
         train_img = self.readImage(image, frame)
-        
         width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
         height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
               
@@ -167,7 +165,10 @@ class ImageData():
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
             
+
         train_mask = self.addWeightMap(train_mask)
+
+      
         
         return train_img, train_mask
     

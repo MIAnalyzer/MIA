@@ -326,7 +326,7 @@ class MainWindow(object):
         self.Bpredictall.setToolTip('Predict all images in prediction folder')
         self.Bpredict = DCDButton(self.centralWidget, "Predict Current")
         self.Bpredict.setIcon(QIcon('icons/predict.png'))
-        self.Bpredict.setToolTip('Predict current image')
+        self.Bpredict.setToolTip('Predict current field of view')
         self.predictlayout.addWidget(self.Bpredictall)    
         self.predictlayout.addWidget(self.Bpredict)
         

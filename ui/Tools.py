@@ -94,7 +94,7 @@ class DragTool(AbstractTool):
             self.canvas.setCursor(Qt.OpenHandCursor)
             
     def mousePressEvent(self, e):
-        if not self.canvas.displayedimage.pixmap().isNull():
+        if self.canvas.hasImage():
             self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
                         
 
@@ -124,20 +124,27 @@ class DrawTool(AbstractTool):
         self.drawimage = None
         
     def __del__(self): 
-        if self.drawimage is not None:
-            self.canvas.displayedimage.setPixmap(self.drawimage)
+        if self.canvas.painter.NewContour and self.canvas.painter.NewContour.numPoints() > 1 and self.drawimage is not None:
+            self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getActiveDrawingRect())
             self.drawimage = None            
    
+
     @validTool
     def mouseMoveEvent(self, e):
         if self.canvas.painter.NewContour:
             p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
             if not self.canvas.fastPainting:
-                if self.drawimage is not None:
-                    self.canvas.displayedimage.setPixmap(self.drawimage)
+                if self.drawimage is None:
+                    self.drawimage = self.canvas.image().copy()
+                if self.canvas.painter.NewContour.numPoints() > 1:
+                    self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getActiveDrawingRect(p))
+       
+                p2 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getLastPoint())
                 self.canvas.painter.addPoint2NewContour(p)
-                self.drawimage = self.canvas.image().copy()
-                p3 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getFirstPoint())
+                
+                self.canvas.copyRect(self.canvas.image(),self.drawimage, self.canvas.getActiveDrawingRect())
+
+                p3 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getFirstPoint())              
                 self.canvas.painter.addline(p,p3, dashed = True)
             else:
                 self.canvas.painter.addPoint2NewContour(p)
@@ -154,7 +161,6 @@ class DrawTool(AbstractTool):
             if self.canvas.painter.NewContour is None:
                 self.canvas.painter.prepareNewContour()
                 self.canvas.painter.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.QPoint2np(self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))))
-                self.drawimage = self.canvas.image()
 
         if e.button() == Qt.RightButton:
             self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
@@ -179,19 +185,20 @@ class PolygonTool(AbstractTool):
         self.drawimage = None
         
     def __del__(self): 
-        if self.drawimage is not None:
-            self.canvas.displayedimage.setPixmap(self.drawimage)
-            self.drawimage = None
+        if self.canvas.painter.NewContour and self.canvas.painter.NewContour.numPoints() > 1 and self.drawimage is not None:
+            self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getFieldOfViewRect())
+            self.drawimage = None    
         
     @validTool
     def mouseMoveEvent(self, e):
         if self.canvas.painter.NewContour is not None:
             if not self.canvas.fastPainting:
-                if self.drawimage is not None:
-                    self.canvas.displayedimage.setPixmap(self.drawimage)
-                self.drawimage = self.canvas.image().copy()
-                p1 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getLastPoint())
+
                 p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                if self.drawimage is None:
+                    self.drawimage = self.canvas.image().copy()
+                self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getFieldOfViewRect())
+                p1 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getLastPoint())
                 self.canvas.painter.addline(p1,p2, dashed = True)              
     
     @validTool
@@ -207,11 +214,10 @@ class PolygonTool(AbstractTool):
             if self.canvas.painter.NewContour is None:
                 self.canvas.painter.prepareNewContour()
                 self.canvas.painter.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.QPoint2np(self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))))
-                self.drawimage = self.canvas.image().copy()
             else:
                 p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
                 self.canvas.painter.addPoint2NewContour(p)
-                self.drawimage = self.canvas.image().copy()
+                self.canvas.copyRect(self.canvas.image(),self.drawimage, self.canvas.getFieldOfViewRect())
      
     @validTool                 
     def mousePressEvent(self,e):
@@ -496,7 +502,6 @@ class DummyTool(AbstractTool):
     def __init__(self, canvas, text):
         super().__init__(canvas)
         self.Text = text
-        print('base')
         self.canvas.setnewTool(canvasTool.drag.name)
         
     def mouseMoveEvent(self, e):

@@ -133,6 +133,7 @@ class DeepLearning(dlObservable):
         try:
             self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
             if not self.data.initialized():
+                self.notifyTrainingFinished()
                 return
 
             train_generator = datagenerator.TrainingDataGenerator(self)
@@ -193,7 +194,8 @@ class DeepLearning(dlObservable):
         self.Model = None
     
     def LoadModel(self, modelpath):
-        self.Model = load_model (modelpath)
+        self.Model = load_model(modelpath)
+        self.record.reset()
     
     def SaveModel(self, modelpath):
         if self.initialized:

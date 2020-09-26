@@ -14,7 +14,7 @@ from ui.ui_utils import DCDButton
 
 class Window(object):
     def setupUi(self, Form):
-        width = 150
+        width = 180
         height= 100
         Form.setWindowTitle('Settings') 
         styleForm(Form)
@@ -42,9 +42,17 @@ class Window(object):
         self.vlayout.addLayout(self.hlayout)
         self.vlayout.addLayout(self.hlayout)
         
+        self.h2layout = QHBoxLayout(self.centralWidget)
         self.CBCalculateSkeleton = QCheckBox("Show Skeleton",self.centralWidget)
         self.CBCalculateSkeleton.setToolTip('Calculate the skeleton of each contour')
-        self.vlayout.addWidget(self.CBCalculateSkeleton)
+        self.SSkeletonSmoothing = QSlider(Qt.Horizontal, self.centralWidget)
+        self.SSkeletonSmoothing.setMinimum(1)
+        self.SSkeletonSmoothing.setMaximum(41)
+        self.SSkeletonSmoothing.setToolTip('Skeleton smoothing')
+        self.h2layout.addWidget(self.CBCalculateSkeleton)
+        self.h2layout.addWidget(self.SSkeletonSmoothing)
+
+        self.vlayout.addLayout(self.h2layout)
         
         self.BSequence = DCDButton(self.centralWidget, 'Tracking')
         self.BSequence.setToolTip('Calculate object tracking for results')
@@ -60,11 +68,19 @@ class PostProcessingWindow(QMainWindow, Window):
         self.SBminContourSize.setValue(self.parent.canvas.minContourSize)
         self.CBCalculateSkeleton.setChecked(self.parent.canvas.drawSkeleton)
         self.CBCalculateSkeleton.stateChanged.connect(self.showSkeleton)
+        self.SSkeletonSmoothing.valueChanged.connect(self.skeletonsmoothing)
+        self.SSkeletonSmoothing.setValue(self.parent.canvas.skeletonsmoothingfactor)
         self.SBminContourSize.valueChanged.connect(self.setminContourSize)
         self.BSequence.clicked.connect(self.tracking)
         
+        
     def showSkeleton(self):
         self.parent.canvas.drawSkeleton = self.CBCalculateSkeleton.isChecked()
+        
+    def skeletonsmoothing(self): 
+        val = self.SSkeletonSmoothing.value()
+        val = val + 1 if val % 2 == 0 else val
+        self.parent.canvas.skeletonsmoothingfactor = val
         
     def closeEvent(self, event):
         self.parent.canvas.ReloadImage()

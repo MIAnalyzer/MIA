@@ -14,6 +14,7 @@ import numpy as np
 import cv2
 from dl.loss.segmentation_losses import SegmentationLosses
 from dl.metric.segmentation_metrics import SegmentationMetrics
+from tensorflow.keras.utils import to_categorical
 
 class Segmentation(PixelBasedPrediction, LearningMode):
     def __init__(self, parent):
@@ -47,8 +48,8 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         elif self.parent.ModelType == 1:    
             return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, False)
         
-    def extractShapesFromPrediction(self, prediction, innercontours):
-        return Contour.extractContoursFromLabel(prediction, innercontours)
+    def extractShapesFromPrediction(self, prediction, innercontours, offset=(0,0)):
+        return Contour.extractContoursFromLabel(prediction, innercontours, offset)
     
     def saveShapes(self, contours, path):
         Contour.saveContours(contours, path)

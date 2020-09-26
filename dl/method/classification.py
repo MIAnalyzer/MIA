@@ -22,7 +22,7 @@ class Classification(LearningMode):
     def getModel(self, nclasses, monochr):
         return None
 
-    def extractShapesFromPrediction(self, prediction, innercontours):
+    def extractShapesFromPrediction(self, prediction, unused1, unused2):
         return None
     
     def saveShapes(self, contours, path):

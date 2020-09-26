@@ -19,7 +19,7 @@ class FilesAndFolders():
         self.train_test_dir = True # True = TrainFolder; False = TestFolder
         
         self.files = None
-        self.currentImage = 0
+        self.currentImage = -1
         self.numofImages = 0
         self.currentFrame = 0
         
@@ -105,11 +105,16 @@ class FilesAndFolders():
     def getFiles(self):
         if self.imagepath is None:
             return
-        exts = ['*' + x for x in supportedImageFormats()]
-        self.files = [f for ext in exts for f in glob.glob(os.path.join(self.imagepath, ext))]
-        self.files.sort()
-        self.currentImage = 0
-        self.numofImages = len(self.files)
+        files = glob.glob(os.path.join(self.imagepath, '*.*'))          
+        self.files = [x for x in files if x.endswith(tuple(supportedImageFormats()))]
+        if not self.files:
+            self.currentImage = -1
+            self.files = None
+            self.numofImages = 0
+        else:
+            self.files.sort()
+            self.currentImage = 0
+            self.numofImages = len(self.files)
         
     ## helper functions
     def getFilenameFromPath(self, path):

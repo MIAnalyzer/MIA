@@ -151,18 +151,18 @@ class TrainPlotWindow(QMainWindow, Window):
                 
             col = getHighlightColor()
             color = (col.red()/255, col.green()/255, col.blue()/255)
-                     
-            self.train_loss_axis.plot(loss, '-', color = color)
-            self.train_metric_axis.plot(metric, '-', color = color)       
-            self.val_loss_axis.plot(val_loss, '-',  color='red' )
-            self.val_loss_axis.plot(lpe, '--', color=color )
-            self.val_metric_axis.plot(val_metric, '-', color = 'red')
-            self.val_metric_axis.plot(mpe, '--', color = color)
+
+            self.train_loss_axis.plot(loss, '-' if len(loss) > 1 else '.', color = color)
+            self.train_metric_axis.plot(metric, '-' if len(metric) > 1 else '.', color = color)  
+            self.val_loss_axis.plot(val_loss, '-' if len(val_loss) > 1 else '.',  color='red' )
+            self.val_loss_axis.plot(lpe, '--' if len(lpe) > 1 else '.', color=color )
+            self.val_metric_axis.plot(val_metric, '-' if len(val_metric) > 1 else '.', color = 'red')
+            self.val_metric_axis.plot(mpe, '--' if len(mpe) > 1 else '.', color = color)
 
     
             self.LBatch.setText("Batch: %d of %d" % (min(self.dl.data.getNumberOfBatches(),self.dl.record.currentbatch +1), self.dl.data.getNumberOfBatches()))
             self.LEpoch.setText("Epoch: %d of %d" % (min(self.dl.epochs,self.dl.record.currentepoch +1), self.dl.epochs))
-    
+            
             self.canvas.draw()
 
           
