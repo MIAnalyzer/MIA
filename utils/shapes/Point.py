@@ -33,6 +33,10 @@ class Points(Shapes):
     def save(self, filename):
         savePoints(self.shapes, filename)
         
+    def deleteShapes(self, points):
+        for p in points:
+            self.deleteShape(p)
+        
     def getShapeOfClass_x(self,x, point, distance):
         if self.empty():
             return None

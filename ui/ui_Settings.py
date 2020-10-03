@@ -89,11 +89,7 @@ class Window(object):
         vlayout.setContentsMargins(1, 1, 1, 1)
         vlayout.setSpacing(1)        
         
-        
-        self.CBInnerContours = QCheckBox("Process Inner Contours",self.centralWidget)
-        self.CBInnerContours.setToolTip('Select to allow contours to have holes')
-        vlayout.addWidget(self.CBInnerContours)
-        
+                
         self.CBShapeNumbers = QCheckBox("Show Shape Numbers",self.centralWidget)
         self.CBShapeNumbers.setToolTip('Select to show number below each shape')
         vlayout.addWidget(self.CBShapeNumbers)
@@ -136,7 +132,6 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBShapeNumbers.setChecked(self.parent.canvas.drawShapeNumber)
         self.CBFastDrawing.setChecked(self.parent.canvas.fastPainting)
-        self.CBInnerContours.setChecked(self.parent.allowInnerContours)
         self.CBSeparateLabels.setChecked(self.parent.separateStackLabels)
         self.SBPenSize.SpinBox.setValue(self.parent.canvas.pen_size)
         self.SBFontSize.SpinBox.setValue(self.parent.canvas.FontSize)
@@ -147,7 +142,6 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
         self.CBFastDrawing.stateChanged.connect(self.fastDrawing)
-        self.CBInnerContours.stateChanged.connect(self.allowinnerContours)
         self.CBSeparateLabels.stateChanged.connect(self.separateLabels)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
@@ -186,9 +180,7 @@ class SettingsWindow(QMainWindow, Window):
     def fastDrawing(self):
         self.parent.canvas.fastPainting = self.CBFastDrawing.isChecked()
         
-    def allowinnerContours(self):
-        self.parent.allowInnerContours = self.CBInnerContours.isChecked()
-        
+       
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
               

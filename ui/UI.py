@@ -114,12 +114,36 @@ class MainWindow(object):
         self.TestImagelayout.addWidget(self.BTestImageFolder)
         self.vlayout.addItem(self.TestImagelayout)
         
-
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
+        
+        
+        # settings for segmentation
+        self.SegmentationSettingslayout = QHBoxLayout(self.centralWidget)
+        self.SegmentationSettingslayout.setContentsMargins(0, 0, 0, 0)
+        self.Bautoseg = DCDButton(self.centralWidget)
+        self.Bautoseg.setToolTip('press to perform auto segmentation')
+        self.Bautoseg.setText('Autoseg')
+        self.Bautoseg.setIcon(QIcon('icons/predict.png'))
+        layout = QVBoxLayout(self.centralWidget)
+        self.CBSmartMode = QCheckBox("Smartmode",self.centralWidget)
+        self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
+        self.CBInner = QCheckBox("Inner Contours",self.centralWidget)
+        self.CBInner.setToolTip("Check to allow contours to have holes")
+        self.CBInner.setChecked(True)
+        layout.addWidget(self.CBSmartMode)
+        layout.addWidget(self.CBInner)
+
+        
+        self.SegmentationSettingslayout.addLayout(layout)
+        self.SegmentationSettingslayout.addWidget(self.Bautoseg)
+        self.SegmentationSettings = QFrame()
+        self.SegmentationSettings.setLayout(self.SegmentationSettingslayout)
+        self.vlayout.addWidget(self.SegmentationSettings)
+
         
         # tools:
         # drag tool
@@ -138,6 +162,7 @@ class MainWindow(object):
         self.Bdraw.setIcon(QIcon('icons/draw.png'))
         # settings for drawing tool
         self.DrawSettingslayout = QHBoxLayout(self.centralWidget)
+        self.DrawSettingslayout.setContentsMargins(0, 0, 0, 0)
         self.CBAddShape = QRadioButton(self.centralWidget)
         self.CBAddShape.setText("Add ")
         self.CBAddShape.setChecked(True)
@@ -173,6 +198,7 @@ class MainWindow(object):
         self.Bextend.setIcon(QIcon('icons/expand.png'))
         # settings for extend tool
         self.ExtendSettingslayout = QHBoxLayout(self.centralWidget)
+        self.ExtendSettingslayout.setContentsMargins(0, 0, 0, 0)
         self.CBExtend = QRadioButton(self.centralWidget)
         self.CBExtend.setText("Expand ")
         self.CBExtend.setChecked(True)
@@ -252,29 +278,6 @@ class MainWindow(object):
 
         
         
-        # ### classification (not using tools but regular button functions)
-        # self.CButtonslayout = QHBoxLayout(self.centralWidget)
-        # self.CButtonslayout.setContentsMargins(0, 0, 0, 0)
-        # self.BsetClass = DCDButton(self.centralWidget)
-        # self.BsetClass.setMaximumSize(bwidth, bheight)
-        # self.BsetClass.setToolTip('Assign current class and continue to next image')
-        # self.BsetClass.setIcon(QIcon('icons/setclass.png'))
-        # self.CButtonslayout.addWidget(self.BsetClass)
-
-        # self.BassignClass = DCDButton(self.centralWidget)
-        # self.BassignClass.setMaximumSize(bwidth, bheight)
-        # self.BassignClass.setToolTip('Assign current class')
-        # self.BassignClass.setIcon(QIcon('icons/assignclass.png'))
-        # self.CButtonslayout.addWidget(self.BassignClass)
-        
-        # self.ClassificationButtons = QFrame()
-        # self.ClassificationButtons.hide()
-        # self.ClassificationButtons.setLayout(self.CButtonslayout)
-        # self.vlayout.addWidget(self.ClassificationButtons)
-        
-
-        
-        
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
@@ -283,18 +286,9 @@ class MainWindow(object):
 
         
         self.ralayout = QHBoxLayout(self.centralWidget)
-        self.Bautoseg = DCDButton(self.centralWidget, "Auto Segment")
-        self.Bautoseg.setObjectName("Bautoseg")
-        self.Bautoseg.setIcon(QIcon('icons/predict.png'))
-        self.Bautoseg.setToolTip('autosegment image')
-   
-
         self.Bclear = DCDButton(self.centralWidget, "Clear Image")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
-        self.Bclear.setToolTip('Reset image')
-
-
-        self.ralayout.addWidget(self.Bautoseg)    
+        self.Bclear.setToolTip('Reset image')  
         self.ralayout.addWidget(self.Bclear)    
         self.vlayout.addItem(self.ralayout) 
         

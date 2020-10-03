@@ -70,7 +70,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.currentImageFile = None
 
         self.separateStackLabels = True
-        self.allowInnerContours = True
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height()    
@@ -190,6 +189,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bloadmodel.clicked.connect(self.loadModel)
         self.Bsavemodel.clicked.connect(self.saveModel)
         self.Bautoseg.clicked.connect(self.autoSegment)
+        self.CBSmartMode.stateChanged.connect(self.setSmartMode)
+        self.CBInner.stateChanged.connect(self.updateImage)
+
         self.Bresetmodel.clicked.connect(self.resetModel)
         
         self.Bresults.clicked.connect(self.showResultsWindow)
@@ -199,9 +201,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Baddclass.clicked.connect(self.addClass)
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
+        
+
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         self.CBExtend.clicked.connect(self.updateCursor)
         self.CBErase.clicked.connect(self.updateCursor)
+        self.CBAddShape.clicked.connect(self.setCanvasFocus)
+        self.CBDelShape.clicked.connect(self.setCanvasFocus)
         
         self.SBrightness.sliderReleased.connect(self.setBrightness)
         self.SContrast.sliderReleased.connect(self.setContrast)
@@ -258,6 +264,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             label.setText(text)
         self.canvas.SaveCurrentLabel()
         
+    def setSmartMode(self):
+        assert (self.LearningMode() == dlMode.Segmentation)
+        self.canvas.painter.smartmode = self.CBSmartMode.isChecked()
+        self.setCanvasFocus()
+        
+    @property
+    def allowInnerContours(self):
+        return self.CBInner.isChecked()
+        
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
         self.canvas.setCanvasMode(self.LearningMode())
@@ -265,8 +280,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.training_form.settings_form.updateLossesAndMetrics()
             if self.LearningMode() == dlMode.Segmentation:
                 self.training_form.settings_form.CBDitanceMap.show()
+                self.SegmentationSettings.show()
+
             else:
                 self.training_form.settings_form.CBDitanceMap.hide()
+                self.SegmentationSettings.hide()
         except:
             pass
             # not initialized
@@ -314,6 +332,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def NumOfClasses(self):
         return self.classList.getNumberOfClasses()
+    
+    def setCanvasFocus(self):
+        self.canvas.setFocus()
+    
+    def updateImage(self):
+        self.canvas.checkForChanges()
+        self.setCanvasFocus()
         
     def classcolorChanged(self):
         self.canvas.redrawImage()
@@ -322,9 +347,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def classChanged(self):
         self.setToolButtons()
         self.updateCursor()
+        self.canvas.painter.resetSmartMask()
 
     def updateCursor(self):
         self.canvas.updateCursor()
+        self.setCanvasFocus()
 
     def clear(self, resetview = True):
         self.canvas.clearLabel()
@@ -636,7 +663,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         with self.wait_cursor():
             image = self.dl.data.readImage(self.files.CurrentImagePath(), self.files.currentFrame)
             image = self.canvas.getFieldOfViewImage(image)
-
+            
             if image is None:
                 self.PopupWarning('Cannot load image')
                 return
@@ -660,6 +687,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.dl.Mode.saveShapes(self.extractPredictedResults(prediction), os.path.join(path, (name + ".npz")))
         
     def extractAndUpdatePredictedResults(self, prediction):
+        self.canvas.painter.clearFOV()
         fov = self.canvas.getFieldOfViewRect()
         shapes = self.extractPredictedResults(prediction, offset = (int(fov.x()),int(fov.y())))
         self.updateCurrentShapes(shapes)
@@ -668,33 +696,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if newshapes:
             self.canvas.painter.shapes.addShapes(newshapes)
             self.canvas.checkForChanges()
-        
 
     def autoSegment(self):
         with self.wait_cursor():
-            
-            image = self.canvas.getFieldOfViewImage()
-            fov = self.canvas.getFieldOfViewRect()
-            # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
-            # image = self.getCurrentImage()
-
-            if image is None:
-                self.PopupWarning('No image loaded')
-                return
-            try:
-                prediction = self.dl.AutoSegment(image)
-            except:
-                self.PopupWarning('Auto prediction not possible')
-                return
-            if self.LearningMode() == dlMode.Segmentation:
-                shapes = Contour.extractContoursFromLabel(prediction, not self.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
-            elif self.LearningMode() == dlMode.Object_Counting:
-                shapes = Point.extractPointsFromContours(prediction, self.canvas.minContourSize ,offset = (int(fov.x()),int(fov.y())))
-            else:
-                return
-            # autosegmentation puts all contours in class 1
-            self.classList.setClass(1)
-            self.updateCurrentShapes(shapes)
+            self.canvas.painter.autosegment()
         
     # deep learning observer functions
     def dlStarted(self):
@@ -713,6 +718,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.toggleTrainStatus(False)
 
     def dlResult(self, result):
+        self.canvas.painter.clearFOV()
         self.extractAndUpdatePredictedResults(result)
         # self.clear()
         # self.extractAndSavePredictedResults(result, self.files.labelpath, self.files.CurrentLabelName())

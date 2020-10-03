@@ -164,12 +164,8 @@ class ImageData():
 
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
-            
 
         train_mask = self.addWeightMap(train_mask)
-
-      
-        
         return train_img, train_mask
     
     def getTileIndices(self, validation = False, equalTilesperImage = False):
@@ -226,6 +222,7 @@ class ImageData():
         
         img = []
         mask = []
+
 
         for counter, pair in enumerate(x): 
             tiles = [counter] * self.parent.augmentation.getTilesPerImage(pair[0].shape[1],pair[0].shape[0])

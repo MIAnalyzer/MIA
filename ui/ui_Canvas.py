@@ -26,6 +26,7 @@ from ui.painter.NoPainter import NoPainter
 
 from dl.method.mode import dlMode
 
+
 # to do: derive QGraphicsItem to display whole slide image
 # get the viewpoint via "self.mapToScene(self.viewport().geometry()).boundingRect()"
 # and paint target region
@@ -52,6 +53,12 @@ class DrawingImage(QGraphicsItem):
     def getCanvas(self):
         if self.hasImage():
             return self.invisibleCanvas
+        else:
+            return None
+        
+    def getImage(self):
+        if self.hasImage():
+            return self.BackgroundImage
         else:
             return None
         
@@ -134,7 +141,7 @@ class Canvas(QGraphicsView):
             
     def image(self):
         return self.displayedimage.getCanvas()
-            
+              
     def updateImage(self):
         if self.image() is not None:
             self.update()
@@ -312,6 +319,7 @@ class Canvas(QGraphicsView):
         self.enableToggleTools = True
         if mode == dlMode.Segmentation:
             self.painter = ContourPainter(self)
+            self.painter.smartmode = self.parent.CBSmartMode.isChecked()
             self.setMinimumContourSize(self.minContourSize)
         elif mode == dlMode.Object_Counting:
             self.painter = ObjectPainter(self)

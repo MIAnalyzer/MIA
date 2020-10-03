@@ -26,6 +26,15 @@ class ObjectPainter(Painter):
             return self.contours
         else:
             return self.points
+        
+    def clearFOV(self):
+        to_del = []
+        fov = self.canvas.getFieldOfViewRect()
+        for p in self.points.shapes:
+            if fov.x() < p.coordinates[0] < fov.x()+fov.width() and fov.y() < p.coordinates[1] < fov.y()+fov.height():
+                to_del.append(p)
+        self.points.deleteShapes(to_del)
+        self.canvas.redrawImage()
 
     def enableDrawBackgroundMode(self):
         super(ObjectPainter, self).enableDrawBackgroundMode()

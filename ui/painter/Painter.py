@@ -24,17 +24,24 @@ class Painter(ABC):
         
         self.contours = Contour.Contours()
         self.NewContour = None
-        self.sketch = None
+        # self.sketch = None
         self.tools = []
         self.tools.append(canvasTool.drag)
         self.tools.append(canvasTool.draw)
         self.tools.append(canvasTool.extend)
         self.tools.append(canvasTool.poly)
         self.tools.append(canvasTool.delete)
+        
+        self.contoursketch = None
+        self.mask = None
 
     
     def clear(self):
         self.contours.clear()
+        self.resetSmartMask()
+        
+    def resetSmartMask(self):
+        self.mask = None
         
     @abstractmethod
     def load(self):
@@ -42,6 +49,10 @@ class Painter(ABC):
         
     @abstractmethod
     def save(self):
+        pass
+    
+    @abstractmethod
+    def clearFOV(self):
         pass
     
     @abstractmethod
@@ -55,6 +66,11 @@ class Painter(ABC):
     @property
     def backgroundshapes(self):
         return self.contours.getShapesOfClass_x(0)
+    
+    @property
+    def sketch(self):
+        return self.contoursketch
+    
     
     def draw(self):
         self.drawBackground()
@@ -133,7 +149,7 @@ class Painter(ABC):
 
 
     #### contour drawing functions
-    def drawcontour(self, contour):     
+    def drawcontour(self, contour):   
         painter = self.getPainter()
         path = self.contour2Path(contour)
         if not path.isEmpty():           
@@ -164,22 +180,16 @@ class Painter(ABC):
     def contour2Path(self, contour):
         path = QPainterPath()
         if contour.points is not None:
-            for i in range(contour.numPoints()):
-                if i == 0:
-                    path.moveTo(self.canvas.np2QPoint(contour.points[i].reshape(2,1)))
-                else:
-                    path.lineTo(self.canvas.np2QPoint(contour.points[i].reshape(2,1)))
+            path.moveTo(self.canvas.np2QPoint(contour.points[0].reshape(2,1)))
+            [path.lineTo(self.canvas.np2QPoint(x.reshape(2,1))) for x in contour.points]
             path.lineTo(self.canvas.np2QPoint(contour.points[0].reshape(2,1)))
             
             innerpath = QPainterPath()
-            for c in contour.innercontours:
-                for i in range(len(c)):
-                    if i == 0:
-                        p = self.canvas.np2QPoint(c[i].reshape(2,1))
-                        innerpath.moveTo(self.canvas.np2QPoint(c[i].reshape(2,1)))
-                    else:
-                        innerpath.lineTo(self.canvas.np2QPoint(c[i].reshape(2,1)))
-                innerpath.lineTo(p)
+            for c in contour.innercontours:           
+                innerpath.moveTo(self.canvas.np2QPoint(c[0].reshape(2,1)))
+                [innerpath.lineTo(self.canvas.np2QPoint(p.reshape(2,1))) for p in c]
+                innerpath.lineTo(self.canvas.np2QPoint(c[0].reshape(2,1)))
+
             path = path.subtracted(innerpath)
         return path
     
@@ -190,22 +200,28 @@ class Painter(ABC):
             self.NewContour.addPoint(self.canvas.QPoint2np(p_image))
             self.addline(p_last,p_image)
             
+
+            
     def prepareNewContour(self):
         if self.canvas.hasImage():
             width = self.canvas.image().width()
             height = self.canvas.image().height()
-            self.sketch = np.zeros((height, width, 1), np.uint8)
-            Contour.drawContoursToImage(self.sketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
-    
+
+            self.contoursketch = np.zeros((height, width), np.uint8) 
+            Contour.drawContoursToImage(self.contoursketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
+
+
+
     def getFinalContours(self):
         if self.sketch is None:
             return
-        contours = Contour.extractContoursFromImage(self.sketch, not self.canvas.parent.allowInnerContours)
-
+            
+        contours = Contour.extractContoursFromImage(self.contoursketch, not self.canvas.parent.allowInnerContours)
         # delete changed contours
         old_contours = self.contours.getShapesOfClass_x(self.canvas.parent.activeClass())
         changedcontours = Contour.getContoursNotinListOfContours(old_contours,contours)
         self.contours.deleteShapes(changedcontours)
+            
         for c in contours:
             c.setClassLabel(self.canvas.parent.activeClass())
             

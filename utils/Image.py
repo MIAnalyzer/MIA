@@ -17,6 +17,7 @@ class ImageFile():
         if asBGR:
             self.normalizeImage()
             self.convertToBGR()
+                
 
         
     def readImage(self, path):
