@@ -32,7 +32,7 @@ class TrainingDataGenerator(Sequence):
             
         self.parent.augmentation.initAugmentation()
         self.indices = self.parent.data.getTileIndices(validation, equalTilesperImage = not self.inMemory)
-        self.numImages = len(self.images)
+        # self.numImages = len(self.images)
         # experimental: 
         # calculate the number of tiles as the possible crops from all images
         # note that crops may overlap (avoided for validation)

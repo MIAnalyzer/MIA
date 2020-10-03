@@ -31,6 +31,10 @@ class ImageLabelPainter(Painter):
     def draw(self):
         super(ImageLabelPainter, self).draw()
         self.drawLabel()
+        
+    def clearFOV(self):
+        # do nothing
+        pass
     
     def clear(self):
         super(ImageLabelPainter, self).clear()

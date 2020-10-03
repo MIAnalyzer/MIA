@@ -27,6 +27,7 @@ import dl.training.training_record as training_record
 import dl.training.augment as augment
 import dl.training.lrschedule as schedule
 import dl.models.hed as hed
+import dl.machine_learning.grabcut_segmentation as gc
 import dl.data.imagedata as imagedata
 from dl.method.segmentation import Segmentation
 from dl.method.objectcounting import ObjectCounting
@@ -50,6 +51,7 @@ class DeepLearning(dlObservable):
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()
+        self.grabcut = gc.GrabCutSegmentation()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment()
         self.record = training_record.TrainingRecording(self)
@@ -60,6 +62,7 @@ class DeepLearning(dlObservable):
         self.split_factor = 48
         
         self.tracking = ObjectTracking(self)
+        self.interrupted = False
 
     
         self.Mode = Segmentation(self)
@@ -108,6 +111,7 @@ class DeepLearning(dlObservable):
 
     def interrupt(self):
         self.record.interrupt = True
+        self.interrupted = True
           
     def initModel(self, numClasses, MonoChrome):
         try:
@@ -131,8 +135,9 @@ class DeepLearning(dlObservable):
     
     def executeTraining(self, trainingimages_path, traininglabels_path):
         try:
+            self.interrupted = False
             self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
-            if not self.data.initialized():
+            if not self.data.initialized() or self.interrupted:
                 self.notifyTrainingFinished()
                 return
 
@@ -142,6 +147,9 @@ class DeepLearning(dlObservable):
             else: 
                 val_generator = None    
             self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
+            if self.interrupted:
+                self.notifyTrainingFinished()
+                return
             self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
         except:
             self.notifyTrainingFinished()
@@ -176,6 +184,33 @@ class DeepLearning(dlObservable):
         _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret = cv2.resize(thresh, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
+    
+    def SemiAutoSegment(self,image, mask = None, train=True):
+        if image is None:
+            return None
+
+        width = image.shape[1]
+        height = image.shape[0]
+        
+        red_height = int(width*self.ImageScaleFactor)
+        red_width = int(height*self.ImageScaleFactor)
+        
+        while red_height*red_width > 500000:
+        # with more than 500k pixels grabcut becomes disproportional slow
+        # to use on higher res images scale down train and infer tiles
+            red_height *= 0.9
+            red_width *= 0.9
+
+        image = cv2.resize(image, (int(red_width), int(red_height)))
+        mask = cv2.resize(mask, (int(red_width), int(red_height)),interpolation=cv2.INTER_NEAREST)
+        
+        if train:
+             pred = self.grabcut.trainAndSegment(image, mask)
+        else:
+            pred = self.grabcut.Segment(image)
+        ret = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
+        return ret
+        
        
     def calculateTracking(self, labelsequence):
         self.tracking.performTracking(labelsequence)
