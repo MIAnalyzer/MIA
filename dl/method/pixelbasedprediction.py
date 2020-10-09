@@ -83,3 +83,10 @@ class PixelBasedPrediction(ABC):
     def resizeLabel(self, label, shape):
         pass
         
+    @abstractmethod
+    def LabelDistance(self,l1, l2):
+        pass
+
+    @abstractmethod
+    def LoadShapes(self,filename):
+        pass
