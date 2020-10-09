@@ -183,6 +183,7 @@ class Canvas(QGraphicsView):
             return
         self.displayedimage.setImage(self.getCurrentPixmap())
         self.ReloadLabels(resetView)
+        self.checkForChanges()
 
             
     def ReloadLabels(self, resetView = True):

@@ -73,6 +73,13 @@ class Segmentation(PixelBasedPrediction, LearningMode):
             prediction[prediction>0.5] = 1
             prediction[prediction<=0.5] = 0
         return prediction
+
+    def LabelDistance(self,l1, l2):
+        return Contour.matchcontours(l1,l2)
+
+    def LoadShapes(self,filename):
+        contours = Contour.loadContours(filename)
+        return contours
     
     def resizeLabel(self, label, shape):
         return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)

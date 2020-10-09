@@ -48,7 +48,8 @@ PREDICT_WORMS = False
 PREDICT_SPINES = False
 OBJECT_COUNTING = False
 PRELOAD = False
-PRELOAD_MODEL = 'models/Worm prediction_200221.h5'
+PRELOAD_MODEL = 'models/phenix_v5.h5'
+SCALE = 0.4
 LOG_FILENAME = 'log/logfile.log'
 CPU_ONLY = False
 
@@ -121,9 +122,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
 
-        if PRELOAD:
+        if PRELOAD:            
             try:
                 self.dl.LoadModel(PRELOAD_MODEL)
+                self.settings_form.SBScaleFactor.SpinBox.setValue(SCALE)
             except:
                 pass
         if PREDICT_WORMS:

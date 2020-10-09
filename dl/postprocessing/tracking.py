@@ -45,7 +45,7 @@ class ObjectTracking():
         
     def calculateMatches(self,  t, tp):
         t_minus_one = [x for (x,i) in self.tracking_list]
-        corr_mat = [self.parent.Mode.LabelDistance(x.coordinates,y.coordinates) for x in t_minus_one for y in t]
+        corr_mat = [self.parent.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
         mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))
         row,col = linear_sum_assignment(mat)
 

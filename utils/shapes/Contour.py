@@ -386,3 +386,11 @@ def getContoursNotinListOfContours(contours1, contours2):
     c2 = [( x.getMoments(), x.getBoundingBox(), x.getInnerContourParams() ) for x in contours2]   
     return [x[0] for x in c1 if x[1:] not in c2]
 
+def matchcontours(contour1, contour2):
+    c1 = contour1.getCenter()
+    c2 = contour2.getCenter()
+
+    # potentially cv2.matchShapes(contour1.points, contour2.points, cv2.CONTOURS_MATCH_I1,0) based on Hu-moments
+    # could be used additionally to compare, for now only the distance is calculated 
+    return math.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2)
+
