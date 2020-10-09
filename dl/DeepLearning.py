@@ -47,7 +47,6 @@ class DeepLearning(dlObservable):
     def __init__(self):
         super().__init__()
         self.TrainInMemory = True
-        self.useWeightedDistanceMap = False
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()

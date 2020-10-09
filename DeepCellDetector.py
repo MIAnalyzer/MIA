@@ -276,14 +276,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
         self.canvas.setCanvasMode(self.LearningMode())
+        
         try:
-            self.training_form.settings_form.updateLossesAndMetrics()
+            self.training_form.ModeChanged()
             if self.LearningMode() == dlMode.Segmentation:
-                self.training_form.settings_form.CBDitanceMap.show()
                 self.SegmentationSettings.show()
-
             else:
-                self.training_form.settings_form.CBDitanceMap.hide()
                 self.SegmentationSettings.hide()
         except:
             pass

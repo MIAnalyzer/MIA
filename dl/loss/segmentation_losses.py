@@ -20,13 +20,13 @@ class SegmentationLosses(Losses):
         
     def getLoss(self):
         if self.loss == dlLoss.focal_loss:
-            return self.focal_Loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
+            return self.focal_Loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
         if self.loss == dlLoss.cross_entropy:
-            return self.categorical_cross_entropy_loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
+            return self.categorical_cross_entropy_loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
         if self.loss == dlLoss.dice_loss:
-            return self.dice_coeffient_loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.useWeightedDistanceMap)
+            return self.dice_coeffient_loss_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
         if self.loss == dlLoss.kl_divergence:
-            return self.kullback_Leibler_divergence_loss_function(weighted = self.parent.useWeightedDistanceMap)
+            return self.kullback_Leibler_divergence_loss_function(weighted = self.parent.Mode.useWeightedDistanceMap)
         else:
             raise # not supported
                     

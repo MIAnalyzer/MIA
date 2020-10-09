@@ -16,6 +16,9 @@ class UndefinedMode(LearningMode):
     def LoadLabel(self, filename, height, width):
         return None
         
+    def prepreprocessLabel(self, label):
+        return label
+    
     def preprocessLabel(self, label):
         return label
 

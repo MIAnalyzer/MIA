@@ -6,7 +6,7 @@ Created on Fri Aug 14 16:56:31 2020
 """
 
 #https://towardsdatascience.com/computer-vision-for-tracking-8220759eee85
-# hungarian algorithm + kalman filter
+# hungarian algorithm
 
 from scipy.optimize import linear_sum_assignment
 import numpy as np

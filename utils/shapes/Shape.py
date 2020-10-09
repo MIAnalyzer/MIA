@@ -18,6 +18,14 @@ class Shapes(ABC):
         self.labeltype = labeltype
         self.shapes = []
         
+                
+    def getMaxClass(self):
+        labels = [s.classlabel for s in self.shapes]
+        if labels != []:
+            return max(labels)
+        else:
+            return 0
+        
     def addShape(self,s):
         if s.labeltype != self.labeltype:
             return
