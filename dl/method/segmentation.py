@@ -10,6 +10,7 @@ from dl.method.pixelbasedprediction import PixelBasedPrediction
 import dl.models.resnet50_SegNet as resnet50_SegNet
 import dl.models.simple_SegNet as simple_SegNet
 import utils.shapes.Contour as Contour
+import dl.utils.dl_utils as dl_utils
 import numpy as np
 import cv2
 from dl.loss.segmentation_losses import SegmentationLosses
@@ -23,11 +24,21 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         self.type = dlMode.Segmentation
         self.metric = SegmentationMetrics(parent)
         self.loss = SegmentationLosses(parent)
+        self.useWeightedDistanceMap = False
 
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
         contours = Contour.loadContours(filename)
         return Contour.drawContoursToLabel(label, contours)
+    
+    def addWeightMap(self, label):
+        if self.useWeightedDistanceMap:
+            weights = dl_utils.createWeightedBorderMapFromLabel(label[np.newaxis,...])
+            label = np.concatenate((label, weights[0,...]), axis = 2)
+        return label
+    
+    def prepreprocessLabel(self, label):
+        return self.addWeightMap(label)
         
     def preprocessLabel(self, mask):
         if self.parent.NumClasses > 2:

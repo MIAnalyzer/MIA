@@ -28,9 +28,15 @@ class LearningMode(ABC):
     @abstractmethod
     def LoadLabel(self, filename, height, width):
         pass
+    
+    @abstractmethod
+    def prepreprocessLabel(self, label):
+        # before training
+        pass
         
     @abstractmethod
     def preprocessLabel(self, label):
+        # during training
         pass
         
     @abstractmethod

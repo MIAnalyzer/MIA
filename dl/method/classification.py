@@ -16,6 +16,9 @@ class Classification(LearningMode):
     def LoadLabel(self, filename, height, width):
         pass
         
+    def prepreprocessLabel(self, label):
+        return label
+    
     def preprocessLabel(self, label):
         return label
 

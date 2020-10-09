@@ -10,8 +10,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_Augment import AugmentWindow
 from ui.ui_TrainSettings import TrainSettingsWindow
+from ui.ui_SegmentationSettings import SegmentationSettingsWindow
+from ui.ui_ObjectDetectionSettings import ObjectDetectionSettingsWindow
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox, DCDButton
 from ui.style import styleForm
+from dl.method.mode import dlMode
 
 
 class Window(object):
@@ -48,11 +51,14 @@ class Window(object):
 
         # row 4
         self.settings3layout = QHBoxLayout(self.centralWidget)
+        self.BModeSettings = DCDButton(self.centralWidget, 'Extended')
+        self.BModeSettings.setToolTip('Open extended settings')
+        self.BModeSettings.setIcon(QIcon('icons/augmentation.png'))
+        self.settings3layout.addWidget(self.BModeSettings)
         self.BSettings = DCDButton(self.centralWidget, 'Settings')
-        self.BSettings.setToolTip('Open extended training settings')
+        self.BSettings.setToolTip('Open training settings')
         self.BSettings.setIcon(QIcon('icons/augmentation.png'))
         self.settings3layout.addWidget(self.BSettings)
-        self.vlayout.addLayout(self.settings3layout)
         self.BAugmentation = DCDButton(self.centralWidget, 'Augmentations')
         self.BAugmentation.setToolTip('Open image augmentation settings')
         self.BAugmentation.setIcon(QIcon('icons/augmentation.png'))
@@ -136,6 +142,7 @@ class TrainingWindow(QMainWindow, Window):
         self.SBBatchSize.SpinBox.setValue(self.parent.dl.batch_size)
         
         
+        
         self.SBBatchSize.SpinBox.valueChanged.connect(self.BatchSizeChanged)
         self.SBEpochs.SpinBox.valueChanged.connect(self.EpochsChanged)
         self.SBLearningRate.SpinBox.valueChanged.connect(self.LRChanged)
@@ -144,13 +151,19 @@ class TrainingWindow(QMainWindow, Window):
         
         self.settings_form = TrainSettingsWindow(self)
         self.augmentation_form = AugmentWindow(self.parent)
+        # training mode settings
+        self.segmentationssettings_form = SegmentationSettingsWindow(self)
+        self.objectdetectionsettings_form = ObjectDetectionSettingsWindow(self)
+        
 
         self.BSettings.clicked.connect(self.settings_form.show)
         self.BAugmentation.clicked.connect(self.augmentation_form.show)
+        self.BModeSettings.clicked.connect(self.showModeSettings)
         self.BTrain.clicked.connect(self.Train)
         
     def show(self):
         self.setParameterStatus()
+        self.ModeChanged()
         super(TrainingWindow, self).show()
         
     def setParameterStatus(self):
@@ -168,14 +181,34 @@ class TrainingWindow(QMainWindow, Window):
                 self.CBRGB.setChecked(True) 
         
     def hide(self):
-        self.settings_form.hide()
-        self.augmentation_form.hide()
+        self.closeWindows()
         super(TrainingWindow, self).hide()
         
     def closeEvent(self, event):       
+        self.closeWindows()
+        super(TrainingWindow, self).closeEvent(event)
+        
+    def closeWindows(self):
         self.settings_form.hide()
         self.augmentation_form.hide()
-        super(TrainingWindow, self).closeEvent(event)
+        self.segmentationssettings_form.hide()
+        self.objectdetectionsettings_form.hide()
+        
+    def showModeSettings(self):
+        if self.parent.LearningMode() == dlMode.Segmentation:
+            self.segmentationssettings_form.show()
+        elif self.parent.LearningMode() == dlMode.Object_Counting:
+            self.objectdetectionsettings_form.show()    
+    
+    def ModeChanged(self):
+        self.settings_form.updateLossesAndMetrics()
+        self.closeWindows()
+        if self.parent.LearningMode() == dlMode.Segmentation:
+            self.BModeSettings.setToolTip('Open segmentation settings')
+            self.BModeSettings.setText('Segmentation')
+        elif self.parent.LearningMode() == dlMode.Object_Counting:
+            self.BModeSettings.setToolTip('Open object detection settings')
+            self.BModeSettings.setText('Detection')
         
     def ModelType(self):
         self.parent.dl.ModelType = self.CBModel.currentIndex()

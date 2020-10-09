@@ -23,7 +23,6 @@ class PixelBasedPrediction(ABC):
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
         
         pred = self.predictTiled(image)
-
         # pred = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         pred = self.resizeLabel(pred, (width, height))
         return pred
@@ -32,9 +31,9 @@ class PixelBasedPrediction(ABC):
         pred = np.zeros(image.shape[0:2],dtype='uint8')
         p_width = self.parent.augmentation.outputwidth
         p_height = self.parent.augmentation.outputheight
+        i = 0
         for w in range (0,image.shape[1],p_width):
             for h in range (0,image.shape[0],p_height):
-                
                 w_0 = max(w -self.parent.split_factor//2, 0)
                 h_0 = max(h -self.parent.split_factor//2, 0)
                     
@@ -52,6 +51,7 @@ class PixelBasedPrediction(ABC):
                 pred_patch = self.Predict(patch)
                 h_end = min(h+p_height,image.shape[0])
                 w_end = min(w+p_width,image.shape[1])
+                
                 pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end),...]
         return pred
     

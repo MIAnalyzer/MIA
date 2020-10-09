@@ -8,7 +8,6 @@ Created on Thu Apr 16 14:56:23 2020
 import os
 import glob
 import cv2
-import dl.utils.dl_utils as dl_utils
 from dl.data.labels import getAllImageLabelPairPaths
 import numpy as np
 from utils.Image import ImageFile
@@ -124,12 +123,6 @@ class ImageData():
         label[np.where(label == 255)] = 0
         return image, label
 
-
-    def addWeightMap(self, label):
-        if self.parent.useWeightedDistanceMap:
-            weights = dl_utils.createWeightedBorderMapFromLabel(label[np.newaxis,...])
-            label = np.concatenate((label, weights[0,...]), axis = 2)
-        return label
             
     def createImageLabelPair(self, index, validation=False):
         images = self.getImagePaths(validation)
@@ -165,7 +158,8 @@ class ImageData():
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
 
-        train_mask = self.addWeightMap(train_mask)
+        train_mask = self.parent.Mode.prepreprocessLabel(train_mask)
+            
         return train_img, train_mask
     
     def getTileIndices(self, validation = False, equalTilesperImage = False):
@@ -215,7 +209,6 @@ class ImageData():
 
         
         im_channels = 1 if self.parent.MonoChrome is True else 3
-        lb_channels = 2 if self.parent.useWeightedDistanceMap else 1
       
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))

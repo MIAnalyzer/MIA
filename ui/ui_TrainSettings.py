@@ -32,6 +32,7 @@ class Window(object):
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
 
+
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
         self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
@@ -68,10 +69,7 @@ class Window(object):
         hlayout.addWidget(self.CBOptimizer)
 
         layout.addLayout(hlayout)
-        self.CBDitanceMap = QCheckBox("Separate contours",self.centralWidget)
-        self.CBDitanceMap.setToolTip('Check to separate adjacent contours')
-        layout.addWidget(self.CBDitanceMap)
-
+        
         groupBox.setLayout(layout)
 
         return groupBox
@@ -151,7 +149,6 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBMemory.setChecked(self.parent.parent.dl.augmentation.ignoreBackground)
         self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.TrainInMemory)
         
-        self.CBDitanceMap.setChecked(self.parent.parent.dl.useWeightedDistanceMap)
         self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.optimizer.Optimizer.name))
         self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
         self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
@@ -159,7 +156,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         
         self.CBIgnoreBackgroundTiles.stateChanged.connect(self.IgnoreBackgroundChanged)
         self.CBMemory.stateChanged.connect(self.InMemoryChanged)
-        self.CBDitanceMap.stateChanged.connect(self.ShapeSeparationChanged)
+        
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         self.CBMetrics.currentIndexChanged.connect(self.changeMetric)
         self.CBLoss.currentIndexChanged.connect(self.changeLoss)
@@ -188,9 +185,6 @@ class TrainSettingsWindow(QMainWindow, Window):
         
     def predictionRateChanged(self):
         self.parent.parent.predictionRate = self.SBPredictEvery.SpinBox.value()
-
-    def ShapeSeparationChanged(self):
-        self.parent.parent.dl.useWeightedDistanceMap = self.CBDitanceMap.isChecked()
         
     def changeOptimizer(self, i):
         self.parent.parent.dl.optimizer.setOptimizer(dlOptim[self.CBOptimizer.currentText()])

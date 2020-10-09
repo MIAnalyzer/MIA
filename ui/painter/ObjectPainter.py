@@ -51,8 +51,9 @@ class ObjectPainter(Painter):
         
     def draw(self):
         super(ObjectPainter, self).draw()
-        for x in range(self.canvas.parent.NumOfClasses()):
-            self.drawClass(x)
+        # for x in range(self.canvas.parent.NumOfClasses()):
+        for x in range(self.points.getMaxClass()):    
+            self.drawClass(x+1)
 
     def drawClass(self, x):  
         painter = self.getPainter()
