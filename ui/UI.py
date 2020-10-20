@@ -41,8 +41,13 @@ class MainWindow(object):
         self.FileMenu.addAction(self.ASetTrainingFolder)
         
         self.ASetTestFolder = QAction("Test Folder", self.centralWidget)
-
         self.FileMenu.addAction(self.ASetTestFolder)
+        
+        self.ASaveSettings = QAction("Save Settings", self.centralWidget)
+        self.FileMenu.addAction(self.ASaveSettings)
+        self.ALoadSettings = QAction("Load Settings", self.centralWidget)
+        self.FileMenu.addAction(self.ALoadSettings)
+        
         
         self.FileMenu.addSeparator()
         self.AExit = QAction("Quit", self)
@@ -79,7 +84,7 @@ class MainWindow(object):
         self.CBLearningMode.addItem("3D Segmentation")
         self.CBLearningMode.addItem("Instance Segmentation")
         self.CBLearningMode.setToolTip('Select analysis mode')        
-        self.CBLearningMode.setObjectName("CBmode")
+        self.CBLearningMode.setObjectName("Learning_Mode")
         self.CBLearningMode.setEditable(False)
         self.CBLearningMode.setFocus(False)
         self.vlayout.addWidget(self.CBLearningMode)
@@ -131,8 +136,10 @@ class MainWindow(object):
         layout = QVBoxLayout(self.centralWidget)
         self.CBSmartMode = QCheckBox("Smartmode",self.centralWidget)
         self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
+        self.CBSmartMode.setObjectName('SmartMode')
         self.CBInner = QCheckBox("Inner Contours",self.centralWidget)
         self.CBInner.setToolTip("Check to allow contours to have holes")
+        self.CBInner.setObjectName('InnerContours')
         self.CBInner.setChecked(True)
         layout.addWidget(self.CBSmartMode)
         layout.addWidget(self.CBInner)

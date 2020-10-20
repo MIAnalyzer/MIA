@@ -28,14 +28,21 @@ class QAdaptiveDoubleSpinBox(QDoubleSpinBox):
 class LabelledSpinBox(QWidget):
     def __init__(self,labeltext, parent):
         super(LabelledSpinBox, self).__init__(parent)
-
+        
         layout = QHBoxLayout()
         self.SpinBox = QSpinBox(parent)
+        self.SpinBox.lineEdit().setObjectName('')
         layout.addWidget(self.SpinBox)
         self.Label = QLabel(parent)
         self.Label.setText(labeltext)
         layout.addWidget(self.Label)
         self.setLayout(layout)
+        
+    def objectName(self):
+        return self.SpinBox.objectName(name)
+        
+    def setObjectName(self, name):
+        self.SpinBox.setObjectName(name)
 
     def setToolTip(self, tooltip):
         self.Label.setToolTip(tooltip)
@@ -46,13 +53,21 @@ class LabelledDoubleSpinBox(QWidget):
     def __init__(self,labeltext, parent):
         super(LabelledDoubleSpinBox, self).__init__(parent)
 
+        
         layout = QHBoxLayout()
         self.SpinBox = QDoubleSpinBox(parent)
+        self.SpinBox.lineEdit().setObjectName('')
         layout.addWidget(self.SpinBox)
         self.Label = QLabel(parent)
         self.Label.setText(labeltext)
         layout.addWidget(self.Label)
         self.setLayout(layout)
+        
+    def objectName(self):
+        return self.SpinBox.objectName(name)
+        
+    def setObjectName(self, name):
+        self.SpinBox.setObjectName(name)
 
     def setToolTip(self, tooltip):
         self.Label.setToolTip(tooltip)
@@ -61,14 +76,22 @@ class LabelledDoubleSpinBox(QWidget):
 class LabelledAdaptiveDoubleSpinBox(QWidget):
     def __init__(self,labeltext, parent):
         super(LabelledAdaptiveDoubleSpinBox, self).__init__(parent)
-
+        
         layout = QHBoxLayout()
         self.SpinBox = QAdaptiveDoubleSpinBox(parent)
+        self.SpinBox.lineEdit().setObjectName('')
         layout.addWidget(self.SpinBox)
         self.Label = QLabel(parent)
         self.Label.setText(labeltext)
         layout.addWidget(self.Label)
         self.setLayout(layout)
+        
+    def objectName(self):
+        return self.SpinBox.objectName(name)
+        
+    def setObjectName(self, name):
+        self.SpinBox.setObjectName(name)
+        
 
     def setToolTip(self, tooltip):
         self.Label.setToolTip(tooltip)
@@ -129,14 +152,28 @@ class ClassList(QListWidget):
         dynamic_height = min(self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth(), 380)
         self.setFixedSize(self.sizeHintForColumn(0) + 2 * self.frameWidth(), dynamic_height)
 
-
     def setClass(self, i):
         item = self.item(i)
         if item:
             self.itemWidget(item).rb_select.setChecked(True)
+            
+    def getClassName(self, i):
+        item = self.item(i)
+        if item:
+            return self.itemWidget(item).edit_name.text()
         
     def getNumberOfClasses(self):
         return self.count()
+    
+    def setNumberOfClasses(self, numclasses):
+        diff = numclasses - self.getNumberOfClasses()
+        if diff > 0:
+            for i in range(diff):
+                self.addClass()
+        if diff < 0:
+            for i in range(diff):
+                self.removeClass()
+            
 
     def getActiveClass(self):
         for i in range(self.count()):
@@ -175,6 +212,7 @@ class ClassWidget(QWidget):
         self.edit_name = QLineEdit(parent)
         self.edit_name.setText(name)
         self.edit_name.setToolTip('Edit class name')
+        self.edit_name.setObjectName('class %i' % self.id)
         self.edit_name.setStyleSheet("QLineEdit { border: None }")
         
         self.label_numOfContours = QLabel(parent)

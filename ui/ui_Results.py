@@ -42,6 +42,7 @@ class Window(object):
 
         
         self.CBSize = QCheckBox("Export scaled size",self.centralWidget)
+        self.CBSize.setObjectName('ExportScaledSize')
         self.CBSize.setChecked(True)
         self.CBSize.setToolTip('Use scale to calculate size from pixel values')
         self.vlayout.addWidget(self.CBSize)
@@ -55,6 +56,7 @@ class Window(object):
         
         self.LEScale = QLineEdit(self.centralWidget) 
         self.LEScale.setMaximumSize(100, 28)
+        self.LEScale.setObjectName('Scale')
         self.LEScale.setStyleSheet("border: None")
         self.LEScale.setStyleSheet('font:bold')
         self.LEScale.setToolTip('Scale in pixel per mm')

@@ -35,12 +35,15 @@ class Window(object):
 
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
+        self.CBMemory.setObjectName('TrainInMemory')
         self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
         self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
+        self.CBIgnoreBackgroundTiles.setObjectName('IgnoreBackground')
         self.SBPredictEvery = LabelledSpinBox ('Predict an image every x epochs', self.centralWidget)
         self.SBPredictEvery.setToolTip('Predict the current selected test image after every x epochs')
         self.SBPredictEvery.SpinBox.setRange(0,100)
         self.SBPredictEvery.SpinBox.setValue(0)
+        self.SBPredictEvery.setObjectName('PredictEveryX')
         
         self.vlayout.addWidget(self.CBMemory)
         self.vlayout.addWidget(self.CBIgnoreBackgroundTiles)
@@ -55,12 +58,15 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         hlayout = QHBoxLayout(self.centralWidget)
         self.CBLoss = QComboBox(self.centralWidget)
-        self.CBLoss.addItem("Focal Loss")
+        self.CBLoss.setObjectName('Loss')
+        # self.CBLoss.addItem("Focal Loss")
         self.CBLoss.setToolTip('Set loss function to be optimized during training')
         self.CBMetrics = QComboBox(self.centralWidget)
-        self.CBMetrics.addItem("IoU")
+        # self.CBMetrics.addItem("IoU")
+        self.CBMetrics.setObjectName('Metric')
         self.CBMetrics.setToolTip('Set metric to measure network perforance')
         self.CBOptimizer = QComboBox(self.centralWidget)
+        self.CBOptimizer.setObjectName('Optimizer')
         for opt in dlOptim:
             self.CBOptimizer.addItem(opt.name)
         self.CBOptimizer.setToolTip('Set optimizer to minimize loss function')
@@ -79,6 +85,7 @@ class Window(object):
         
         hlayout = QHBoxLayout(self.centralWidget)
         self.STrainVal = QSlider(Qt.Horizontal, self.centralWidget)
+        self.STrainVal.setObjectName('TrainValSplit')
         self.STrainVal.setMinimum(20)
         self.STrainVal.setMaximum(100)
         self.STrainVal.setValue(100)
@@ -99,15 +106,18 @@ class Window(object):
         hlayout = QHBoxLayout(self.centralWidget)
 
         self.RBConstant = QRadioButton(self.centralWidget)
+        self.RBConstant.setObjectName('ConstantLR')
         self.RBConstant.setText("Constant")
         self.RBConstant.setToolTip('Toggle to set constant learning rate')
 
 
         self.RBRlroP = QRadioButton(self.centralWidget)
+        self.RBRlroP.setObjectName('ReduceLR')
         self.RBRlroP.setText("on Plateau")
         self.RBRlroP.setToolTip('Toggle to reduce learning rate on plateau')
 
         self.RBLRschedule = QRadioButton(self.centralWidget)
+        self.RBLRschedule.setObjectName('ScheduleLR')
         self.RBLRschedule.setText("Schedule")
         self.RBLRschedule.setToolTip('Toggle to set learning rate schedule')
 
@@ -117,6 +127,7 @@ class Window(object):
         layout.addLayout(hlayout)
 
         self.SBlr = LabelledAdaptiveDoubleSpinBox ('Learning Rate', self.centralWidget)
+        self.SBlr.setObjectName('Learning_Rate')
         self.SBlr.SpinBox.setRange(0.000001,1)
         self.SBlr.setToolTip('Set learning rate')
         self.SBlr.SpinBox.setDecimals(6)
@@ -124,12 +135,14 @@ class Window(object):
         layout.addWidget(self.SBlr)
         
         self.SBReduction = LabelledAdaptiveDoubleSpinBox ('Reduction Factor', self.centralWidget)
+        self.SBReduction.setObjectName('LRReduction')
         self.SBReduction.SpinBox.setRange(0.001,1)
         self.SBReduction.SpinBox.setDecimals(3)
         self.SBReduction.SpinBox.setSingleStep(0.1)
         layout.addWidget(self.SBReduction)
 
         self.SBEveryx = LabelledSpinBox ('Reduce every x epochs', self.centralWidget)
+        self.SBEveryx.setObjectName('LREpochs')
         self.SBEveryx.SpinBox.setRange(1,1000)
         self.SBEveryx.SpinBox.setValue(25)
         layout.addWidget(self.SBEveryx)

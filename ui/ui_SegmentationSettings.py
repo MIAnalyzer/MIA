@@ -27,6 +27,7 @@ class Window(object):
         vlayout.setSpacing(2)
         
         self.CBDitanceMap = QCheckBox("Separate contours",self.centralWidget)
+        self.CBDitanceMap.setObjectName('CreateWeightedDistanceMap')
         self.CBDitanceMap.setToolTip('Check to separate adjacent contours')
         
         vlayout.addWidget(self.CBDitanceMap)

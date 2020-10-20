@@ -46,6 +46,7 @@ class Window(object):
         
         hlayout = QHBoxLayout(self.centralWidget)
         self.CBgpu = QComboBox(self.centralWidget)
+        self.CBgpu.setObjectName('GPUSettings')
 
         devices = tf.config.experimental.list_physical_devices()
         self.CBgpu.addItem("default")
@@ -60,17 +61,21 @@ class Window(object):
         vlayout.addLayout(hlayout)     
         
         self.CBSeparateLabels = QCheckBox("Separate Labels of Stacks",self.centralWidget)
+        self.CBSeparateLabels.setObjectName('SeparateStackLabels')
+        self.CBSeparateLabels.setObjectName('Separate_Labels')
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
         self.CBSeparateLabels.setEnabled(False)
         vlayout.addWidget(self.CBSeparateLabels)
 
 
         self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
+        self.SBThreads.setObjectName('NumThreads')
         self.SBThreads.setToolTip('Set number of worker threads')
         self.SBThreads.SpinBox.setRange(1,multiprocessing.cpu_count())
         vlayout.addWidget(self.SBThreads)  
         
         self.SBScaleFactor = LabelledDoubleSpinBox('Image Down Scaling',self.centralWidget)
+        # do not give a name as scaling is named in Training
         self.SBScaleFactor.SpinBox.setRange(0.1,1)
         self.SBScaleFactor.setToolTip('Set image reduction factor')
         self.SBScaleFactor.SpinBox.setSingleStep(0.1)
@@ -92,26 +97,31 @@ class Window(object):
                 
         self.CBShapeNumbers = QCheckBox("Show Shape Numbers",self.centralWidget)
         self.CBShapeNumbers.setToolTip('Select to show number below each shape')
+        self.CBShapeNumbers.setObjectName('ShowShapeNumbers')
         vlayout.addWidget(self.CBShapeNumbers)
         
         self.CBFastDrawing = QCheckBox("Fast Drawing",self.centralWidget)
         self.CBFastDrawing.setToolTip('Reduces performance needs during drawing. Might be used for large images.')
+        self.CBFastDrawing.setObjectName('FastDrawing')
         vlayout.addWidget(self.CBFastDrawing)
         
 
         self.SBFontSize = LabelledSpinBox('Font Size',self.centralWidget)
         self.SBFontSize.setToolTip('Set font size')
+        self.SBFontSize.setObjectName('FontSize')
         self.SBFontSize.SpinBox.setRange(8,32)
         vlayout.addWidget(self.SBFontSize)
 
         self.SBPenSize = LabelledSpinBox('Pen Size',self.centralWidget)
         self.SBPenSize.SpinBox.setRange(1,15)
+        self.SBPenSize.setObjectName('PenSize')
         self.SBPenSize.setToolTip('Set pen size')
         vlayout.addWidget(self.SBPenSize)
         
         self.h2layout = QHBoxLayout(self.centralWidget)
         self.STransparency = QSlider(Qt.Horizontal, self.centralWidget)
         self.STransparency.setToolTip('Set opacity of contours')
+        self.STransparency.setObjectName('ContourTransparency')
         self.STransparency.setMinimum(0)
         self.STransparency.setMaximum(255)
         

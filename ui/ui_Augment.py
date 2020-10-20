@@ -32,6 +32,7 @@ class Window(object):
 
         self.augmentations = self.AugmentationGroup()
         self.augmentations.setCheckable(True)
+        self.augmentations.setObjectName('Augmentations')
         self.vlayout.addWidget(self.augmentations)
 
 
@@ -49,10 +50,12 @@ class Window(object):
         self.SBModelInputSize_x.setToolTip('Set model input width')
         self.SBModelInputSize_x.SpinBox.setRange(32,1024)
         self.SBModelInputSize_x.SpinBox.setSingleStep(32)
+        self.SBModelInputSize_x.setObjectName('ModelInput_X')
         self.SBModelInputSize_y = LabelledSpinBox(' Input height', self.centralWidget)
         self.SBModelInputSize_y.setToolTip('Set model input height')
         self.SBModelInputSize_y.SpinBox.setRange(1,1024)
         self.SBModelInputSize_y.SpinBox.setSingleStep(32)
+        self.SBModelInputSize_y.setObjectName('ModelInput_Y')
 
         sizelayout.addWidget(self.SBModelInputSize_x)
         sizelayout.addWidget(self.SBModelInputSize_y)
@@ -60,12 +63,15 @@ class Window(object):
 
         hlayout = QHBoxLayout(self.centralWidget)
         self.Flip = self.FlipGroup()
+        self.Flip.setObjectName('ImageFlipping')
         hlayout.addWidget(self.Flip)
         self.Noise = self.NoiseGroup()
+        self.Noise.setObjectName('ImageNoise')
         hlayout.addWidget(self.Noise)
         layout.addItem(hlayout)
 
         self.Affine = self.AffineGroup()
+        self.Affine.setObjectName('AffineTransformation')
         self.Affine.setCheckable(True)
         layout.addWidget(self.Affine)
 
@@ -80,9 +86,11 @@ class Window(object):
         layout.setSpacing(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.CBFliplr = QCheckBox("Flip horizontal",self.centralWidget)
+        self.CBFliplr.setObjectName('Flip_horizontal')
         self.CBFliplr.setToolTip('Check to flip images horizontally')
         self.CBFliptb = QCheckBox("Flip vertical",self.centralWidget)
         self.CBFliptb.setToolTip('Check to flip images vertically')
+        self.CBFliptb.setObjectName('Flip_vertical')
 
         layout.addWidget(self.CBFliplr)
         layout.addWidget(self.CBFliptb)
@@ -99,14 +107,17 @@ class Window(object):
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBNoise = LabelledSpinBox(' Blur (%)', self.centralWidget)
         self.SBNoise.SpinBox.setRange(0,100)
+        self.SBNoise.setObjectName('Blurring')
         self.SBNoise.setToolTip('Percentage to apply gaussian blur to the input image')
 
         self.SBPieceWise = LabelledSpinBox(' Piecewise (%)', self.centralWidget)
         self.SBPieceWise.SpinBox.setRange(0,100)
+        self.SBPieceWise.setObjectName('Piecewise_Affine')
         self.SBPieceWise.setToolTip('Percentage to apply piecewise affine transformation')
 
         self.SBDropout = LabelledSpinBox(' Dropout (%)', self.centralWidget)
         self.SBDropout.SpinBox.setRange(0,100)
+        self.SBDropout.setObjectName('ImageDropout')
         self.SBDropout.setToolTip('Percentage to apply piecewise dropout')
 
         layout.addWidget(self.SBNoise)
@@ -146,12 +157,14 @@ class Window(object):
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBScaleMin = LabelledDoubleSpinBox(' Scale Min (factor)', self.centralWidget)
         self.SBScaleMin.setToolTip('Set scale maximum percentage')
+        self.SBScaleMin.setObjectName('Scale_min')
         self.SBScaleMin.SpinBox.setSingleStep(0.1)
         self.SBScaleMin.SpinBox.setDecimals(1)
         self.SBScaleMin.SpinBox.setRange(0,1)
 
         self.SBScaleMax = LabelledDoubleSpinBox(' Scale Max (factor)', self.centralWidget)
         self.SBScaleMax.setToolTip('Set scale minimum percentage')
+        self.SBScaleMax.setObjectName('Scale_max')
         self.SBScaleMax.SpinBox.setSingleStep(0.1)
         self.SBScaleMax.SpinBox.setDecimals(1)
         self.SBScaleMax.SpinBox.setRange(1,10)
@@ -170,6 +183,7 @@ class Window(object):
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBTranslateMin = LabelledDoubleSpinBox(' Translate Min (%)', self.centralWidget)
         self.SBTranslateMin.setToolTip('Set translation minimun percent')
+        self.SBTranslateMin.setObjectName('Translate_min')
         self.SBTranslateMin.SpinBox.setSingleStep(0.1)
         self.SBTranslateMin.SpinBox.setDecimals(1)
         self.SBTranslateMin.SpinBox.setRange(-1,0)
@@ -177,6 +191,7 @@ class Window(object):
         self.SBTranslateMax = LabelledDoubleSpinBox(' Translate Max (%)', self.centralWidget)
         self.SBTranslateMax.setToolTip('Set translation minimun percent')
         self.SBTranslateMax.SpinBox.setSingleStep(0.1)
+        self.SBTranslateMax.setObjectName('Translate_min')
         self.SBTranslateMax.SpinBox.setDecimals(1)
         self.SBTranslateMax.SpinBox.setRange(0,1)
 
@@ -193,10 +208,12 @@ class Window(object):
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBShearMin = LabelledSpinBox(' Shear Min (deg)', self.centralWidget)
         self.SBShearMin.setToolTip('Set shear minimum')
+        self.SBShearMin.setObjectName('Shear_min')
         self.SBShearMin.SpinBox.setRange(-45,0)
 
         self.SBShearMax = LabelledSpinBox(' Shear Max (deg)', self.centralWidget)
         self.SBShearMax.setToolTip('Set shear maximum')
+        self.SBShearMax.setObjectName('Shear_max')
         self.SBShearMax.SpinBox.setRange(0,45)
 
         layout.addWidget(self.SBShearMin)
@@ -212,10 +229,12 @@ class Window(object):
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBRotMin = LabelledSpinBox(' Rotation Min (deg)', self.centralWidget)
         self.SBRotMin.setToolTip('Set rotation range minimum')
+        self.SBRotMin.setObjectName('Rotate_min')
         self.SBRotMin.SpinBox.setRange(-45,0)
 
         self.SBRotMax = LabelledSpinBox(' Rotation Max (deg)', self.centralWidget)
         self.SBRotMax.setToolTip('Set rotation range maximum')
+        self.SBRotMax.setObjectName('Rotate_max')
         self.SBRotMax.SpinBox.setRange(0,45)
 
         layout.addWidget(self.SBRotMin)
