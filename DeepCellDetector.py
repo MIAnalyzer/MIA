@@ -31,6 +31,7 @@ from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
 from ui.ui_PostProcessing import PostProcessingWindow
 from ui.ui_TrainPlot import TrainPlotWindow
+from ui.settings import Settings
 
 import utils.shapes.Contour as Contour
 import utils.shapes.Point as Point
@@ -38,6 +39,8 @@ from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
 from dl.data.labels import getAllImageLabelPairPaths
+
+
 
 
 from ui.ui_utils import DCDButton
@@ -51,6 +54,7 @@ PRELOAD = False
 PRELOAD_MODEL = 'models/phenix_v5.h5'
 SCALE = 0.4
 LOG_FILENAME = 'log/logfile.log'
+SETTINGS_FILENAME = 'settings/user_settings.json'
 CPU_ONLY = False
 
 
@@ -68,6 +72,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.maxworker = 1
         
         self.files = FilesAndFolders(self)
+        self.files.ensureFolder('log/')
+        self.files.ensureFolder('settings/')
+        
         self.currentImageFile = None
 
         self.separateStackLabels = True
@@ -117,6 +124,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.updateClassList()
         self.classList.setClass(1)
+        
+        self.settings = Settings(self)
+        self.settings.loadSettings(SETTINGS_FILENAME)
+
 
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
@@ -217,6 +228,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
         self.ASetTestFolder.triggered.connect(self.setTestFolder)
+        self.ASaveSettings.triggered.connect(self.SaveSettings)
+        self.ALoadSettings.triggered.connect(self.LoadSettings)
+        
+        
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
         
@@ -227,9 +242,20 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.postprocessing_form.show()
     
     def closeEvent(self, event):       
+        self.settings.saveSettings(SETTINGS_FILENAME)
         QApplication.closeAllWindows()
         self.dl.interrupt()
         super(QMainWindow, self).closeEvent(event)
+        
+    def SaveSettings(self):
+        filename = QFileDialog.getSaveFileName(self, "Save Settings", '', "Settings File (*.json)")[0]
+        if filename:
+            self.settings.saveSettings(filename)
+        
+    def LoadSettings(self):
+        filename = QFileDialog.getOpenFileName(self, "Select Settings File", '',"Settings (*.json)")[0]
+        if filename:
+            self.settings.loadSettings(filename)
 
         
     def showResultsWindow(self):
@@ -332,6 +358,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def NumOfClasses(self):
         return self.classList.getNumberOfClasses()
+    
+    def setNumberOfClasses(self, numclasses):
+        self.classList.setNumberOfClasses(numclasses)
     
     def setCanvasFocus(self):
         self.canvas.setFocus()
