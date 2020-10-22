@@ -42,7 +42,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         
     def preprocessLabel(self, mask):
         if self.parent.NumClasses > 2:
-            if self.parent.Mode.useWeightedDistanceMap:                 
+            if self.useWeightedDistanceMap:                 
                 label = mask[...,0]
                 weights = mask[...,1]
                 label = to_categorical(label, num_classes=self.parent.NumClasses)
