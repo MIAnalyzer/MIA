@@ -42,7 +42,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         
     def preprocessLabel(self, mask):
         if self.parent.NumClasses > 2:
-            if self.parent.useWeightedDistanceMap:                 
+            if self.parent.Mode.useWeightedDistanceMap:                 
                 label = mask[...,0]
                 weights = mask[...,1]
                 label = to_categorical(label, num_classes=self.parent.NumClasses)
@@ -71,7 +71,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         else:
             prediction = np.squeeze(prediction)
             prediction[prediction>0.5] = 1
-            prediction[prediction<=0.5] = 0
+            prediction[prediction<=0.5] = 0   
         return prediction
 
     def LabelDistance(self,l1, l2):
