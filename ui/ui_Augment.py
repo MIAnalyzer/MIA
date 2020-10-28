@@ -307,7 +307,7 @@ class AugmentWindow(QMainWindow, Window):
     
     def size(self):
         self.parent.dl.augmentation.outputwidth = self.SBModelInputSize_x.SpinBox.value()
-        self.parent.dl.augmentation.outputheight = self.SBModelInputSize_x.SpinBox.value()
+        self.parent.dl.augmentation.outputheight = self.SBModelInputSize_y.SpinBox.value()
         
     def flip(self):
         self.parent.dl.augmentation.flip_horz = self.CBFliplr.isChecked()
