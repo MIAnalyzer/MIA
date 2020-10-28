@@ -24,3 +24,6 @@ class NoPainter(Painter):
     
     def clearFOV(self):
         pass
+    
+    def addShapes(self,shapes):
+        pass

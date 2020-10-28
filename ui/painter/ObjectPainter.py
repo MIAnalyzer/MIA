@@ -35,6 +35,9 @@ class ObjectPainter(Painter):
                 to_del.append(p)
         self.points.deleteShapes(to_del)
         self.canvas.redrawImage()
+        
+    def addShapes(self,shapes):
+        self.points.addShapes(shapes)
 
     def enableDrawBackgroundMode(self):
         super(ObjectPainter, self).enableDrawBackgroundMode()

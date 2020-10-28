@@ -32,7 +32,8 @@ class ContourPainter(Painter):
         else:
             return self.contoursketch
         
-
+    def addShapes(self,shapes):
+        self.contours.addShapes(shapes)
 
     def draw(self):
         super(ContourPainter, self).draw()

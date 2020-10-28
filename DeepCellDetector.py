@@ -599,6 +599,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             with self.wait_cursor():
                 self.dl.LoadModel(filename)
                 self.writeStatus('model loaded')
+                try:
+                    self.settings.loadSettings(filename.replace("h5", "json"))
+                except:
+                    pass
+
 
     def saveModel(self):
         if not self.dl.initialized:
@@ -608,6 +613,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if filename.strip():
             with self.wait_cursor():
                 self.dl.SaveModel(filename)
+                self.settings.saveSettings(filename.replace("h5", "json"))
                 self.writeStatus('model saved')
 
     def resetModel(self):
@@ -723,7 +729,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def updateCurrentShapes(self, newshapes):
         if newshapes:
-            self.canvas.painter.shapes.addShapes(newshapes)
+            self.canvas.painter.addShapes(newshapes)
             self.canvas.checkForChanges()
 
     def autoSegment(self):

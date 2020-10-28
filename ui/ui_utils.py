@@ -171,7 +171,7 @@ class ClassList(QListWidget):
             for i in range(diff):
                 self.addClass()
         if diff < 0:
-            for i in range(diff):
+            for i in range(abs(diff)):
                 self.removeClass()
             
 
