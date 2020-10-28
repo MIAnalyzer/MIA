@@ -56,6 +56,10 @@ class Painter(ABC):
         pass
     
     @abstractmethod
+    def addShapes(self, shapes):
+        pass
+    
+    @abstractmethod
     def checkForChanges(self):
         pass
     
@@ -70,6 +74,8 @@ class Painter(ABC):
     @property
     def sketch(self):
         return self.contoursketch
+    
+    
     
     
     def draw(self):

@@ -25,7 +25,8 @@ class Settings:
                 json.dump(self.settingsDict, f, ensure_ascii=False, indent=4)
         except:
             # can not save
-            assert(False)
+            pass
+
         
     def loadSettings(self, path):
         self.settingsDict.clear()
@@ -35,7 +36,8 @@ class Settings:
             self.applySettings()
         except:
             # can not load
-            assert(False)
+            pass
+
             
     
     def collectSettings(self):

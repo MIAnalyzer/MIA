@@ -256,13 +256,7 @@ def drawContoursToLabel(label, contours):
        target.append(c)
        
     label = drawbackgroundToLabel(label, bg_contours)
-    # if bg_contours == list():
-    #     label[:] = (BACKGROUNDCLASS)
-    # else:
-    #     for c in bg_contours:
-    #         cnt = c.points
-    #         if c.numPoints() > 0: 
-    #             cv2.drawContours(label, [cnt], 0, (BACKGROUNDCLASS), -1)        
+   
         
     for c in target_contours:
         cnt = c.points

@@ -36,6 +36,9 @@ class ImageLabelPainter(Painter):
         # do nothing
         pass
     
+    def addShapes(self,shapes):
+        pass
+    
     def clear(self):
         super(ImageLabelPainter, self).clear()
         self.imagelabel = None
