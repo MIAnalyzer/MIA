@@ -12,8 +12,9 @@ import random
 import math
 
 class ImageAugment():
-    def __init__(self):
+    def __init__(self, parent):
         # this is the model input size
+        self.parent = parent
         self.outputwidth = 256  
         self.outputheight = 256
         
@@ -42,6 +43,12 @@ class ImageAugment():
         self.augmentation_sequence = None
         
         self.currentTile = 0
+        
+    def setoutputwidth(self, w):
+        self.outputwidth = w - w % self.parent.split_factor
+        
+    def setoutputheight(self, h):
+        self.outputheight = h - h % self.parent.split_factor
         
     def randomcrop_or_pad(self, images, labels):
         # input a list of images
@@ -79,7 +86,7 @@ class ImageAugment():
         return imgs, labls
     
     def getTilesPerImage(self, width, height):
-        return  math.ceil(height/self.outputwidth) * math.ceil(width/self.outputheight)
+        return  math.ceil(width/self.outputwidth) * math.ceil(height/self.outputheight)
     
     def systematiccrop_or_pad(self, images, labels):     
         # images are cropped from left-to-right and top-to-bot      
