@@ -66,10 +66,10 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         Contour.saveContours(contours, path)
         
     def convert2Image(self,prediction):
+        prediction = np.squeeze(prediction)
         if self.parent.NumClasses > 2:
-            prediction = np.squeeze(np.argmax(prediction, axis = 3))
+            prediction = np.squeeze(np.argmax(prediction, axis = 2))
         else:
-            prediction = np.squeeze(prediction)
             prediction[prediction>0.5] = 1
             prediction[prediction<=0.5] = 0   
         return prediction

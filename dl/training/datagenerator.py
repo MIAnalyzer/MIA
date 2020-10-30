@@ -55,7 +55,6 @@ class TrainingDataGenerator(Sequence):
             else:
                 batch_images,batch_masks = self._loadBatchFromDisk(batch_start, batch_end)
 
-    
             img, mask = self.parent.augmentation.augment(batch_images,batch_masks, self.validation)
             img = self.parent.data.preprocessImage(img)     
             mask = self.parent.data.preprocessLabel(mask)
@@ -63,6 +62,7 @@ class TrainingDataGenerator(Sequence):
             return img, mask
         
     def _loadBatchFromMemory(self, batch_start, batch_end): 
+        # are we sure this create a shallow copy? otherwise it would be terrible inefficient memory use
         batch_images = [self.images[self.indices[i]] for i in range(batch_start,batch_end)]
         batch_masks = [self.labels[self.indices[i]] for i in range(batch_start,batch_end)]
 
@@ -83,5 +83,62 @@ class TrainingDataGenerator(Sequence):
             random.shuffle(self.indices)
         
 
-    
+class PredictionDataGenerator(Sequence):
+    def __init__(self, parent, image):
+        self.parent = parent
+        self.batch_size = parent.batch_size
+        self.lock = threading.Lock()
+        self.inMemory  = parent.TrainInMemory
 
+        channels = 1 if self.parent.MonoChrome is True else 3
+        self.image = image.reshape(image.shape[0], image.shape[1], channels)
+        self.t_width = self.parent.augmentation.outputwidth - self.parent.borderremoval
+        self.t_height = self.parent.augmentation.outputheight - self.parent.borderremoval 
+        
+        
+        if self.image.shape[1] < self.parent.augmentation.outputwidth or self.image.shape[0] < self.parent.augmentation.outputheight:
+            w = max(0,self.parent.augmentation.outputwidth - self.image.shape[1])
+            h = max(0,self.parent.augmentation.outputheight - self.image.shape[0])
+            #if self.image.shape
+            pad = ((0,h), (0,w), (0, 0))
+            self.image = np.pad(self.image, pad, 'reflect')
+
+        pad = ((self.parent.borderremoval//2, self.parent.borderremoval//2), (self.parent.borderremoval//2, self.parent.borderremoval//2), (0, 0))       
+        self.image = np.pad(self.image, pad, 'reflect')
+           
+        self.num_in_width = np.ceil(image.shape[1] / self.t_width)
+        self.num_in_height = np.ceil(image.shape[0] / self.t_height)
+        self.numTiles = int(self.num_in_width * self.num_in_height)
+
+    def __len__(self):
+        return int(np.ceil(self.num_in_width * self.num_in_height / (self.batch_size)))
+
+    def __getitem__(self, idx):
+        with self.lock:
+            batch_start = idx * self.batch_size
+            batch_end = min(batch_start + self.batch_size, self.numTiles)
+
+
+            batch = []
+            for currentTile in range(batch_start,batch_end):      
+                w = (currentTile % self.num_in_width) * self.t_width
+                h = (currentTile // self.num_in_width) * self.t_height
+
+                w_0 = max(w, 0)
+                h_0 = max(h, 0)
+                
+                # split factor need to be reworked and reasonable, get it from network
+                h_til = min(h_0+self.t_height+self.parent.borderremoval, self.image.shape[0])
+                w_til = min(w_0+self.t_width+self.parent.borderremoval,  self.image.shape[1])
+                
+                # a full tile at the borders results in better segmentations
+                if h_til == self.image.shape[0]:
+                    h_0 = max(self.image.shape[0] - (self.t_height + self.parent.borderremoval), 0)
+                if w_til == self.image.shape[1]:
+                    w_0 = max(self.image.shape[1] - (self.t_width + self.parent.borderremoval), 0)
+
+                tile = self.image[int(h_0):int(h_til), int(w_0):int(w_til)]
+                batch.append(tile)
+                
+            img = self.parent.data.preprocessImage(np.asarray(batch))
+            return img

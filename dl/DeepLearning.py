@@ -52,13 +52,14 @@ class DeepLearning(dlObservable):
         self.hed = hed.HED_Segmentation()
         self.grabcut = gc.GrabCutSegmentation()
         self.data = imagedata.ImageData(self)
-        self.augmentation = augment.ImageAugment()
+        self.augmentation = augment.ImageAugment(self)
         self.record = training_record.TrainingRecording(self)
         
         self.ModelType = 0
         self.Model = None
-        # split factor need to be reworked and reasonable, get it from network
-        self.split_factor = 48
+        # split factor and border need to be reworked and reasonable, get it from network
+        self.split_factor = 64
+        self.borderremoval = 32
         
         self.tracking = ObjectTracking(self)
         self.interrupted = False

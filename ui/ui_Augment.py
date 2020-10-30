@@ -48,13 +48,9 @@ class Window(object):
         sizelayout.setContentsMargins(1, 1, 1, 1)
         self.SBModelInputSize_x = LabelledSpinBox(' Input width', self.centralWidget)
         self.SBModelInputSize_x.setToolTip('Set model input width')
-        self.SBModelInputSize_x.SpinBox.setRange(32,1024)
-        self.SBModelInputSize_x.SpinBox.setSingleStep(32)
         self.SBModelInputSize_x.setObjectName('ModelInput_X')
         self.SBModelInputSize_y = LabelledSpinBox(' Input height', self.centralWidget)
         self.SBModelInputSize_y.setToolTip('Set model input height')
-        self.SBModelInputSize_y.SpinBox.setRange(1,1024)
-        self.SBModelInputSize_y.SpinBox.setSingleStep(32)
         self.SBModelInputSize_y.setObjectName('ModelInput_Y')
 
         sizelayout.addWidget(self.SBModelInputSize_x)
@@ -256,6 +252,11 @@ class AugmentWindow(QMainWindow, Window):
         
         self.SBModelInputSize_x.SpinBox.setValue(self.parent.dl.augmentation.outputwidth)
         self.SBModelInputSize_y.SpinBox.setValue(self.parent.dl.augmentation.outputheight)
+        self.SBModelInputSize_x.SpinBox.setRange(self.parent.dl.borderremoval*2,1024)
+        self.SBModelInputSize_x.SpinBox.setSingleStep(self.parent.dl.split_factor)
+        self.SBModelInputSize_y.SpinBox.setRange(self.parent.dl.borderremoval*2,1024)
+        self.SBModelInputSize_y.SpinBox.setSingleStep(self.parent.dl.split_factor)
+        
         
         self.CBFliplr.setChecked(self.parent.dl.augmentation.flip_horz)
         self.CBFliptb.setChecked(self.parent.dl.augmentation.flip_vert)
@@ -306,8 +307,9 @@ class AugmentWindow(QMainWindow, Window):
         self.parent.dl.augmentation.enableAll = self.augmentations.isChecked()
     
     def size(self):
-        self.parent.dl.augmentation.outputwidth = self.SBModelInputSize_x.SpinBox.value()
-        self.parent.dl.augmentation.outputheight = self.SBModelInputSize_y.SpinBox.value()
+        self.parent.dl.augmentation.setoutputwidth(self.SBModelInputSize_x.SpinBox.value())
+        self.parent.dl.augmentation.setoutputheight(self.SBModelInputSize_y.SpinBox.value())
+
         
     def flip(self):
         self.parent.dl.augmentation.flip_horz = self.CBFliplr.isChecked()
