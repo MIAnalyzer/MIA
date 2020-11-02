@@ -40,6 +40,7 @@ from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
 from dl.data.labels import getAllImageLabelPairPaths
 
+from utils.workerthread import WorkerThread
 
 
 
@@ -648,20 +649,32 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         if not self.ConfirmPopup('Are you sure to predict all images in the test folder?'):
             return
-        with self.wait_cursor():
-            
-            images = glob.glob(os.path.join(self.files.testImagespath,'*.*'))
-            images = [x for x in images if (x.endswith(tuple(supportedImageFormats())))]
 
-            self.initProgress(len(images))
-            with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
-                executor.map(self.predictSingleImageOrStack_async,images)
+        self.initProgress(len(self.files.TestImages))
+        thread = WorkerThread(self.predictAllImages_async, self.PredictionFinished)
+        thread.daemon = True
+        thread.start()
 
-            self.ProgressFinished()
-            self.switchToTestFolder()
-            self.writeStatus(str(len(images)) + ' images predicted')
+
+    def PredictionFinished(self):
+        self.ProgressFinished()
+        self.writeStatus(str(len(self.files.TestImages)) + ' images predicted')
+        self.canvas.ReloadImage()
+
+    def predictAllImages_async(self):
+        for image in self.files.TestImages:
+            self.predictSingleImageOrStack(image)
+
+    def predictAllImages_async_concurrent(self):
+        self.initProgress(len(self.files.TestImages))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
+            executor.map(self.predictSingleImageOrStack,images)
+
+        self.ProgressFinished()
+        self.switchToTestFolder()
+        self.writeStatus(str(len(images)) + ' images predicted')
         
-    def predictSingleImageOrStack_async(self, imagepath):
+    def predictSingleImageOrStack(self, imagepath):
         # in worker thread
         image = ImageFile(imagepath)
         image.normalizeImage()
@@ -678,7 +691,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             else:
                 filename = name
             self.extractAndSavePredictedResults(pred, path, filename)
-        self.addProgress()
+        #self.addProgress()
         
     def predictImage_async(self):
         image = self.dl.data.readImage(self.files.CurrentImagePath(), self.files.currentFrame)

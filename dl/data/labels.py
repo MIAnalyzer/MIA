@@ -19,9 +19,9 @@ def getAllImageLabelPairPaths(imagepath, labelpath, unroll=True):
     labels = glob.glob(os.path.join(labelpath,'*.*'))
               
 
-    labels = [x for x in labels if x.endswith(".npy") or x.endswith(".npz")]
-    images = [x for x in images if x.endswith(tuple(supportedImageFormats()))]
-
+    labels = [x for x in labels if x.lower().endswith(".npy") or x.endswith(".npz")]
+    images = [x for x in images if x.lower().endswith(tuple(supportedImageFormats()))]
+    print(images)
     
     image_names = [os.path.splitext(os.path.basename(each))[0] for each in images]
         
