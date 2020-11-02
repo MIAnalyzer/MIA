@@ -75,6 +75,12 @@ class FilesAndFolders():
         else:
             return path + ".npz"
 
+    @property
+    def TestImages(self):
+        images = glob.glob(os.path.join(self.testImagespath,'*.*'))
+        images = [x for x in images if (x.lower().endswith(tuple(supportedImageFormats())))]
+        return images
+
     def nextImage(self):
         self.currentImage += 1
         if (self.currentImage >= self.numofImages):
@@ -106,7 +112,7 @@ class FilesAndFolders():
         if self.imagepath is None:
             return
         files = glob.glob(os.path.join(self.imagepath, '*.*'))          
-        self.files = [x for x in files if x.endswith(tuple(supportedImageFormats()))]
+        self.files = [x for x in files if x.lower().endswith(tuple(supportedImageFormats()))]
         if not self.files:
             self.currentImage = -1
             self.files = None
