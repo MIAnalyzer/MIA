@@ -159,8 +159,7 @@ class ResultsWindow(QMainWindow, Window):
             if labels is None:
                 self.parent.PopupWarning('No predicted files')
                 return
-            # try:
-            if True:
+            try:
                 with open(filename, 'w', newline='') as csvfile:
                     csvWriter = csv.writer(csvfile, delimiter = ';')
                         
@@ -171,12 +170,12 @@ class ResultsWindow(QMainWindow, Window):
                     else:
                         self.parent.PopupWarning('Not supported detection mode')
                     
-                    
+                    self.parent.ProgressFinished.emit()
                     self.parent.writeStatus('results saved')
                 
-            # except: 
-            #     self.parent.PopupWarning('Cannot write file (already open?)')
-            #     return
+            except: 
+                self.parent.PopupWarning('Cannot write file (already open?)')
+                return
             
             self.hide()
             
@@ -216,7 +215,6 @@ class ResultsWindow(QMainWindow, Window):
                     
         for r in rows:
             writer.writerows(r) 
-        self.parent.ProgressFinished()
         
     def getSingleContourLabelFromList(self, contourname):
         if isinstance(contourname, tuple):
@@ -239,7 +237,7 @@ class ResultsWindow(QMainWindow, Window):
                 if length > 0:
                     row += ['%.2f'%(c.getSize()/length)]
             rows.append(row)
-        self.parent.addProgress()
+        self.parent.Progress.emit()
         return rows
        
             
