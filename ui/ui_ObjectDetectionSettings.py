@@ -9,12 +9,13 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.style import styleForm
+from ui.ui_utils import LabelledSpinBox
 
 
 class Window(object):
     def setupUi(self, Form):
         width = 250
-        height= 60
+        height= 140
         Form.setWindowTitle('Object Counting Settings') 
         styleForm(Form)
         
@@ -46,13 +47,33 @@ class Window(object):
         self.SObjectIntensity.setToolTip('Use to set object peak intensity')
         self.LObjIntensity = QLabel(self.centralWidget)
         self.LObjIntensity.setText('Object Intensity')
+
+        self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
+        self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
+        self.CBIgnoreBackgroundTiles.setObjectName('IgnoreBackground')
+
+        self.SBDiscard = LabelledSpinBox ('Discard up to x background tiles', self.centralWidget)
+        self.SBDiscard.setObjectName('DiscardBGTiles')
+        self.SBDiscard.SpinBox.setRange(1,20)
+
+        self.SBMinPixels = LabelledSpinBox ('Minimum required labelled pixels', self.centralWidget)
+        self.SBMinPixels.setObjectName('MinLabelledPixels')
+        self.SBMinPixels.SpinBox.setRange(1,1000)
+
+
         
         h2layout.addWidget(self.SObjectIntensity)
         h2layout.addWidget(self.LObjIntensity)
 
+
         vlayout.addLayout(hlayout)
         vlayout.addLayout(h2layout)
-        
+        vlayout.addWidget(self.CBIgnoreBackgroundTiles)
+        vlayout.addWidget(self.SBDiscard)
+        vlayout.addWidget(self.SBMinPixels)
+
+
+
         self.centralWidget.setLayout(vlayout)
 
 class ObjectDetectionSettingsWindow(QMainWindow, Window):
@@ -63,10 +84,18 @@ class ObjectDetectionSettingsWindow(QMainWindow, Window):
         
         self.SObjectSize.valueChanged.connect(self.ObjectSizeChanged)
         self.SObjectIntensity.valueChanged.connect(self.ObjectIntensityChanged)
+
+        
+        self.CBIgnoreBackgroundTiles.stateChanged.connect(self.IgnoreBackgroundChanged)
+        self.SBDiscard.SpinBox.valueChanged.connect(self.DiscardChanged)
+        self.SBMinPixels.SpinBox.valueChanged.connect(self.MinPixelsChanged)
         
     def show(self):
         self.SObjectSize.setValue(self.parent.parent.dl.Mode.kernel_stdev)
         self.SObjectIntensity.setValue(self.parent.parent.dl.Mode.peak_val)
+        self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.augmentation.ignoreBackground)
+        self.SBDiscard.SpinBox.setValue(self.parent.parent.dl.augmentation.ignorecycles)
+        self.SBMinPixels.SpinBox.setValue(self.parent.parent.dl.augmentation.minRequiredPixels)
         super(ObjectDetectionSettingsWindow, self).show()
         
     def ObjectSizeChanged(self):
@@ -75,6 +104,21 @@ class ObjectDetectionSettingsWindow(QMainWindow, Window):
     def ObjectIntensityChanged(self):
         self.parent.parent.dl.Mode.peak_val = self.SObjectIntensity.value()
         
+
+    def IgnoreBackgroundChanged(self):
+        self.parent.parent.dl.augmentation.ignoreBackground = self.CBIgnoreBackgroundTiles.isChecked()
+        if self.CBIgnoreBackgroundTiles.isChecked():
+            self.SBMinPixels.setEnabled(True)
+            self.SBDiscard.setEnabled(True)
+        else:
+            self.SBMinPixels.setEnabled(False)
+            self.SBDiscard.setEnabled(False)
+
+    def MinPixelsChanged(self):
+        self.parent.parent.dl.augmentation.minRequiredPixels = self.SBMinPixels.SpinBox.value()
+
+    def DiscardChanged(self):
+        self.parent.parent.dl.augmentation.ignorecycles = self.SBDiscard.SpinBox.value()
         
         
         
