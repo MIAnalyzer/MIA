@@ -15,11 +15,13 @@ from dl.optimizer.optimizer import dlOptim
 from dl.training.lrschedule import lrMode
 from dl.metric.metrics import dlMetric
 from dl.loss.losses import dlLoss
+from dl.data.imagedata import dlPreprocess
+
 
 class Window(object):
     def setupUi(self, Form):
         width = 400
-        height= 450
+        height= 420
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
         
@@ -32,21 +34,27 @@ class Window(object):
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
 
-
+        layout = QHBoxLayout(self.centralWidget)
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
         self.CBMemory.setObjectName('TrainInMemory')
-        self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
-        self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
-        self.CBIgnoreBackgroundTiles.setObjectName('IgnoreBackground')
+        layout.addWidget(self.CBMemory)
+
         self.SBPredictEvery = LabelledSpinBox ('Predict an image every x epochs', self.centralWidget)
         self.SBPredictEvery.setToolTip('Predict the current selected test image after every x epochs')
         self.SBPredictEvery.SpinBox.setRange(0,100)
         self.SBPredictEvery.SpinBox.setValue(0)
         self.SBPredictEvery.setObjectName('PredictEveryX')
-        
-        self.vlayout.addWidget(self.CBMemory)
-        self.vlayout.addWidget(self.CBIgnoreBackgroundTiles)
+        self.CBPreprocess = QComboBox(self.centralWidget)
+        self.CBPreprocess.setObjectName('Preprocessing')
+        for pre in dlPreprocess:
+            self.CBPreprocess.addItem(pre.name)
+
+        layout.addWidget(self.CBPreprocess)
+        self.LPreprocess = QLabel('Preprocessing')
+        layout.addWidget(self.LPreprocess)
+
+        self.vlayout.addLayout(layout)
         self.vlayout.addWidget(self.SBPredictEvery)
         self.vlayout.addWidget(self.LossGroup())
         self.vlayout.addWidget(self.TrainValGroup())
@@ -159,24 +167,24 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         
-        self.CBMemory.setChecked(self.parent.parent.dl.augmentation.ignoreBackground)
-        self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.TrainInMemory)
+        self.CBMemory.setChecked(self.parent.parent.dl.TrainInMemory)
         
         self.CBOptimizer.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.optimizer.Optimizer.name))
         self.SBlr.SpinBox.setValue(self.parent.parent.dl.learning_rate)
         self.SBlr.SpinBox.setMinimum(self.parent.parent.dl.lrschedule.minlr)
         self.SBPredictEvery.SpinBox.setValue(self.parent.parent.predictionRate)
         
-        self.CBIgnoreBackgroundTiles.stateChanged.connect(self.IgnoreBackgroundChanged)
         self.CBMemory.stateChanged.connect(self.InMemoryChanged)
         
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         self.CBMetrics.currentIndexChanged.connect(self.changeMetric)
         self.CBLoss.currentIndexChanged.connect(self.changeLoss)
+        self.CBPreprocess.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.preprocess.name))
+        self.CBPreprocess.currentIndexChanged.connect(self.changePreprocessing)
 
-        self.RBConstant.clicked.connect(self.LROption)
-        self.RBRlroP.clicked.connect(self.LROption)
-        self.RBLRschedule.clicked.connect(self.LROption)
+        self.RBConstant.toggled.connect(self.LROption)
+        self.RBRlroP.toggled.connect(self.LROption)
+        self.RBLRschedule.toggled.connect(self.LROption)
         
         self.SBlr.SpinBox.valueChanged.connect(self.changeLR)
         self.SBReduction.SpinBox.valueChanged.connect(self.changeReductionFactor)
@@ -192,9 +200,6 @@ class TrainSettingsWindow(QMainWindow, Window):
 
     def InMemoryChanged(self):
         self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
-        
-    def IgnoreBackgroundChanged(self):
-        self.parent.parent.dl.augmentation.ignoreBackground = self.CBMemory.isChecked()
         
     def predictionRateChanged(self):
         self.parent.parent.predictionRate = self.SBPredictEvery.SpinBox.value()
@@ -243,6 +248,10 @@ class TrainSettingsWindow(QMainWindow, Window):
     def changeLoss(self):
         if self.CBLoss.currentText() != '': 
             self.parent.parent.dl.Mode.loss.loss = dlLoss[self.CBLoss.currentText()]
+
+    def changePreprocessing(self):
+        if self.CBPreprocess.currentText() != '': 
+            self.parent.parent.dl.preprocess = dlPreprocess[self.CBPreprocess.currentText()]
 
     def changeMetric(self):
         if self.CBMetrics.currentText() != '':

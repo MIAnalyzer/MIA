@@ -29,6 +29,7 @@ import dl.training.lrschedule as schedule
 import dl.models.hed as hed
 import dl.machine_learning.grabcut_segmentation as gc
 import dl.data.imagedata as imagedata
+from dl.data.imagedata import dlPreprocess
 from dl.method.segmentation import Segmentation
 from dl.method.objectcounting import ObjectCounting
 from dl.method.classification import Classification
@@ -77,6 +78,7 @@ class DeepLearning(dlObservable):
         self.batch_size = 4
         self.epochs = 100
         self.learning_rate = 0.001
+        self.preprocess = dlPreprocess.scale
         self.lrschedule = schedule.LearningRateSchedule(self)
 
 
