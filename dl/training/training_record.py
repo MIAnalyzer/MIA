@@ -20,7 +20,7 @@ class TrainingRecording( Callback):
     def on_train_begin(self, logs=None):
         self.parent.notifyTrainingStarted()
         self.interrupt = False
-        self.currentepoch = 0
+        self.currentepoch = self.parent.resumeEpoch
         self.currentbatch = 0
         
     def on_train_end(self, logs=None):

@@ -64,7 +64,11 @@ class DeepLearning(dlObservable):
         self.tracking = ObjectTracking(self)
         self.interrupted = False
 
-    
+        self.train_generator = None
+        self.val_generator = None
+
+        self.resumeEpoch = 0
+
         self.Mode = Segmentation(self)
         
         self.observer = None
@@ -112,45 +116,61 @@ class DeepLearning(dlObservable):
     def interrupt(self):
         self.record.interrupt = True
         self.interrupted = True
+        self.resumeEpoch = self.record.currentepoch
           
     def initModel(self, numClasses, MonoChrome):
         try:
-            # self.Model = self.Models.getModel(self.Mode, self.ModelType, numClasses, monochrome = MonoChrome)
             self.Model = self.Mode.getModel(numClasses, MonoChrome)
-            self.record.reset()
             return self.initialized
         except:
             self.notifyError()
             return False
 
        
-    def Train(self, trainingimages_path, traininglabels_path):
+    def startTraining(self, trainingimages_path, traininglabels_path):
         if not self.initialized or trainingimages_path is None or traininglabels_path is None:
             return False
 
-        thread = threading.Thread(target=self.executeTraining, args=(trainingimages_path, traininglabels_path))
+        thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path, traininglabels_path))
+        thread.daemon = True
+        thread.start()
+
+    def resumeTraining(self):
+        if not self.initialized:
+            return False
+
+        thread = threading.Thread(target=self.Training)
         thread.daemon = True
         thread.start()
 
     
-    def executeTraining(self, trainingimages_path, traininglabels_path):
+    def initData_StartTraining(self, trainingimages_path, traininglabels_path):
         try:
+            self.record.reset()
             self.interrupted = False
             self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
             if not self.data.initialized() or self.interrupted:
                 self.notifyTrainingFinished()
                 return
 
-            train_generator = datagenerator.TrainingDataGenerator(self)
+            self.train_generator = datagenerator.TrainingDataGenerator(self)
             if self.data.validationData():
-                val_generator = datagenerator.TrainingDataGenerator(self, validation = True)
+                self.val_generator = datagenerator.TrainingDataGenerator(self, validation = True)
             else: 
-                val_generator = None    
+                self.val_generator = None    
             self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
-            if self.interrupted:
+            self.resumeEpoch = 0
+            self.Training()
+        except:
+            self.notifyTrainingFinished()
+            self.notifyError()
+
+    def Training(self):
+        try:
+            if not self.train_generator:
                 self.notifyTrainingFinished()
                 return
-            self.Model.fit(train_generator,validation_data=val_generator, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
+            self.Model.fit(self.train_generator,validation_data=self.val_generator, initial_epoch = self.resumeEpoch, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs-self.resumeEpoch, workers = self.worker)
         except:
             self.notifyTrainingFinished()
             self.notifyError()

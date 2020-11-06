@@ -595,11 +595,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.canvas.ReloadImage()
             
     def toggleTrainStatus(self, training):
-        self.Bloadmodel.setEnabled(not training)
-        self.Bresetmodel.setEnabled(not training)
+        self.lockModel(training)
         self.training_form.setParameterStatus()
         self.training_form.toggleTrainStatus(training=training)
         self.plotting_form.toggleTrainStatus(training=training)
+
+    def togglePredictionStatus(self, prediction):
+        self.lockModel(prediction)
+        self.training_form.toggleTrainStatus(training=prediction)
+
+    def lockModel(self, lock):
+        self.Bloadmodel.setEnabled(not lock)
+        self.Bresetmodel.setEnabled(not lock)
+
 
     ## deep learning  
     def LearningMode(self):
@@ -648,7 +656,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.plotting_form.show()
         self.plotting_form.initialize()
         self.toggleTrainStatus(True)
-        self.dl.Train(self.files.trainImagespath,self.files.trainImageLabelspath)
+        self.dl.startTraining(self.files.trainImagespath,self.files.trainImageLabelspath)
+
+    def resumeTraining(self):
+        self.toggleTrainStatus(True)
+        if not self.dl.resumeTraining():
+            self.toggleTrainStatus(False)
         
     def predictAllImages(self):
         if self.files.testImagespath is None:
@@ -662,6 +675,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
 
         self.initProgress(len(self.files.TestImages))
+        self.togglePredictionStatus(True)
         thread = WorkerThread(self.predictAllImages_async, self.PredictionFinished)
         thread.daemon = True
         thread.start()
@@ -670,6 +684,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def PredictionFinished(self):
         self.writeStatus(str(len(self.files.TestImages)) + ' images predicted')
         self.canvas.ReloadImage()
+        self.togglePredictionStatus(False)
 
     def predictAllImages_async(self):
         for image in self.files.TestImages:
