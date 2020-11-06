@@ -177,5 +177,14 @@ class TrainPlotWindow(QMainWindow, Window):
     def Stop(self):
         self.dl.interrupt()
 
+    def Resume(self):
+        self.parent.resumeTraining()
+
     def toggleTrainStatus(self, training):
-        self.BStop.setEnabled(training)
+        self.BStop.disconnect()
+        if training:
+            self.BStop.setText('Stop Training')
+            self.BStop.clicked.connect(self.Stop)
+        else:
+            self.BStop.setText('Resume Training')
+            self.BStop.clicked.connect(self.Resume)
