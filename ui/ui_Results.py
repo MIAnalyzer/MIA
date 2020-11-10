@@ -13,6 +13,8 @@ import csv
 import os
 import glob
 import concurrent.futures
+from ui.segmentation.ui_SegResults import SegmentationResultsWindow
+from ui.objectdetection.ui_ODResults import ObjectDetectionResultsWindow
 from dl.data.labels import getAllImageLabelPairPaths
 from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
@@ -28,7 +30,7 @@ class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Results') 
         width = 250
-        height= 120
+        height= 130
         Form.setFixedSize(width, height)
         styleForm(Form)
         self.centralWidget = QWidget(Form)
@@ -39,14 +41,12 @@ class Window(object):
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
         
-
-        
-        self.CBSize = QCheckBox("Export scaled size",self.centralWidget)
+        self.CBSize = QCheckBox("Use scaled size",self.centralWidget)
         self.CBSize.setObjectName('ExportScaledSize')
         self.CBSize.setChecked(True)
         self.CBSize.setToolTip('Use scale to calculate size from pixel values')
         self.vlayout.addWidget(self.CBSize)
-        
+                
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.BSetScale = DCDButton(self.centralWidget)
         self.BSetScale.setToolTip('Measure scale with known distance')
@@ -68,6 +68,11 @@ class Window(object):
         self.hlayout.addWidget(self.LScale)
         self.vlayout.addItem(self.hlayout)
         
+        self.BExportSettings = DCDButton(self.centralWidget, 'Settings')
+        self.BExportSettings.setToolTip('Open export settings')
+        self.BExportSettings.setIcon(QIcon('icons/savemodel.png'))
+        self.vlayout.addWidget(self.BExportSettings)
+        
         self.BExportMasks = DCDButton(self.centralWidget, 'Export Masks')
         self.BExportMasks.setToolTip('Export contour masks of all images in prediction folder')
         self.BExportMasks.setIcon(QIcon('icons/savemodel.png'))
@@ -88,10 +93,37 @@ class ResultsWindow(QMainWindow, Window):
         self.setupUi(self)
         self.BExportMasks.clicked.connect(self.exportAllMasks)
         self.BExport.clicked.connect(self.saveResults)
+        self.BExportSettings.clicked.connect(self.showExportSettings)
         self.CBSize.stateChanged.connect(self.EnableSetScale)
         self.BSetScale.clicked.connect(self.setScaleTool)
         self.LEScale.textEdited.connect(self.setScale)
         self.LEScale.setText('1')
+        
+        self.odResults = ObjectDetectionResultsWindow(self.parent,self)
+        self.segResults = SegmentationResultsWindow(self.parent,self)
+        
+    def showExportSettings(self):
+        if self.parent.LearningMode() == dlMode.Segmentation:
+            self.segResults.show()
+        elif self.parent.LearningMode() == dlMode.Object_Counting:
+            self.odResults.show()
+            
+    def hide(self):
+        self.closeWindows()
+        super(ResultsWindow, self).hide()
+        
+    def closeEvent(self, event):       
+        self.closeWindows()
+        super(ResultsWindow, self).closeEvent(event)
+            
+    def ModeChanged(self):
+        self.closeWindows()
+        
+    
+    def closeWindows(self):
+        self.segResults.hide()
+        self.odResults.hide()
+
         
     def exportMask(self):
         # currently unused
@@ -164,9 +196,9 @@ class ResultsWindow(QMainWindow, Window):
                     csvWriter = csv.writer(csvfile, delimiter = ';')
                         
                     if self.parent.LearningMode() == dlMode.Segmentation:
-                        self.saveContourData(csvWriter, labels)
+                        self.segResults.saveContourData(csvWriter, labels)
                     elif self.parent.LearningMode() == dlMode.Object_Counting:
-                        self.saveObjects(csvWriter, labels)
+                        self.odResults.saveObjects(csvWriter, labels)
                     else:
                         self.parent.PopupWarning('Not supported detection mode')
                     
@@ -178,71 +210,7 @@ class ResultsWindow(QMainWindow, Window):
                 return
             
             self.hide()
-            
-    def saveObjects(self, writer, labels):
-        header = ['image name'] + ['number of objects'] + ['object type']
-        writer.writerow(header)
-        num = len(labels)
-        self.parent.initProgress(num)
-        
-        for label in labels:
-            if isinstance(label, tuple):
-                label = label[0]
-                
-            name = os.path.splitext(os.path.basename(label))[0]
-            points,_ = loadPoints(label)
-            pointlabels = [x.classlabel for x in points]
-            for i in range(1,max(pointlabels)+1):
-                row = [name] + [pointlabels.count(i)] + [i]
-                writer.writerow(row) 
-        
-            
-    def saveContourData(self, writer, labels):    
-        header = ['image name'] + ['object number'] + ['object type'] + ['size']
-        if self.CBSize.isChecked():
-            header += ['size in microns\u00b2']
-        if self.parent.canvas.drawSkeleton:
-            header += ['length in pixel']
-            if self.CBSize.isChecked():
-                header += ['length in microns']
-            header += ['fatness (area / length)']
-                        
-        writer.writerow(header)
-        num = len(labels)
-        self.parent.initProgress(num)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
-            rows = executor.map(self.getSingleContourLabelFromList, labels)
-                    
-        for r in rows:
-            writer.writerows(r) 
-        
-    def getSingleContourLabelFromList(self, contourname):
-        if isinstance(contourname, tuple):
-            contourname = contourname[0]
-        contours = loadContours(contourname)
-        contours = [x for x in contours if x.isValid(self.parent.canvas.minContourSize)]
-        name = os.path.splitext(os.path.basename(contourname))[0]
-        x = 0
-        rows = []
-        for c in contours:
-            x += 1
-            row = [name] + [x] + [c.classlabel] + [c.getSize()]
-            if self.CBSize.isChecked():
-                row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
-            if self.parent.canvas.drawSkeleton:   
-                length = c.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)   
-                row += ['%.0f'%length]
-                if self.CBSize.isChecked():
-                    row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]
-                if length > 0:
-                    row += ['%.2f'%(c.getSize()/length)]
-            rows.append(row)
-        self.parent.Progress.emit()
-        return rows
-       
-            
-        
-                   
+
         
         
 
