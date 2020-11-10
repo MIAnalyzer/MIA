@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.ui_Augment import AugmentWindow
 from ui.ui_TrainSettings import TrainSettingsWindow
-from ui.ui_SegmentationSettings import SegmentationSettingsWindow
-from ui.ui_ObjectDetectionSettings import ObjectDetectionSettingsWindow
+from ui.segmentation.ui_SegSettings import SegmentationSettingsWindow
+from ui.objectdetection.ui_ODSettings import ObjectDetectionSettingsWindow
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox, DCDButton
 from ui.style import styleForm
 from dl.method.mode import dlMode

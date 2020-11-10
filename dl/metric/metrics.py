@@ -35,5 +35,4 @@ class Metrics(ABC):
     
     @metric.setter
     def metric(self, metric):
-        assert(metric in self.supportedmetrics)
         self._metric = metric

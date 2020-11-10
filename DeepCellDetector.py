@@ -26,10 +26,15 @@ from dl.method.mode import dlMode
 from ui.UI import MainWindow
 from ui.Tools import canvasTool
 from ui.ui_Canvas import Canvas
+
+from ui.segmentation.ui_SegPostProcessing import SegmentationPostProcessingWindow
+from ui.objectdetection.ui_ODPostProcessing import ObjectDetectionPostProcessingWindow
+
 from ui.ui_Results import ResultsWindow
+
 from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
-from ui.ui_PostProcessing import PostProcessingWindow
+
 from ui.ui_TrainPlot import TrainPlotWindow
 from ui.settings import Settings
 
@@ -66,7 +71,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     ProgressFinished = pyqtSignal()
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
-        
+        self.initialized = False
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -125,10 +130,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setWorkers(multiprocessing.cpu_count() // 2)
         
         ### windows - should this be moved to UI ?
+        self.segpostprocessing_form = SegmentationPostProcessingWindow(self)
         self.results_form = ResultsWindow(self)
+        self.odpostprocessing_form = ObjectDetectionPostProcessingWindow(self)
+        
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
-        self.postprocessing_form = PostProcessingWindow(self)
+        
         self.plotting_form = TrainPlotWindow(self)
         
         self.updateClassList()
@@ -136,7 +144,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.settings = Settings(self)
         self.settings.loadSettings(SETTINGS_FILENAME)
-
+        self.initialized = True
 
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
@@ -175,7 +183,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
 
         if PREDICT_SPINES:
-            self.postprocessing_form.SBminContourSize.setValue(10)
+            self.segpostprocessing_form.SBminContourSize.setValue(10)
             self.settings_form.SBFontSize.SpinBox.setValue(10)
             self.settings_form.CBShapeNumbers.setChecked(False)
             self.settings_form.SBPenSize.SpinBox.setValue(1)
@@ -248,7 +256,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.settings_form.show()
         
     def showPostProcessingWindow(self):   
-        self.postprocessing_form.show()
+        if self.LearningMode() == dlMode.Segmentation:
+            self.segpostprocessing_form.show()
+        elif self.LearningMode() == dlMode.Object_Counting:
+            self.odpostprocessing_form.show() 
     
     def closeEvent(self, event):       
         self.settings.saveSettings(SETTINGS_FILENAME)
@@ -266,12 +277,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if filename:
             self.settings.loadSettings(filename)
 
+    def closeModeWindows(self):
+        if self.initialized:
+            self.odpostprocessing_form.hide()
+            self.segpostprocessing_form.hide()
+
         
     def showResultsWindow(self):
         if self.files.testImageLabelspath is None:
             self.PopupWarning('Prediction folder not selected')
             return
+        
         self.results_form.show()
+
         
     def PopupWarning(self, message):
         msg = QMessageBox()
@@ -313,16 +331,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
         self.canvas.setCanvasMode(self.LearningMode())
+        self.closeModeWindows()
         
-        try:
+        if self.initialized:
+            # could be done in an observer
+            self.results_form.ModeChanged()
             self.training_form.ModeChanged()
-            if self.LearningMode() == dlMode.Segmentation:
-                self.SegmentationSettings.show()
-            else:
-                self.SegmentationSettings.hide()
-        except:
-            pass
-            # not initialized
         self.setWorkingFolder()
         
     def setToolButtons(self):
