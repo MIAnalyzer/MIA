@@ -35,7 +35,6 @@ class Losses(ABC):
     
     @loss.setter
     def loss(self, loss):
-        assert(loss in self.supportedlosses)
         self._loss = loss
         
     

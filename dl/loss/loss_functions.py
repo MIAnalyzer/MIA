@@ -14,78 +14,119 @@ from dl.metric.metric_functions import dice_coefficient, dice_coefficient_binary
 ## classification
 
 ## regression
-def mean_squared_error():
-    return tf.keras.losses.MeanSquaredError()
+def mean_squared_error(class_weights=None):
+    if not class_weights:
+        class_weights = 1
+    def loss(y_true, y_pred):
+        mse = K.mean(K.square(y_pred - y_true)*class_weights, axis=-1)
+        return mse
+    return loss
 
-def mean_absolute_error():
-    return tf.keras.losses.MeanAbsoluteError()
-    
-def mean_squared_logarithmic_error():
-    return tf.keras.losses.MeanSquaredLogarithmicError()
+def mean_absolute_error(class_weights=None):
+    if not class_weights:
+        class_weights = 1
+    def loss(y_true, y_pred):
+        mae = K.mean(K.abs(y_true - y_pred)*class_weights, axis=-1)
+        return mae
+    return loss
+
+def mean_squared_logarithmic_error(class_weights=None):
+    if not class_weights:
+        class_weights = 1
+    def loss(y_true, y_pred):
+        # clip at 0 or (-1 + epsilon) ??
+        y_pred = K.clip(y_pred, 0, None)
+        y_true = K.clip(y_true, 0, None)
+        msle = K.mean(K.square(K.log(y_true + 1) - K.log(y_pred + 1))*class_weights, axis=-1)
+        return msle
+    return loss
 
 
 ## segmentation
-def focal_loss(ytrue, ypred, weights=1, gamma=2, alpha = .25):
+def focal_loss(usedistmap=False, class_weights = None, gamma=2):
+    if not class_weights:
+        class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.softmax_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
-    ypred /= K.sum(ypred, axis=-1, keepdims=True)
-    epsilon = K.epsilon()
-    ypred = K.clip(ypred, epsilon, 1. - epsilon)
-    return -K.mean(alpha * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weights, axis=-1)
+    def loss(ytrue, ypred):
+        if usedistmap:
+            weightmap = K.expand_dims(ytrue[...,-1], axis=3)
+            ytrue = ytrue[...,:-1]
+        else: 
+            weightmap = 1
 
-def focal_loss_weighted(ytrue, ypred, gamma=2, alpha = .25):
-    weightmap = K.expand_dims(ytrue[...,-1], axis=3)
-    ytrue = ytrue[...,:-1]
-    return focal_loss(ytrue, ypred, weightmap, gamma, alpha)
+        ypred /= K.sum(ypred, axis=-1, keepdims=True)
+        epsilon = K.epsilon()
+        ypred = K.clip(ypred, epsilon, 1. - epsilon)
+        return -K.mean(class_weights * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weightmap, axis=-1)
+    return loss
 
-def focal_loss_binary(ytrue, ypred,weights = 1, gamma=2, alpha = .25):
+def focal_loss_binary(usedistmap=False, class_weights = None, gamma=2):
+    if not class_weights:
+        class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.sigmoid_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
-    pt_1 = tf.where(tf.equal(ytrue, 1), ypred, tf.ones_like(ypred))
-    pt_0 = tf.where(tf.equal(ytrue, 0), ypred, tf.zeros_like(ypred))
-    epsilon = K.epsilon()
-    pt_1 = K.clip(pt_1, epsilon, 1. - epsilon)
-    pt_0 = K.clip(pt_0, epsilon, 1. - epsilon)
-    return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1) * weights) -K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0) * weights)
+    def loss(y_true, y_pred):
+        if usedistmap:
+            weightmap = K.expand_dims(y_true[...,-1], axis=3)
+            y_true = y_true[...,:-1]
+        else:
+            weightmap = 1
 
-def focal_loss_binary_weighted(ytrue, ypred, gamma=2, alpha = .25):
-    weightmap = K.expand_dims(ytrue[...,-1], axis=3)
-    #ytrue = K.expand_dims(ytrue[...,0], axis=3)
-    ytrue = ytrue[...,:-1]
-    return focal_loss_binary(ytrue, ypred, weightmap, gamma, alpha)
+        y_pred = K.clip(y_pred, K.epsilon(), 1.0 - K.epsilon())
+        p_t = tf.where(K.equal(y_true, 1), y_pred, 1 - y_pred)
+        alpha_factor = K.ones_like(y_true) * class_weights
+        alpha_t = tf.where(K.equal(y_true, 1), alpha_factor, 1 - alpha_factor)
+
+        return -K.mean(K.sum(alpha_t * K.pow((1 - p_t), gamma) * K.log(p_t) * weightmap, axis=1))
+
+    return loss
 
 
-def categorical_cross_entropy_loss(ytrue, ypred, weights = 1):
-    # side note: in retina-net paper alpha = 0.75 gives best result for cce
-    return focal_loss(ytrue, ypred, weights=1, gamma=0, alpha = 0.5)
-    
-def categorical_cross_entropy_loss_binary(ytrue, ypred, weights = 1):
-    # side note: in retina-net paper alpha = 0.75 gives best result for cce
-    return focal_loss_binary(ytrue, ypred, weights=1, gamma=0, alpha = 0.5)
+def jaccard_distance_loss(usedistmap=False, class_weights=None, smooth=100):
+    if not class_weights:
+        class_weights = 1
+    # from https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
+    def loss(y_true, y_pred):
+        if usedistmap:
+            weightmap = K.expand_dims(y_true[...,-1], axis=3)
+            y_true = y_true[...,:-1]
+        else:
+            weightmap = 1
+            
+        intersec = K.abs(y_true * y_pred) * weightmap
+        intersection = K.sum(intersec, axis=-1)
+        intersection_w = K.sum(intersec*class_weights, axis=-1)
+        sum_ = K.sum((K.abs(y_true) + K.abs(y_pred))*weightmap, axis=-1)
+        jac = (intersection_w + smooth) / (sum_ - intersection + smooth)
+        return (1 - jac) * smooth
+    return loss
 
-def categorical_cross_entropy_weighted(ytrue, ypred):
-    weightmap = K.expand_dims(ytrue[...,-1], axis=3)
-    ytrue = ytrue[...,:-1]
-    return categorical_cross_entropy_loss(ytrue, ypred, weightmap)
 
-def categorical_cross_entropy_binary_weighted(ytrue, ypred):
-    weightmap = K.expand_dims(ytrue[...,-1], axis=3)
-    ytrue = ytrue[...,:-1]
-    return categorical_cross_entropy_loss_binary(ytrue, ypred, weightmap)
+def jaccard_distance_loss_binary(usedistmap=False, class_weights=None, smooth=100):
+    if not class_weights:
+        class_weights = .5
 
-def dice_coefficient_loss(y_true, y_pred):
-    return -dice_coefficient(y_true, y_pred)
+    def loss(y_true, y_pred):
+        if usedistmap:
+            weightmap = K.expand_dims(y_true[...,-1], axis=3)
+            y_true = y_true[...,:-1]
+        else:
+            weightmap = 1
+            
+        # my personal interpretation of weighted binary jaccard,
+        # not entirely sure if that makes sense in all cases -> check systematically
+        intersec = K.abs(y_true * y_pred) * weightmap
+        inter_nom = K.sum(intersec*class_weights, axis=-1)
+        inter_denom = K.sum(intersec*(1-class_weights), axis=-1)
+        sum_ = K.sum((class_weights*K.abs(y_true) + (1-class_weights)*K.abs(y_pred))*weightmap, axis=-1)
+        jac = (inter_nom + smooth) / (sum_ - inter_denom + smooth)
+        return (1 - jac) * smooth
+    return loss
 
-def dice_coefficient_binary_loss(y_true, y_pred):
-    return -dice_coefficient_binary(y_true, y_pred)
-
-def dice_coefficient_weighted_loss(y_true, y_pred):
-    return -dice_coefficient_weighted(y_true, y_pred)
-
-def dice_coefficient_binary_weighted_loss(y_true, y_pred):
-    return -dice_coefficient_binary_weighted(y_true, y_pred)
 
 def kullback_Leibler_divergence_loss_weighted(y_true, y_pred):
+    # class_weights not supported atm
     ytrue = ytrue[...,:-1]
     return tf.keras.losses.KLDivergence()
 
@@ -93,18 +134,5 @@ def kullback_Leibler_divergence_loss_weighted(y_true, y_pred):
 # for loading models trained with custom loss
 get_custom_objects()['focal_loss'] = focal_loss
 get_custom_objects()['focal_loss_binary'] = focal_loss_binary
-get_custom_objects()['focal_loss_weighted'] = focal_loss_weighted
-get_custom_objects()['focal_loss_binary_weighted'] = focal_loss_binary_weighted
-
-get_custom_objects()['categorical_cross_entropy_loss'] = categorical_cross_entropy_loss
-get_custom_objects()['categorical_cross_entropy_loss_binary'] = categorical_cross_entropy_loss_binary
-get_custom_objects()['categorical_cross_entropy_weighted'] = categorical_cross_entropy_weighted
-get_custom_objects()['categorical_cross_entropy_binary_weighted'] = categorical_cross_entropy_binary_weighted
-
-get_custom_objects()['dice_coeffient'] = dice_coefficient
-get_custom_objects()['dice_coeffient_binary'] = dice_coefficient_binary
-get_custom_objects()['dice_coeffient_weighted'] = dice_coefficient_weighted
-get_custom_objects()['dice_coeffient_binary_weighted'] = dice_coefficient_binary_weighted
-
-
+get_custom_objects()['jaccard_distance_loss'] = jaccard_distance_loss
 get_custom_objects()['kullback_Leibler_divergence_loss_weighted'] = kullback_Leibler_divergence_loss_weighted

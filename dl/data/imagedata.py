@@ -36,6 +36,8 @@ class ImageData():
         # TrainTestSplit = 1 means 100% Training Data and 0% validation
         self.TrainTestSplit = 0.85
         
+        self.class_weights = None 
+        
         self.ValidationImagePaths = []
         self.ValidationLabelPaths = []
         self.ValidationTileIndices = []
@@ -75,7 +77,6 @@ class ImageData():
         if images is None or labels is None:
             return None, None
              
-
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))
 
@@ -204,7 +205,6 @@ class ImageData():
             idc = len(self.TrainingTileIndices)
             
         return int(np.ceil(idc / float(self.parent.batch_size)))
-                
     
     def loadTrainingDataSet(self, validation = False):
         if not self.initialized():
@@ -213,15 +213,12 @@ class ImageData():
         images = self.getImagePaths(validation)
         numImages = len(images)
 
-        
         im_channels = 1 if self.parent.MonoChrome is True else 3
-      
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
         
         img = []
         mask = []
-
 
         for counter, pair in enumerate(x): 
             tiles = [counter] * self.parent.augmentation.getTilesPerImage(pair[0].shape[1],pair[0].shape[0])
@@ -229,4 +226,3 @@ class ImageData():
             img.append(pair[0])
             mask.append(pair[1])
         return img, mask
-
