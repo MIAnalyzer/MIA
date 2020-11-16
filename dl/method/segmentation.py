@@ -83,3 +83,9 @@ class Segmentation(PixelBasedPrediction, LearningMode):
     
     def resizeLabel(self, label, shape):
         return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)
+
+    def countLabelWeight(self, label):
+        classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
+        for i in range(self.parent.NumClasses_real):
+            classValues[i] = np.count_nonzero((label == i))
+        return classValues

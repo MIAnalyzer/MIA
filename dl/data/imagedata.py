@@ -36,7 +36,9 @@ class ImageData():
         # TrainTestSplit = 1 means 100% Training Data and 0% validation
         self.TrainTestSplit = 0.85
         
+        self.autocalcClassWeights = False
         self.class_weights = None 
+        self.classValues = None
         
         self.ValidationImagePaths = []
         self.ValidationLabelPaths = []
@@ -162,6 +164,10 @@ class ImageData():
         train_img =  cv2.resize(train_img, (width, height))
         train_mask = self.parent.Mode.resizeLabel(train_mask, (width, height))
 
+        if self.autocalcClassWeights and not validation:
+            if self.classValues is not None:
+                self.classValues += self.parent.Mode.countLabelWeight(train_mask)
+
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
 
@@ -213,10 +219,16 @@ class ImageData():
         images = self.getImagePaths(validation)
         numImages = len(images)
 
+        if not validation:
+            self.initclassValues()
+
         im_channels = 1 if self.parent.MonoChrome is True else 3
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
         
+        if not validation:
+            self.calcClassWeights()
+
         img = []
         mask = []
 
@@ -226,3 +238,30 @@ class ImageData():
             img.append(pair[0])
             mask.append(pair[1])
         return img, mask
+
+    def getClassWeights(self):
+        # this is only used when not training in memory
+        # up to 1000 images of training set are loaded and classweights calculated
+        if not self.initialized():
+            return
+        self.initclassValues()
+        if self.autocalcClassWeights:
+            numImages = len(self.getImagePaths(False))
+            for i in range(min(1000,numImages)):
+                self.createImageLabelPair(i)
+        self.calcClassWeights()
+
+    def initclassValues(self):
+        self.classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
+
+    def calcClassWeights(self):
+        if self.autocalcClassWeights:
+            self.class_weights = np.sum(self.classValues)/self.classValues
+            self.class_weights /= np.sum(self.class_weights)
+            if self.parent.NumClasses_real == 2:
+                self.class_weights = self.class_weights[1]
+        else:
+            self.class_weights = None
+
+        print(self.classValues)
+        print(self.class_weights)

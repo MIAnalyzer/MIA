@@ -58,7 +58,8 @@ class LearningMode(ABC):
     @abstractmethod
     def resizeLabel(self, label, shape):
         pass
-
-        
-        
+    
+    @abstractmethod
+    def countLabelWeight(self, label):
+        pass
         

@@ -65,14 +65,19 @@ class Window(object):
         
         layout = QVBoxLayout(self.centralWidget)
         hlayout = QHBoxLayout(self.centralWidget)
+
+        self.CBClassWeight = QCheckBox("Calculate class weighting",self.centralWidget)
+        self.CBClassWeight.setToolTip('Check to automatically calculate the weight of each class')
+        self.CBClassWeight.setObjectName('CallculateClassWeight')
+        layout.addWidget(self.CBClassWeight)
         self.CBLoss = QComboBox(self.centralWidget)
         self.CBLoss.setObjectName('Loss')
         # self.CBLoss.addItem("Focal Loss")
-        self.CBLoss.setToolTip('Set loss function to be optimized during training')
+        self.CBLoss.setToolTip('Set loss function that is optimized during training')
         self.CBMetrics = QComboBox(self.centralWidget)
         # self.CBMetrics.addItem("IoU")
         self.CBMetrics.setObjectName('Metric')
-        self.CBMetrics.setToolTip('Set metric to measure network perforance')
+        self.CBMetrics.setToolTip('Set metric to measure network performance')
         self.CBOptimizer = QComboBox(self.centralWidget)
         self.CBOptimizer.setObjectName('Optimizer')
         for opt in dlOptim:
@@ -176,6 +181,8 @@ class TrainSettingsWindow(QMainWindow, Window):
         
         self.CBMemory.stateChanged.connect(self.InMemoryChanged)
         
+        self.CBClassWeight.setChecked(self.parent.parent.dl.data.autocalcClassWeights)
+        self.CBClassWeight.stateChanged.connect(self.calculateClassWeight)
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         self.CBMetrics.currentIndexChanged.connect(self.changeMetric)
         self.CBLoss.currentIndexChanged.connect(self.changeLoss)
@@ -268,5 +275,9 @@ class TrainSettingsWindow(QMainWindow, Window):
             self.CBMetrics.addItem(metric.name)
         self.CBLoss.setCurrentIndex(self.CBLoss.findText(default_loss))
         self.CBMetrics.setCurrentIndex(self.CBMetrics.findText(default_metric))
+
+    def calculateClassWeight(self):
+        self.parent.parent.dl.data.autocalcClassWeights = self.CBClassWeight.isChecked()
+        self.parent.parent.checkForTrainingWarnings()
 
 

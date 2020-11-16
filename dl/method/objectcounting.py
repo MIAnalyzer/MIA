@@ -30,6 +30,8 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         self.scalefactor = 1
         self.kernel_stdev = 3
         self.peak_val = 125
+
+        self.maxDetectionLimit = 5000
         
         
     def LoadLabel(self, filename, height, width):
@@ -78,19 +80,25 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         
     def convert2Image(self,prediction):
         prediction = np.squeeze(prediction)
-        result = np.zeros(prediction.shape[0:2])
         # threshold?
-        prediction[prediction < 1] = 0
-        if self.parent.NumClasses > 2:
-            # if we include zero channel we loose a lot of maxima
-            maxarg = np.argmax(prediction, axis = 2)
-            for i in range(1,prediction.shape[2]):
-                peaks = peak_local_max(prediction[...,i], min_distance=3, indices = False)
-                result[(maxarg==i) & peaks] = i
-                
-        else:
-            peaks = peak_local_max(prediction, min_distance=3, indices = False)
-            result[peaks] = 1
+        thresh = 1
+        calcResult = True
+        # we need to add emergency break here, otherwise too many objects might be detected and break program
+        while calcResult and thresh < 100:
+            result = np.zeros(prediction.shape[0:2])
+            prediction[prediction < thresh] = 0
+
+            if self.parent.NumClasses > 2:
+                maxarg = np.argmax(prediction, axis = 2)
+                for i in range(1,prediction.shape[2]):
+                    peaks = peak_local_max(prediction[...,i], min_distance=3, indices = False)
+                    result[(maxarg==i) & peaks] = i 
+            else:
+                peaks = peak_local_max(prediction, min_distance=3, indices = False)
+                result[peaks] = 1
+            calcResult = np.count_nonzero(result) > self.maxDetectionLimit
+            thresh += 1
+
         return result
     
     def resizeLabel(self, label, shape):
@@ -117,3 +125,9 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         points, bg = Point.loadPoints(filename)
         return points
         
+    def countLabelWeight(self, label):
+        classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
+        for i in range(1,self.parent.NumClasses_real):
+            classValues[i] = self.kernel_stdev*np.count_nonzero((label == i))
+        classValues[0] = label.size - self.kernel_stdev*np.count_nonzero(label)
+        return classValues

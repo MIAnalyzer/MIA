@@ -15,7 +15,7 @@ from dl.metric.metric_functions import dice_coefficient, dice_coefficient_binary
 
 ## regression
 def mean_squared_error(class_weights=None):
-    if not class_weights:
+    if class_weights is None:
         class_weights = 1
     def loss(y_true, y_pred):
         mse = K.mean(K.square(y_pred - y_true)*class_weights, axis=-1)
@@ -23,7 +23,7 @@ def mean_squared_error(class_weights=None):
     return loss
 
 def mean_absolute_error(class_weights=None):
-    if not class_weights:
+    if class_weights is None:
         class_weights = 1
     def loss(y_true, y_pred):
         mae = K.mean(K.abs(y_true - y_pred)*class_weights, axis=-1)
@@ -31,7 +31,7 @@ def mean_absolute_error(class_weights=None):
     return loss
 
 def mean_squared_logarithmic_error(class_weights=None):
-    if not class_weights:
+    if class_weights is None:
         class_weights = 1
     def loss(y_true, y_pred):
         # clip at 0 or (-1 + epsilon) ??
@@ -44,7 +44,7 @@ def mean_squared_logarithmic_error(class_weights=None):
 
 ## segmentation
 def focal_loss(usedistmap=False, class_weights = None, gamma=2):
-    if not class_weights:
+    if class_weights is None:
         class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.softmax_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
@@ -62,7 +62,7 @@ def focal_loss(usedistmap=False, class_weights = None, gamma=2):
     return loss
 
 def focal_loss_binary(usedistmap=False, class_weights = None, gamma=2):
-    if not class_weights:
+    if class_weights is None:
         class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.sigmoid_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
@@ -84,7 +84,7 @@ def focal_loss_binary(usedistmap=False, class_weights = None, gamma=2):
 
 
 def jaccard_distance_loss(usedistmap=False, class_weights=None, smooth=100):
-    if not class_weights:
+    if class_weights is None:
         class_weights = 1
     # from https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
     def loss(y_true, y_pred):
@@ -104,7 +104,7 @@ def jaccard_distance_loss(usedistmap=False, class_weights=None, smooth=100):
 
 
 def jaccard_distance_loss_binary(usedistmap=False, class_weights=None, smooth=100):
-    if not class_weights:
+    if class_weights is None:
         class_weights = .5
 
     def loss(y_true, y_pred):
