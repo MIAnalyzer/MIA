@@ -36,3 +36,6 @@ class Classification(LearningMode):
     
     def resizeLabel(self, label, shape):
         return label
+
+    def countLabelWeight(self, label):
+        return np.zeros((self.parent.NumClasses_real), dtype = np.float)

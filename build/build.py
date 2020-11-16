@@ -53,7 +53,7 @@ def main():
     
 
     build_exe = r"python -m PyInstaller --noconfirm startup.spec"
-    spec = r"pyi-makespec -F --noconsole --noupx --log-level=WARN --exclude-module=torch -i ../icons/logo.ico  ../startup.py"
+    spec = r"pyi-makespec -D --noconsole --noupx --log-level=WARN --exclude-module=torch -i ../icons/logo.ico  ../startup.py"
     spec_debug = r"pyi-makespec -D --noupx --debug all --log-level=DEBUG ../startup.py"
     spec_test = r"pyi-makespec -D --noupx --debug all --log-level=DEBUG testbuild.py"
     build_test = r"python -m PyInstaller --noconfirm testbuild.spec"

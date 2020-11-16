@@ -72,6 +72,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
         self.initialized = False
+        self.settingsLoaded = False
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -148,6 +149,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.settings.loadSettings(SETTINGS_FILENAME)
         
 
+
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
             self.settings_form.CBgpu.setEnabled(False)
@@ -190,6 +192,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.settings_form.CBShapeNumbers.setChecked(False)
             self.settings_form.SBPenSize.SpinBox.setValue(1)
             self.settings_form.CBSeparateLabels.setChecked(True)
+
+        self.settingsLoaded = True
 
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
@@ -325,6 +329,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         assert (self.LearningMode() == dlMode.Segmentation)
         self.canvas.painter.smartmode = self.CBSmartMode.isChecked()
         self.setCanvasFocus()
+
+    def checkForTrainingWarnings(self):
+        if not self.settingsLoaded:
+            return 
+        if self.dl.data.autocalcClassWeights and self.dl.augmentation.ignoreBackground:
+            self.PopupWarning('Removing Background and automatic class weighting is not recommended')
         
     @property
     def allowInnerContours(self):
