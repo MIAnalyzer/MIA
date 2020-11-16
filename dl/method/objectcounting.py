@@ -25,7 +25,6 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         self.type = dlMode.Object_Counting
         self.metric = RegressionMetrics(parent)
         self.loss = RegressionLosses(parent)
-        
 
         self.kernel = None
         self.scalefactor = 1

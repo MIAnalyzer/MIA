@@ -18,11 +18,11 @@ class RegressionLosses(Losses):
 
     def getLoss(self):
         if self.loss == dlLoss.mean_squared_err:
-            return mean_squared_error()
+            return mean_squared_error(class_weights = self.parent.data.class_weights)
         if self.loss == dlLoss.mean_abs_err:
-            return mean_absolute_error()
+            return mean_absolute_error(class_weights = self.parent.data.class_weights)
         if self.loss == dlLoss.mean_squared_log_err:
-            return mean_squared_logarithmic_error()
+            return mean_squared_logarithmic_error(class_weights = self.parent.data.class_weights)
         else:
             raise # not supported
             

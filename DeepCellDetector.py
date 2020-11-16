@@ -142,9 +142,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.updateClassList()
         self.classList.setClass(1)
         
+        
+        self.initialized = True
         self.settings = Settings(self)
         self.settings.loadSettings(SETTINGS_FILENAME)
-        self.initialized = True
+        
 
         if CPU_ONLY:
             self.settings_form.CBgpu.setCurrentIndex(1)
