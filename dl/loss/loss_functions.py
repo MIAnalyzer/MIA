@@ -125,14 +125,25 @@ def jaccard_distance_loss_binary(usedistmap=False, class_weights=None, smooth=10
     return loss
 
 
-def kullback_Leibler_divergence_loss_weighted(y_true, y_pred):
-    # class_weights not supported atm
-    ytrue = ytrue[...,:-1]
-    return tf.keras.losses.KLDivergence()
+def kullback_Leibler_divergence_loss_weighted(usedistmap=False):   
+    def loss(y_true, y_pred):
+        # class_weights not supported atm
+        if usedistmap:
+            y_true = y_true[...,:-1]
 
+        y_true = K.clip(y_true, K.epsilon(), 1)
+        y_pred = K.clip(y_pred, K.epsilon(), 1)
+        return K.sum(y_true * K.log(y_true / y_pred), axis=-1)
+    
+        # equivalent to             
+        # kld = tf.keras.losses.KLDivergence()
+        # return kld(y_true, y_pred)
+    
+    return loss
 
 # for loading models trained with custom loss
 get_custom_objects()['focal_loss'] = focal_loss
 get_custom_objects()['focal_loss_binary'] = focal_loss_binary
 get_custom_objects()['jaccard_distance_loss'] = jaccard_distance_loss
 get_custom_objects()['kullback_Leibler_divergence_loss_weighted'] = kullback_Leibler_divergence_loss_weighted
+
