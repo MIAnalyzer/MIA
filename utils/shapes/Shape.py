@@ -45,10 +45,18 @@ class Shapes(ABC):
     def getShapeNumber(self, s):
         idx = self.shapes.index(s)
         num = self.shapes[idx].objectNumber
+        
         if num != -1:
             return num
         else:
-            return idx+1
+            givenNumbers = [x.objectNumber for x in self.shapes if x.objectNumber != -1]
+            if givenNumbers == []:
+                return idx + 1
+
+            n = max(givenNumbers)+1
+            s.objectNumber = n
+            return n
+
     
     def empty(self):
         return not self.shapes

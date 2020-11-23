@@ -117,6 +117,21 @@ class DCDButton(QPushButton):
         
     def resetStyle(self):
         self.setStyleSheet('QPushButton:hover:!pressed { border: 1px solid lightblue}')
+        
+class QSetting(QWidget):
+    valueChanged = pyqtSignal() 
+    def __init__(self, parent, name, value=None):
+        super(QWidget, self).__init__(parent)
+        self._value = value
+        self.setObjectName(name)
+        self.setVisible(False)
+        
+    def value(self):
+        return self._value
+    
+    def setValue(self, v):
+        self._value = v
+        self.valueChanged.emit()
 
 
 class ClassList(QListWidget):
@@ -135,7 +150,7 @@ class ClassList(QListWidget):
         item.setSizeHint(row.minimumSizeHint() + QSize(100,0) )
         self.setItemWidget(item, row)
         self.resize()
-        self.parent.updateClassList()
+        self.parent.ClassListUpdated()
         
     def removeClass(self):
         idx = self.count()-1
@@ -146,7 +161,7 @@ class ClassList(QListWidget):
             self.resize()
         if self.getActiveClass() == -1:
             self.setClass(0)    
-        self.parent.updateClassList()
+        self.parent.ClassListUpdated()
 
     def resize(self):
         dynamic_height = min(self.sizeHintForRow(0) * self.count() + 2 * self.frameWidth(), 380)
@@ -156,6 +171,16 @@ class ClassList(QListWidget):
         item = self.item(i)
         if item:
             self.itemWidget(item).rb_select.setChecked(True)
+            
+    def setClassWeight(self, classnum, weight):
+        item = self.item(classnum)
+        if item:
+            self.itemWidget(item).classweight.setValue(weight)
+            
+    def getClassWeight(self, classnum):
+        item = self.item(classnum)
+        if item:
+            return self.itemWidget(item).classweight.value()
             
     def getClassName(self, i):
         item = self.item(i)
@@ -214,6 +239,9 @@ class ClassWidget(QWidget):
         self.edit_name.setToolTip('Edit class name')
         self.edit_name.setObjectName('class %i' % self.id)
         self.edit_name.setStyleSheet("QLineEdit { border: None }")
+
+        self.classweight = QSetting(parent, 'classweight %i' % self.id, 0.5)
+        
         
         self.label_numOfContours = QLabel(parent)
         self.label_numOfContours.setObjectName('numOfContours_class' + str(self.id))
@@ -228,6 +256,8 @@ class ClassWidget(QWidget):
         
         self.pb_color.clicked.connect(self.changeColor)
         self.rb_select.toggled.connect(self.selectClass)
+        self.edit_name.textChanged.connect(self.nameChanged)
+
     
     def setButtonColor(self, color):
         self.color = color
@@ -244,3 +274,6 @@ class ClassWidget(QWidget):
 
     def selectClass(self):
         self.parent.classChanged()
+        
+    def nameChanged(self):
+        self.parent.ClassListUpdated()

@@ -425,11 +425,7 @@ class ShiftTool(AbstractTool):
         if not self.shiftedShape:
             return
         self.shifting = False
-        self.canvas.painter.shapes.deleteShape(self.shiftedShape)
-        if self.canvas.painter.shapes.getShape([self.shiftedShape.coordinates], self.canvas.painter.shapes.mindistance):
-            self.shiftedShape.coordinates = self.origin_coordinates
-        
-        self.canvas.painter.shapes.addShape(self.shiftedShape)
+
         self.shiftedShape = None
         self.canvas.redrawImage()
 

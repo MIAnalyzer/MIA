@@ -9,7 +9,7 @@ Created on Wed Feb 19 13:43:00 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox
+from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox
 from ui.style import styleForm
 from dl.optimizer.optimizer import dlOptim
 from dl.training.lrschedule import lrMode
@@ -21,7 +21,7 @@ from dl.data.imagedata import dlPreprocess
 class Window(object):
     def setupUi(self, Form):
         width = 400
-        height= 420
+        height= 500
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
         
@@ -66,26 +66,69 @@ class Window(object):
         layout = QVBoxLayout(self.centralWidget)
         hlayout = QHBoxLayout(self.centralWidget)
 
-        self.CBClassWeight = QCheckBox("Calculate class weighting",self.centralWidget)
-        self.CBClassWeight.setToolTip('Check to automatically calculate the weight of each class')
-        self.CBClassWeight.setObjectName('CallculateClassWeight')
-        layout.addWidget(self.CBClassWeight)
+        hlayout_2 = QHBoxLayout(self.centralWidget)
+        
+        self.LWeights = QLabel("Class Weighting",self.centralWidget)
+        self.RBAutoClassWeight = QRadioButton("Auto weighting",self.centralWidget)
+        self.RBAutoClassWeight.setToolTip('Check to automatically calculate the weight of each class')
+        self.RBAutoClassWeight.setObjectName('AutoClassWeight')
+        
+        self.RBManuClassWeight = QRadioButton("Manual weighting",self.centralWidget)
+        self.RBManuClassWeight.setToolTip('Check to manual set weight of each class')
+        self.RBManuClassWeight.setObjectName('ManualClassWeight')
+        
+        self.RBNoClassWeight = QRadioButton("Disable weighting",self.centralWidget)
+        self.RBNoClassWeight.setToolTip('Check to disable class weights')
+        self.RBNoClassWeight.setObjectName('NoClassWeight')
+        
+        hlayout_2.addWidget(self.RBNoClassWeight)
+        hlayout_2.addWidget(self.RBAutoClassWeight)
+        hlayout_2.addWidget(self.RBManuClassWeight)
+        
+        hlayout_3 = QHBoxLayout(self.centralWidget)
+        
+        self.CBClassWeights = QComboBox(self.centralWidget)
+        self.SBWeight = LabelledAdaptiveDoubleSpinBox ('Class weight', self.centralWidget)
+        self.SBWeight.SpinBox.setRange(0.0001,1)
+        self.SBWeight.setToolTip('Set class weight')
+        self.SBWeight.SpinBox.setDecimals(4)
+        self.SBWeight.SpinBox.setSingleStep(0.1)
+        hlayout_3.addWidget(self.CBClassWeights)
+        hlayout_3.addWidget(self.SBWeight)
+
+        layout.addWidget(self.LWeights)
+        layout.addLayout(hlayout_2)
+        layout.addLayout(hlayout_3)
+        
+        vlayout_1 = QVBoxLayout(self.centralWidget)
+        self.LLoss = QLabel("Loss",self.centralWidget)
         self.CBLoss = QComboBox(self.centralWidget)
         self.CBLoss.setObjectName('Loss')
-        # self.CBLoss.addItem("Focal Loss")
         self.CBLoss.setToolTip('Set loss function that is optimized during training')
+        vlayout_1.addWidget(self.LLoss)
+        vlayout_1.addWidget(self.CBLoss)
+        
+        vlayout_2 = QVBoxLayout(self.centralWidget)
+        self.LMetric = QLabel("Metric",self.centralWidget)
         self.CBMetrics = QComboBox(self.centralWidget)
-        # self.CBMetrics.addItem("IoU")
         self.CBMetrics.setObjectName('Metric')
         self.CBMetrics.setToolTip('Set metric to measure network performance')
+        vlayout_2.addWidget(self.LMetric)
+        vlayout_2.addWidget(self.CBMetrics)
+        vlayout_3 = QVBoxLayout(self.centralWidget)
+        self.LOptimizer = QLabel("Optimizer",self.centralWidget)
         self.CBOptimizer = QComboBox(self.centralWidget)
         self.CBOptimizer.setObjectName('Optimizer')
+        vlayout_3.addWidget(self.LOptimizer)
+        vlayout_3.addWidget(self.CBOptimizer)
+        
+        
         for opt in dlOptim:
             self.CBOptimizer.addItem(opt.name)
         self.CBOptimizer.setToolTip('Set optimizer to minimize loss function')
-        hlayout.addWidget(self.CBLoss)
-        hlayout.addWidget(self.CBMetrics)
-        hlayout.addWidget(self.CBOptimizer)
+        hlayout.addLayout(vlayout_1)
+        hlayout.addLayout(vlayout_2)
+        hlayout.addLayout(vlayout_3)
 
         layout.addLayout(hlayout)
         
@@ -181,8 +224,13 @@ class TrainSettingsWindow(QMainWindow, Window):
         
         self.CBMemory.stateChanged.connect(self.InMemoryChanged)
         
-        self.CBClassWeight.setChecked(self.parent.parent.dl.data.autocalcClassWeights)
-        self.CBClassWeight.stateChanged.connect(self.calculateClassWeight)
+        self.RBNoClassWeight.setChecked(not self.parent.parent.dl.data.autocalcClassWeights)
+        self.RBNoClassWeight.toggled.connect(self.changeClassWeightSettings)
+        self.RBAutoClassWeight.toggled.connect(self.changeClassWeightSettings)
+        self.RBManuClassWeight.toggled.connect(self.changeClassWeightSettings)
+        self.CBClassWeights.currentIndexChanged.connect(self.changeSelectedClass)
+        self.SBWeight.SpinBox.valueChanged.connect(self.changeClassWeights)
+
         self.CBOptimizer.currentIndexChanged.connect(self.changeOptimizer)
         self.CBMetrics.currentIndexChanged.connect(self.changeMetric)
         self.CBLoss.currentIndexChanged.connect(self.changeLoss)
@@ -204,6 +252,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.RBConstant.setChecked(True)
         self.LROption()
         self.updateLossesAndMetrics()
+        self.changeClassWeightSettings()
 
     def InMemoryChanged(self):
         self.parent.parent.dl.TrainInMemory = self.CBMemory.isChecked()
@@ -276,8 +325,35 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBLoss.setCurrentIndex(self.CBLoss.findText(default_loss))
         self.CBMetrics.setCurrentIndex(self.CBMetrics.findText(default_metric))
 
-    def calculateClassWeight(self):
-        self.parent.parent.dl.data.autocalcClassWeights = self.CBClassWeight.isChecked()
-        self.parent.parent.checkForTrainingWarnings()
+    def changeClassWeightSettings(self):
+        self.parent.parent.dl.data.autocalcClassWeights = self.RBAutoClassWeight.isChecked()
+        self.CBClassWeights.clear()
+        
+        if self.parent.parent.NumOfClasses() > 2:
+            for c in range(self.parent.parent.NumOfClasses()):
+                self.CBClassWeights.addItem(self.parent.parent.classList.getClassName(c))
+        else:
+            self.CBClassWeights.addItem(self.parent.parent.classList.getClassName(1))
+        self.CBClassWeights.setCurrentIndex(1) 
+        if self.RBManuClassWeight.isChecked():
+            self.CBClassWeights.setEnabled(True)
+            self.SBWeight.setEnabled(True)
+            self.changeClassWeights()
+        else:
+            self.CBClassWeights.setEnabled(False)
+            self.SBWeight.setEnabled(False)
+            
+        if self.RBNoClassWeight.isChecked():
+            self.parent.parent.dl.data.resetClassWeights()
+            
+    def changeSelectedClass(self):
+        if self.CBClassWeights.currentIndex() >= 0:
+            self.SBWeight.SpinBox.setValue(self.parent.parent.classList.getClassWeight(self.CBClassWeights.currentIndex()))
+            
+    def changeClassWeights(self):
+        self.parent.parent.classList.setClassWeight(self.CBClassWeights.currentIndex(),self.SBWeight.SpinBox.value())
+        self.parent.parent.setClassWeights()
+
+            
 
 

@@ -72,7 +72,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
         self.initialized = False
-        self.settingsLoaded = False
         self.setupUi(self)
         self.setCallbacks()
         self.show()
@@ -140,7 +139,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.plotting_form = TrainPlotWindow(self)
         
-        self.updateClassList()
+        self.ClassListUpdated()
         self.classList.setClass(1)
         
         
@@ -193,7 +192,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.settings_form.SBPenSize.SpinBox.setValue(1)
             self.settings_form.CBSeparateLabels.setChecked(True)
 
-        self.settingsLoaded = True
 
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
@@ -282,6 +280,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         filename = QFileDialog.getOpenFileName(self, "Select Settings File", '',"Settings (*.json)")[0]
         if filename:
             self.settings.loadSettings(filename)
+            
+    def settingsLoaded(self):
+        self.ClassListUpdated()
 
     def closeModeWindows(self):
         if self.initialized:
@@ -329,12 +330,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         assert (self.LearningMode() == dlMode.Segmentation)
         self.canvas.painter.smartmode = self.CBSmartMode.isChecked()
         self.setCanvasFocus()
-
-    def checkForTrainingWarnings(self):
-        if not self.settingsLoaded:
-            return 
-        if self.dl.data.autocalcClassWeights and self.dl.augmentation.ignoreBackground:
-            self.PopupWarning('Removing Background and automatic class weighting is not recommended')
         
     @property
     def allowInnerContours(self):
@@ -396,6 +391,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def setNumberOfClasses(self, numclasses):
         self.classList.setNumberOfClasses(numclasses)
+
     
     def setCanvasFocus(self):
         self.canvas.setFocus()
@@ -503,11 +499,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.BTrainImageFolder.setStyleSheet('font:normal;text-align:left')
                 self.BTestImageFolder.setStyleSheet('font:bold;text-align:left')
     
-    def updateClassList(self):
-        try:
+    def ClassListUpdated(self):
+        if self.initialized:
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
-        except:
-            pass
+            self.training_form.settings_form.changeClassWeightSettings()
+
         
     def hasStack(self):
         return self.currentImageFile.isStack()
@@ -633,6 +629,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def lockModel(self, lock):
         self.Bloadmodel.setEnabled(not lock)
         self.Bresetmodel.setEnabled(not lock)
+    
+    def setClassWeights(self): 
+        if self.NumOfClasses() > 2:
+            weights = np.zeros((self.NumOfClasses()), dtype = np.float)
+            for i in range(self.NumOfClasses()):
+                weights[i] = self.classList.getClassWeight(i)
+        else:
+            weights = self.classList.getClassWeight(1)            
+        self.dl.data.setClassWeights(weights)
 
 
     ## deep learning  
