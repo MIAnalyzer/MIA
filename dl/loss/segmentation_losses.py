@@ -48,7 +48,7 @@ class SegmentationLosses(Losses):
             return focal_loss(usedistmap=usedist, class_weights=class_weights, gamma=2)
     
     def kullback_Leibler_divergence_loss_function(self, usedist):
-            return kullback_Leibler_divergence_loss_weighted(usedist)
+        return kullback_Leibler_divergence_loss_weighted(usedist)
     
     def dice_coeffient_loss_function(self, binary, usedist, class_weights):
         if binary:

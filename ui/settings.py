@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 import json
-
+from ui.ui_utils import QSetting
 from ui.ui_utils import ClassList
 
 class Settings: 
@@ -34,6 +34,7 @@ class Settings:
             with open(path, 'r', encoding='utf-8') as f:
                 self.settingsDict = json.load(f)
             self.applySettings()
+            self.parent.settingsLoaded()
         except:
             # can not load
             pass
@@ -50,6 +51,7 @@ class Settings:
         self.addObjectSetting(QSpinBox, QSpinBox.value)
         self.addObjectSetting(QGroupBox, QGroupBox.isChecked)
         self.addObjectSetting(QLineEdit, QLineEdit.text)
+        self.addObjectSetting(QSetting, QSetting.value)
 
    
     def addObjectSetting(self, objectType, function):
@@ -78,7 +80,9 @@ class Settings:
             elif isinstance(widget, QGroupBox):
                 widget.setChecked(self.settingsDict[obj])  
             elif isinstance(widget, QLineEdit):
-                widget.setText(self.settingsDict[obj])    
+                widget.setText(self.settingsDict[obj])  
+            elif isinstance(widget, QSetting):
+                widget.setValue(self.settingsDict[obj])  
             # else:
                 # do nothing
 

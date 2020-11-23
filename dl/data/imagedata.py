@@ -239,7 +239,7 @@ class ImageData():
             mask.append(pair[1])
         return img, mask
 
-    def getClassWeights(self):
+    def getAutoClassWeights(self):
         # this is only used when not training in memory
         # up to 1000 images of training set are loaded and classweights calculated
         if not self.initialized():
@@ -250,6 +250,12 @@ class ImageData():
             for i in range(min(1000,numImages)):
                 self.createImageLabelPair(i)
         self.calcClassWeights()
+        
+    def setClassWeights(self, weights):
+        self.class_weights = weights
+        
+    def resetClassWeights(self):
+        self.class_weights = None
 
     def initclassValues(self):
         self.classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
@@ -260,8 +266,3 @@ class ImageData():
             self.class_weights /= np.sum(self.class_weights)
             if self.parent.NumClasses_real == 2:
                 self.class_weights = self.class_weights[1]
-        else:
-            self.class_weights = None
-
-        print(self.classValues)
-        print(self.class_weights)
