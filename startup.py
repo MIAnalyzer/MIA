@@ -18,15 +18,14 @@ if __name__ == "__main__":
     load_screen.setMask(splash_pix.mask())
     load_screen.show()
 
-    # try:
-    if True:
+    try:
         from DeepCellDetector import DeepCellDetectorUI
         dcdui = DeepCellDetectorUI()
-    # except:
-        # e = sys.exc_info()[0]
-        # print( "<p>Error: %s</p>" % e )
+    except:
+        e = sys.exc_info()[0]
+        print( "<p>error: %s</p>" % e )
 
     load_screen.hide()
-#    sys.exit(app.exec_())
+#    sys.exit(app.exec_())l
     app.exec_()
 
