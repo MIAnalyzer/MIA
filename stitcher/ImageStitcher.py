@@ -370,8 +370,10 @@ class ImageStitcher(QWidget):
                 if match != [] and len(match) == 1:
                     name1 = os.path.join(folder, f + '.tif')
                     name2 = os.path.join(folder, match[0] + '.tif')
-                    self.image1 = cv2.imread(name1, cv2.IMREAD_GRAYSCALE)
-                    self.image2 = cv2.imread(name2, cv2.IMREAD_GRAYSCALE)
+
+                    # currently only supports 8bit grayscale
+                    self.image1 = cv2.imdecode(np.fromfile(name1, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+                    self.image2 = cv2.imdecode(np.fromfile(name2, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
                     if self.image1 is not None and self.image2 is not None:  
                         self.Register()
                         cv2.imwrite(os.path.join(folder, f[:-1] + 'ab.tif'), self.RegisteredImage)
@@ -388,8 +390,10 @@ class ImageStitcher(QWidget):
             else:
                 return            
 
-        self.image1 = cv2.imread(filenames[0], cv2.IMREAD_GRAYSCALE)
-        self.image2 = cv2.imread(filenames[1], cv2.IMREAD_GRAYSCALE) 
+        # currently only supports 8bit grayscale
+        self.image1 = cv2.imdecode(np.fromfile(filenames[0], dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+        self.image2 = cv2.imdecode(np.fromfile(filenames[1], dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+        
         if self.image1 is None or self.image2 is None:
             if self.OkCancelPopup('Could not Load Images. Retry?'):
                 self.startRegistration()
