@@ -82,7 +82,6 @@ class SegmentationSettingsWindow(QMainWindow, Window):
         else:
             self.SBMinPixels.setEnabled(False)
             self.SBDiscard.setEnabled(False)
-        self.parent.parent.checkForTrainingWarnings()
 
     def MinPixelsChanged(self):
         self.parent.parent.dl.augmentation.minRequiredPixels = self.SBMinPixels.SpinBox.value()
