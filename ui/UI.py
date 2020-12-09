@@ -389,9 +389,18 @@ class MainWindow(object):
         self.Bresults.setIcon(QIcon('icons/results.png'))
         self.Bresults.setToolTip('Open results window')
         self.vlayout.addWidget(self.Bresults)
-
+        
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.vlayout.addItem(verticalSpacer)
+        
+        model = QFileSystemModel()
+        model.setRootPath(QDir.currentPath())
+
+        self.TVFiles = QTreeView(self.centralWidget)
+        self.TVFiles.setModel(model);
+        self.vlayout.addWidget(self.TVFiles)
+
+
         
         brightnesslayout = QHBoxLayout(self.centralWidget)
         self.SBrightness = QSlider(Qt.Horizontal, self.centralWidget)
