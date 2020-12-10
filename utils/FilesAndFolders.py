@@ -121,10 +121,22 @@ class FilesAndFolders():
             self.files.sort()
             self.currentImage = 0
             self.numofImages = len(self.files)
+
+    def setImagebyName(self,filename):
+        filenames = [self.getFilenameFromPath(x,True) for x in self.files]
+        try:
+            self.currentImage = filenames.index(filename)
+            return True
+        except:
+            return False
         
     ## helper functions
-    def getFilenameFromPath(self, path):
-        return os.path.splitext(os.path.basename(path))[0]
+    def getFilenameFromPath(self, path, withfileextension=False):
+        file = os.path.splitext(os.path.basename(path))
+        if withfileextension:
+            return ''.join(file)
+        else:
+            return file[0]
         
     def extendLabelPathByFolder(self, path, folder):
         return os.path.join(path, folder) 
