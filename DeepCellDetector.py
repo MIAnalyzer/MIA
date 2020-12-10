@@ -46,10 +46,7 @@ from utils.FilesAndFolders import FilesAndFolders
 from dl.data.labels import getAllImageLabelPairPaths
 
 from utils.workerthread import WorkerThread
-
-
-
-from ui.ui_utils import DCDButton
+from ui.ui_utils import DCDButton, openFolder, saveFile, loadFile
 
 import numpy as np
 
@@ -91,9 +88,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height() 
-        
-        
-        
+
         self.predictionRate = 0
         
         self.dl = DeepLearning.DeepLearning()
@@ -245,6 +240,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.SBrightness.sliderReleased.connect(self.setBrightness)
         self.SContrast.sliderReleased.connect(self.setContrast)
+
+        self.TVFiles.clicked.connect(self.FileExplorerItemSelected)
         
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
@@ -272,12 +269,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         super(QMainWindow, self).closeEvent(event)
         
     def SaveSettings(self):
-        filename = QFileDialog.getSaveFileName(self, "Save Settings", '', "Settings File (*.json)")[0]
+        # filename = QFileDialog.getSaveFileName(self, "Save Settings", '', "Settings File (*.json)")[0] #<- native version
+        filename = saveFile("Save Settings","Settings File (*.json)", 'json')
         if filename:
             self.settings.saveSettings(filename)
         
     def LoadSettings(self):
-        filename = QFileDialog.getOpenFileName(self, "Select Settings File", '',"Settings (*.json)")[0]
+        # filename = QFileDialog.getOpenFileName(self, "Select Settings File", '',"Settings (*.json)")[0] #<- native version
+        filename = loadFile("Select Settings File", "Settings (*.json)")
         if filename:
             self.settings.loadSettings(filename)
             
@@ -449,16 +448,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if self.currentImageFile.isStack():
                 text = text + " " + "%d/%i: " % (self.files.currentFrame+1,self.currentImageFile.numOfImagesInStack())
         self.StatusFile.setText(text)
-            
+          
     def setTrainFolder(self):
-        folder = str(QFileDialog.getExistingDirectory(self, "Select Training Image Folder"))
+        # folder = str(QFileDialog.getExistingDirectory(self, "Select Training Image Folder"))
+        folder = openFolder("Select Training Image Folder")
         if not folder:
             return
         self.files.setTrainFolder(folder)
         self.setWorkingFolder()
         
     def setTestFolder(self):
-        folder = str(QFileDialog.getExistingDirectory(self, "Select Test Image Folder"))
+        # folder = str(QFileDialog.getExistingDirectory(self, "Select Test Image Folder"))
+        folder = openFolder("Select Test Image Folder")
         if not folder:
             return
         self.files.setTestFolder(folder)
@@ -474,11 +475,22 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def setWorkingFolder(self):
         self.files.getFiles()
-        # if self.files.numofImages == 0:
-        #     self.canvas.resetImage()
+        if self.files.imagepath:
+            model = QFileSystemModel()
+            model.setRootPath(self.files.imagepath)
+            self.TVFiles.setModel(model)
+            self.TVFiles.setRootIndex(model.index(self.files.imagepath))
+            self.TVFiles.setVisible(True)
+        else:
+            self.TVFiles.setVisible(False)
         self.changeImage()
         self.setFolderLabels()
         
+    def FileExplorerItemSelected(self, index):
+        file = index.model().fileName(index)
+        if self.files.setImagebyName(file):
+            self.changeImage()
+
     def ensureLabelFolder(self):
         self.files.ensureLabelFolder()
 
@@ -645,7 +657,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return self.dl.WorkingMode
 
     def loadModel(self):
-        filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
+        #filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
+        filename = loadFile("Select Model File", "Model (*.h5)")
         if filename:
             with self.wait_cursor():
                 self.dl.LoadModel(filename)
@@ -660,7 +673,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
-        filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
+        #filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
+        filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
         if filename.strip():
             with self.wait_cursor():
                 self.dl.SaveModel(filename)

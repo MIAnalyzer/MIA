@@ -118,6 +118,11 @@ class MainWindow(object):
         self.TestImagelayout.addWidget(self.BLoadTestImages)
         self.TestImagelayout.addWidget(self.BTestImageFolder)
         self.vlayout.addItem(self.TestImagelayout)
+
+        self.TVFiles = QTreeView(self.centralWidget)
+        self.TVFiles.setIndentation(5)
+        self.TVFiles.setVisible(False)
+        self.vlayout.addWidget(self.TVFiles)
         
         line = QFrame(self.centralWidget)
         line.setFrameShape(QFrame.HLine)
@@ -392,16 +397,7 @@ class MainWindow(object):
         
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.vlayout.addItem(verticalSpacer)
-        
-        model = QFileSystemModel()
-        model.setRootPath(QDir.currentPath())
 
-        self.TVFiles = QTreeView(self.centralWidget)
-        self.TVFiles.setModel(model);
-        self.vlayout.addWidget(self.TVFiles)
-
-
-        
         brightnesslayout = QHBoxLayout(self.centralWidget)
         self.SBrightness = QSlider(Qt.Horizontal, self.centralWidget)
         self.SBrightness.setMinimum(-200)

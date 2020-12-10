@@ -277,3 +277,38 @@ class ClassWidget(QWidget):
         
     def nameChanged(self):
         self.parent.ClassListUpdated()
+
+
+# open dialogs
+def openFolder(header):
+    dialog = QFileDialog()
+    dialog.setFileMode(QFileDialog.DirectoryOnly)
+    dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    dialog.setOption(QFileDialog.ShowDirsOnly, False)
+    if dialog.exec() == QDialog.Accepted:
+        return dialog.selectedFiles()[0]
+    else:
+        return False
+
+def saveFile(header, filter, suffix):
+    dialog = QFileDialog()
+    dialog.setWindowTitle(header)
+    dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    dialog.setDefaultSuffix(suffix)
+    dialog.setAcceptMode(QFileDialog.AcceptSave)
+    dialog.setNameFilters([filter])
+    if dialog.exec_() == QDialog.Accepted:
+        return dialog.selectedFiles()[0]
+    else:
+       return False
+
+def loadFile(header, filter):
+    dialog = QFileDialog()
+    dialog.setWindowTitle(header)
+    dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+    dialog.setAcceptMode(QFileDialog.AcceptOpen)
+    dialog.setNameFilters([filter])
+    if dialog.exec_() == QDialog.Accepted:
+        return dialog.selectedFiles()[0]
+    else:
+       return False
