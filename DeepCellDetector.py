@@ -490,11 +490,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def setWorkingFolder(self):
         self.files.getFiles()
-        if self.files.imagepath:
+        if self.files.currentimagesrootpath:
             model = QFileSystemModel()
-            model.setRootPath(self.files.imagepath)
+            model.setRootPath(self.files.currentimagesrootpath)
             self.TVFiles.setModel(model)
-            self.TVFiles.setRootIndex(model.index(self.files.imagepath))
+            self.TVFiles.setRootIndex(model.index(self.files.currentimagesrootpath))
             self.TVFiles.setVisible(True)
         else:
             self.TVFiles.setVisible(False)
@@ -503,8 +503,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def FileExplorerItemSelected(self, index):
         file = index.model().fileName(index)
+        path = index.model().filePath(index)
+        self.files.moveToSubFolder(os.path.dirname(os.path.abspath(path)))
         if self.files.setImagebyName(file):
             self.changeImage()
+
 
     def ensureLabelFolder(self):
         self.files.ensureLabelFolder()

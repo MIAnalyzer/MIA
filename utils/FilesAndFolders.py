@@ -15,21 +15,30 @@ class FilesAndFolders():
         
         self.trainImagespath = None
         self.testImagespath = None
-        
+        self.subFolder = None
+
         self.train_test_dir = True # True = TrainFolder; False = TestFolder
         
         self.files = None
         self.currentImage = -1
         self.numofImages = 0
         self.currentFrame = 0
-        
+
     @property
-    def imagepath(self): # naming unclear
-        return self.trainImagespath if self.train_test_dir else self.testImagespath
-        
-    @property
-    def labelpath(self): # naming unclear
+    def currentimagesrootpath(self): # naming unclear
         path = self.trainImagespath if self.train_test_dir else self.testImagespath
+        return path 
+        
+    @property
+    def currentimagespath(self): # naming unclear
+        path = self.currentimagesrootpath
+        if self.subFolder:
+            path = path + self.subFolder
+        return path 
+        
+    @property
+    def currentlabelspath(self): # naming unclear
+        path = self.currentimagespath
         if not path:
             return
         path = path + os.path.sep + self.parent.LearningMode().name + "_labels"
@@ -67,9 +76,9 @@ class FilesAndFolders():
         
     # @property
     def CurrentLabelPath(self):
-        if self.labelpath is None or self.CurrentImageName() is None:
+        if self.currentlabelspath is None or self.CurrentImageName() is None:
             return None
-        path = os.path.join(self.labelpath, self.CurrentImageName())
+        path = os.path.join(self.currentlabelspath, self.CurrentImageName())
         if self.parent.hasStack() and self.parent.separateStackLabels:
             return self.extendNameByFrameNumber(path, self.currentFrame) + ".npz"
         else:
@@ -93,10 +102,12 @@ class FilesAndFolders():
             
     def setTrainFolder(self, folder):
         self.trainImagespath = folder
+        self.subFolder = None
         self.train_test_dir = True
         
     def setTestFolder(self, folder):
-        self.testImagespath = folder   
+        self.testImagespath = folder
+        self.subFolder = None
         self.train_test_dir = False
      
     def switchToTrainFolder(self):
@@ -106,12 +117,12 @@ class FilesAndFolders():
         self.train_test_dir = False          
         
     def ensureLabelFolder(self):
-        self.ensureFolder(self.labelpath)
+        self.ensureFolder(self.currentlabelspath)
         
     def getFiles(self):
-        if self.imagepath is None:
+        if self.currentimagespath is None:
             return
-        files = glob.glob(os.path.join(self.imagepath, '*.*'))          
+        files = glob.glob(os.path.join(self.currentimagespath, '*.*'))          
         self.files = [x for x in files if x.lower().endswith(tuple(supportedImageFormats()))]
         if not self.files:
             self.currentImage = -1
@@ -122,7 +133,20 @@ class FilesAndFolders():
             self.currentImage = 0
             self.numofImages = len(self.files)
 
+    def moveToSubFolder(self, path):
+        curr_path = os.path.abspath(self.currentimagesrootpath)
+        path = os.path.abspath(path)
+        if curr_path not in path:
+            return
+        subfolder = path.replace(curr_path,'')
+        if subfolder is not self.subFolder:
+            self.subFolder = subfolder
+            self.getFiles()
+
+
     def setImagebyName(self,filename):
+        if not self.files:
+            return
         filenames = [self.getFilenameFromPath(x,True) for x in self.files]
         try:
             self.currentImage = filenames.index(filename)
