@@ -120,7 +120,7 @@ class MainWindow(object):
         self.vlayout.addItem(self.TestImagelayout)
 
         self.TVFiles = QTreeView(self.centralWidget)
-        self.TVFiles.setIndentation(5)
+        self.TVFiles.setIndentation(8)
         self.TVFiles.setVisible(False)
         self.vlayout.addWidget(self.TVFiles)
         
