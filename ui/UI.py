@@ -154,6 +154,7 @@ class MainWindow(object):
         self.SegmentationSettingslayout.addWidget(self.Bautoseg)
         self.SegmentationSettings = QFrame()
         self.SegmentationSettings.setLayout(self.SegmentationSettingslayout)
+        self.SegmentationSettings.hide()
         self.vlayout.addWidget(self.SegmentationSettings)
 
         
@@ -298,9 +299,13 @@ class MainWindow(object):
 
         
         self.ralayout = QHBoxLayout(self.centralWidget)
+        self.Bundo = DCDButton(self.centralWidget, "Undo")
+        self.Bundo.setIcon(QIcon('icons/clear.png'))
+        self.Bundo.setToolTip('Undo drawing') 
         self.Bclear = DCDButton(self.centralWidget, "Clear Image")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
         self.Bclear.setToolTip('Reset image')  
+        self.ralayout.addWidget(self.Bundo) 
         self.ralayout.addWidget(self.Bclear)    
         self.vlayout.addItem(self.ralayout) 
         

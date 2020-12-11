@@ -190,6 +190,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def setCallbacks(self):
         self.Bclear.clicked.connect(self.clear)
+        self.Bundo.clicked.connect(self.undo)
         self.BLoadTrainImages.clicked.connect(self.setTrainFolder)
         self.BLoadTestImages.clicked.connect(self.setTestFolder)
         self.BTestImageFolder.clicked.connect(self.switchToTestFolder)
@@ -242,6 +243,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.SContrast.sliderReleased.connect(self.setContrast)
 
         self.TVFiles.clicked.connect(self.FileExplorerItemSelected)
+      
         
         ## menu actions
         self.ASetTrainingFolder.triggered.connect(self.setTrainFolder)
@@ -338,6 +340,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.dl.WorkingMode = dlMode(i)
         self.canvas.setCanvasMode(self.LearningMode())
         self.closeModeWindows()
+        if self.LearningMode() == dlMode.Segmentation:
+            self.SegmentationSettings.show()
+        else:
+            self.SegmentationSettings.hide()
         
         if self.initialized:
             # could be done in an observer
@@ -417,6 +423,15 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.deleteLabel()
         self.canvas.ReloadLabels(resetview)
         QApplication.processEvents()
+
+    def undo(self):
+        self.canvas.undoDrawing()
+
+    def checkIfUndoPossible(self):
+        if self.canvas.painter.undoPossible():
+            self.Bundo.setEnabled(True)
+        else:
+            self.Bundo.setEnabled(False)
     
     def deleteLabel(self):
         if self.files.CurrentLabelPath() and os.path.exists(self.files.CurrentLabelPath()):
@@ -533,11 +548,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def keyPressEvent(self, e):
         if e.key() == 32: # space bar
             self.canvas.toggleDrag()
-        if 48 <= e.key() <= 57:
+        if 48 <= e.key() <= 57: # numbers from 0-9
             classnum = e.key()-48
             self.classList.setClass(e.key()-48)
+        if int(e.modifiers()) == Qt.CTRL and e.key() == 90: # strg + z
+            self.undo()
 
-    
     def readCurrentImageAsBGR(self): 
         with self.wait_cursor():
             self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)

@@ -31,10 +31,10 @@ class Painter(ABC):
         self.tools.append(canvasTool.extend)
         self.tools.append(canvasTool.poly)
         self.tools.append(canvasTool.delete)
-        
+        self.trackChanges = []
+        self.maxChanges = 4
         self.contoursketch = None
         self.mask = None
-
     
     def clear(self):
         self.contours.clear()
@@ -62,7 +62,17 @@ class Painter(ABC):
     @abstractmethod
     def checkForChanges(self):
         pass
-    
+
+    @abstractmethod
+    def undo(self):
+        pass
+
+    def clearTracking(self):
+        self.trackChanges.clear()
+
+    def undoPossible(self):
+        return len(self.trackChanges) >= 2
+
     @property
     def shapes(self):
         return self.contours
@@ -74,9 +84,7 @@ class Painter(ABC):
     @property
     def sketch(self):
         return self.contoursketch
-    
-    
-    
+
     
     def draw(self):
         self.drawBackground()
