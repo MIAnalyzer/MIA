@@ -23,6 +23,7 @@ class ImageLabelPainter(Painter):
         self.tools.append(canvasTool.assignimageclass)
         self.imagelabel = None
 
+
     def disableDrawBackgroundMode(self):
         super(ImageLabelPainter, self).disableDrawBackgroundMode()
         self.tools.append(canvasTool.setimageclass)
@@ -57,11 +58,27 @@ class ImageLabelPainter(Painter):
                 self.contours.addShapes(background)
 
     def save(self):
+        if len(self.trackChanges) > self.maxChanges:
+            self.trackChanges.pop(0)
+        self.trackChanges.append((self.imagelabel), self.backgroundshapes.copy())
+        self.canvas.parent.checkIfUndoPossible()
+
         if self.imagelabel or not self.contours.empty():
             self.canvas.parent.ensureLabelFolder()
             saveImageLabel(self.imagelabel, self.canvas.parent.files.CurrentLabelPath(), background = self.backgroundshapes)
         else:
             self.canvas.parent.deleteLabel()
+
+    def undo(self):
+        if len(self.trackChanges) < 2:
+            return
+        self.clear()
+        self.imagelabel, background = self.trackChanges[-2]
+        self.trackChanges.pop()
+        self.trackChanges.pop()
+        if background:
+            self.contours.addShapes(background)
+        self.canvas.parent.checkIfUndoPossible()
         
     def checkForChanges(self):
         # to do

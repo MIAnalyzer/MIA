@@ -17,6 +17,7 @@ import cv2
 from ui.painter.Painter import Painter
 import utils.shapes.Contour as Contour
 from ui.Tools import canvasTool
+import copy 
 
 class ContourPainter(Painter):
     def __init__(self, canvas):
@@ -24,6 +25,7 @@ class ContourPainter(Painter):
         self.tools.append(canvasTool.assign)
         # self.mask = None
         self.smartmode = False
+
         
     @property
     def sketch(self):
@@ -64,11 +66,25 @@ class ContourPainter(Painter):
             self.shapes.load(self.canvas.parent.files.CurrentLabelPath())
         
     def save(self):
+        if len(self.trackChanges) > self.maxChanges:
+            self.trackChanges.pop(0)
+        self.trackChanges.append(copy.deepcopy(self.shapes.shapes))
+        self.canvas.parent.checkIfUndoPossible()
         if not self.shapes.empty():
             self.canvas.parent.ensureLabelFolder()
             self.shapes.save(self.canvas.parent.files.CurrentLabelPath())
         else:
             self.canvas.parent.deleteLabel()
+
+    def undo(self):
+        if len(self.trackChanges) < 2:
+            return
+        self.clear()
+        contours = self.trackChanges[-2]
+        self.trackChanges.pop()
+        self.trackChanges.pop()
+        self.shapes.addShapes(contours)
+        self.canvas.parent.checkIfUndoPossible()
             
     def clearFOV(self):
         width = self.canvas.image().width()

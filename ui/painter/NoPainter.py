@@ -22,6 +22,9 @@ class NoPainter(Painter):
     def checkForChanges(self):
         pass
     
+    def undo(self):
+        pass
+
     def clearFOV(self):
         pass
     

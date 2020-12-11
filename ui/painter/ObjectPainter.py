@@ -13,12 +13,14 @@ from ui.painter.Painter import Painter
 import utils.shapes.Point as Point
 import os
 from ui.Tools import canvasTool
+import copy
 
 class ObjectPainter(Painter):
     def __init__(self, canvas):
         super(ObjectPainter,self).__init__(canvas)
         self.points = Point.Points()
         self.backgroundmode = False
+
 
     @property
     def shapes(self):
@@ -95,11 +97,27 @@ class ObjectPainter(Painter):
                 self.contours.addShapes(background)
         
     def save(self):
+        if len(self.trackChanges) > self.maxChanges:
+            self.trackChanges.pop(0)
+        self.trackChanges.append((copy.deepcopy(self.points.shapes), copy.deepcopy(self.backgroundshapes)))
+        self.canvas.parent.checkIfUndoPossible()
         if not self.points.empty() or not self.contours.empty():
             self.canvas.parent.ensureLabelFolder()
             Point.savePoints(self.points.shapes, self.canvas.parent.files.CurrentLabelPath(), background = self.backgroundshapes)
         else:
             self.canvas.parent.deleteLabel()
+
+    def undo(self):
+        if len(self.trackChanges) < 2:
+            return
+        self.clear()
+        points, background = self.trackChanges[-2]
+        self.trackChanges.pop()
+        self.trackChanges.pop()
+        self.points.addShapes(points)
+        if background:
+            self.contours.addShapes(background)
+        self.canvas.parent.checkIfUndoPossible()
 
         
     def checkForChanges(self):

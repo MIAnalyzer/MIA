@@ -183,6 +183,7 @@ class Canvas(QGraphicsView):
             return
         self.displayedimage.setImage(self.getCurrentPixmap())
         self.ReloadLabels(resetView)
+        self.painter.clearTracking()
         self.checkForChanges()
 
             
@@ -193,6 +194,11 @@ class Canvas(QGraphicsView):
 
         if resetView:
             self.resetView()
+
+    def undoDrawing(self):
+        if self.painter.undoPossible():
+            self.painter.undo()
+            self.redrawImage()
                     
     def getCurrentPixmap(self):
         image = self.parent.getCurrentImage() 
