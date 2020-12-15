@@ -20,11 +20,10 @@ from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
 from ui.style import styleForm
-from ui.ui_utils import DCDButton
+from ui.ui_utils import DCDButton, saveFile
 from utils.Image import ImageFile
 from dl.method.mode import dlMode
 import cv2
-
 
 class Window(object):
     def setupUi(self, Form):
@@ -182,7 +181,8 @@ class ResultsWindow(QMainWindow, Window):
             self.LScale.setStyleSheet("color: gray")
 
     def saveResults(self):
-        filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
+        #filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
+        filename = saveFile("Save Results","Comma Separated File (*.csv)", 'csv') 
         if not filename.strip():
             return
         
