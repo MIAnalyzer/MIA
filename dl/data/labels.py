@@ -14,19 +14,19 @@ import os
 from itertools import repeat, chain
 from utils.Image import supportedImageFormats
 
-def getAllImageLabelPairsRecursive(imagepath, labelfoldername):
+def getMatchingImageLabelPairsRecursive(imagepath, labelfoldername):
     images = []
     labels = []
     for root, dirs, files in os.walk(imagepath): 
         if labelfoldername in dirs:
             # this is inefficent because we search again content of subdir, which is the information we already have in files or dirs+files
-            img, lab = getAllImageLabelPairPaths(root,os.path.join(root,labelfoldername))
+            img, lab = getMatchingImageLabelPairPaths(root,os.path.join(root,labelfoldername))
             if img and lab:
                 images.extend(img)
                 labels.extend(lab)
     return images, labels
 
-def getAllImageLabelPairPaths(imagepath, labelpath, unroll=True):
+def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
               

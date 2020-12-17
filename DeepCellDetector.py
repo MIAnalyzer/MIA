@@ -17,6 +17,7 @@ import glob
 import os
 import cv2 
 import multiprocessing
+import threading
 import concurrent.futures
 import time
 from contextlib import contextmanager
@@ -43,7 +44,7 @@ import utils.shapes.Point as Point
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
-from dl.data.labels import getAllImageLabelPairPaths
+from dl.data.labels import getMatchingImageLabelPairPaths
 
 from utils.workerthread import WorkerThread
 from ui.ui_utils import DCDButton, openFolder, saveFile, loadFile
@@ -64,8 +65,14 @@ CPU_ONLY = False
 class DeepCellDetectorUI(QMainWindow, MainWindow):
     # qt elements may only be changed from main thread, so we create signals here
     # to call from other threads
+    initProgress = pyqtSignal(int)
     Progress = pyqtSignal() 
     ProgressFinished = pyqtSignal()
+    Block = pyqtSignal() 
+    UnBlock = pyqtSignal()
+    Popup = pyqtSignal(str)
+    StatusMessage = pyqtSignal(str)
+    
     def __init__(self):
         super(DeepCellDetectorUI, self).__init__()
         self.initialized = False
@@ -76,7 +83,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
         self.progresstick = 10
         self.progress = 0
+        self.progresslock = threading.Lock()
         self.maxworker = 1
+        self.lock = threading.Lock()
         
         self.files = FilesAndFolders(self)
         self.files.ensureFolder('log/')
@@ -103,8 +112,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.dlobserver.signals.start.connect(self.dlStarted)
         
         
+        self.initProgress.connect(self.initializeProgress)
         self.Progress.connect(self.addProgress)
         self.ProgressFinished.connect(self.finishProgress)
+        self.Block.connect(self.blockWindow)
+        self.UnBlock.connect(self.unblockWindow)
+        self.Popup.connect(self.PopupWarning)
+        self.StatusMessage.connect(self.writeStatus)
         
         # init canvas
         self.hlayout.removeWidget(self.canvas)
@@ -611,21 +625,61 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.maxworker = numWorker
         self.dl.worker = numWorker
     
-    def initProgress(self, ticks):
+    def emitinitProgress(self, num):
+        self.initProgress.emit(num)
+        
+    def emitProgress(self):
+        self.Progress.emit()
+        
+    def emitProgressFinished(self):
+        self.ProgressFinished.emit()
+        
+    def emitBlockWindow(self):
+        self.Block.emit()
+        
+    def emitUnBlockWindow(self):
+        self.UnBlock.emit()
+        
+    def emitPopup(self, message):
+        self.Popup.emit(message)
+        
+    def emitStatus(self, message):
+        self.StatusMessage.emit(message)
+    
+    
+    @pyqtSlot(int)
+    def initializeProgress(self, ticks):
         assert(ticks != 0)
         self.progresstick = 1/ticks *100
         self.progress = 0
         self.setProgress(0)
-        
-    @pyqtSlot()
+     
+    @pyqtSlot()  
     def addProgress(self):
-        self.progress += self.progresstick
-        self.setProgress(self.progress)
+        with self.lock:
+            self.progress += self.progresstick
+            
+        if self.progresslock.locked():
+            return
+        with self.progresslock:
+            self.setProgress(self.progress)
     
     @pyqtSlot()
     def finishProgress(self):
         QApplication.processEvents()
         self.setProgress(100)
+              
+    @pyqtSlot()
+    def blockWindow(self):
+        self.setEnabled(False)
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+        
+    @pyqtSlot()
+    def unblockWindow(self):
+        self.setEnabled(True)
+        QApplication.restoreOverrideCursor()
+        QApplication.processEvents()
     
     def setProgress(self,value):
         if value < 100:
@@ -634,7 +688,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         else:
             self.StatusProgress.hide()
         QApplication.processEvents()
-            
+    
     def writeStatus(self,msg):
         self.Status.setText(msg)
         
@@ -643,7 +697,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.PopupWarning('No predicted files')
             return
         with self.wait_cursor():
-            _, labels = getAllImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
+            _, labels = getMatchingImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
             self.dl.calculateTracking(labels)
             self.canvas.ReloadImage()
             
@@ -669,7 +723,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         else:
             weights = self.classList.getClassWeight(1)            
         self.dl.data.setClassWeights(weights)
-
+        
 
     ## deep learning  
     def LearningMode(self):
@@ -694,7 +748,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         #filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
         filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
-        if filename.strip():
+        if filename:
             with self.wait_cursor():
                 self.dl.SaveModel(filename)
                 self.settings.saveSettings(filename.replace("h5", "json"))
@@ -720,7 +774,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.plotting_form.show()
         self.plotting_form.initialize()
         self.toggleTrainStatus(True)
-        self.dl.startTraining(self.files.trainImagespath,self.files.trainImageLabelspath)
+        self.dl.startTraining(self.files.trainImagespath)
 
     def resumeTraining(self):
         self.toggleTrainStatus(True)
@@ -738,9 +792,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.ConfirmPopup('Are you sure to predict all images in the test folder?'):
             return
 
-        self.initProgress(len(self.files.TestImages))
+        self.emitinitProgress(len(self.files.TestImages))
         self.togglePredictionStatus(True)
-        thread = WorkerThread(self.predictAllImages_async, self.PredictionFinished)
+        thread = WorkerThread(self.predictAllImages_async, callback_end=self.PredictionFinished)
         thread.daemon = True
         thread.start()
 
@@ -753,14 +807,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def predictAllImages_async(self):
         for image in self.files.TestImages:
             self.predictSingleImageOrStack(image)
-        self.ProgressFinished.emit()
+        self.emitProgressFinished()
 
     def predictAllImages_concurrent(self):
-        self.initProgress(len(self.files.TestImages))
+        self.emitinitProgress(len(self.files.TestImages))
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.maxworker) as executor:
             executor.map(self.predictSingleImageOrStack,images)
 
-        self.ProgressFinished()
+        self.emitProgressFinished()
         self.switchToTestFolder()
         self.writeStatus(str(len(images)) + ' images predicted')
         
@@ -781,7 +835,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             else:
                 filename = name
             self.extractAndSavePredictedResults(pred, path, filename)
-        self.Progress.emit()
+        self.emitProgress()
         
     def predictImage_async(self):
         image = self.dl.data.readImage(self.files.CurrentImagePath(), self.files.currentFrame)

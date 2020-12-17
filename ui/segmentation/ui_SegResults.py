@@ -13,7 +13,6 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.data.labels import getAllImageLabelPairPaths
 from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
@@ -22,6 +21,7 @@ from ui.ui_utils import DCDButton
 from utils.Image import ImageFile
 from dl.method.mode import dlMode
 import cv2
+import time
 
 
 class Window(object):
@@ -67,10 +67,10 @@ class SegmentationResultsWindow(QMainWindow, Window):
                         
         writer.writerow(header)
         num = len(labels)
-        self.parent.initProgress(num)
+        self.parent.emitinitProgress(num)
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
             rows = executor.map(self.getSingleContourLabelFromList, labels)
-                    
+          
         for r in rows:
             writer.writerows(r) 
         
@@ -99,7 +99,7 @@ class SegmentationResultsWindow(QMainWindow, Window):
                 if length > 0:
                     row += ['%.2f'%(c.getSize()/length)]
             rows.append(row)
-        self.parent.Progress.emit()
+        self.parent.emitProgress()
         return rows
        
             
