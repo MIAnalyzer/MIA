@@ -123,6 +123,10 @@ class DeepLearning(dlObservable):
             self.Mode = Classification(self)
         else:
             self.Mode = UndefinedMode(self)
+     
+    @property
+    def LabelFolderName(self):
+        return self.Mode.type.name + '_labels'
 
     def interrupt(self):
         self.record.interrupt = True
@@ -138,11 +142,11 @@ class DeepLearning(dlObservable):
             return False
 
        
-    def startTraining(self, trainingimages_path, traininglabels_path):
-        if not self.initialized or trainingimages_path is None or traininglabels_path is None:
+    def startTraining(self, trainingimages_path):
+        if not self.initialized or trainingimages_path is None:
             return False
 
-        thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path, traininglabels_path))
+        thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path,))
         thread.daemon = True
         thread.start()
 
@@ -155,11 +159,11 @@ class DeepLearning(dlObservable):
         thread.start()
 
     
-    def initData_StartTraining(self, trainingimages_path, traininglabels_path):
+    def initData_StartTraining(self, trainingimages_path):
         try:
             self.record.reset()
             self.interrupted = False
-            self.data.initTrainingDataset(trainingimages_path, traininglabels_path)
+            self.data.initTrainingDataset(trainingimages_path)
             if not self.data.initialized() or self.interrupted:
                 self.notifyTrainingFinished()
                 return

@@ -15,7 +15,7 @@ import glob
 import concurrent.futures
 from ui.segmentation.ui_SegResults import SegmentationResultsWindow
 from ui.objectdetection.ui_ODResults import ObjectDetectionResultsWindow
-from dl.data.labels import getAllImageLabelPairPaths
+from dl.data.labels import getMatchingImageLabelPairPaths, getMatchingImageLabelPairsRecursive
 from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
@@ -23,7 +23,10 @@ from ui.style import styleForm
 from ui.ui_utils import DCDButton, saveFile
 from utils.Image import ImageFile
 from dl.method.mode import dlMode
+from utils.workerthread import WorkerThread
 import cv2
+import threading
+
 
 class Window(object):
     def setupUi(self, Form):
@@ -128,6 +131,7 @@ class ResultsWindow(QMainWindow, Window):
         # currently unused
         image = self.parent.getCurrentImage()
         label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
+        
         filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
         if filename.strip():
             with self.parent.wait_cursor():
@@ -135,12 +139,14 @@ class ResultsWindow(QMainWindow, Window):
                 
     def exportAllMasks(self):
         with self.parent.wait_cursor():
-            images, labels = getAllImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
             folder = self.parent.files.testImagespath + os.path.sep + "exported_masks"
 
             if not images or not labels:
                 self.parent.PopupWarning('No predicted masks')
                 return
+            
+
             image = None
             for i, l in zip(images,labels):
                 if isinstance(l, tuple):
@@ -181,15 +187,23 @@ class ResultsWindow(QMainWindow, Window):
             self.LScale.setStyleSheet("color: gray")
 
     def saveResults(self):
-        #filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
+        # filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
         filename = saveFile("Save Results","Comma Separated File (*.csv)", 'csv') 
-        if not filename.strip():
+        if not filename:
             return
         
-        with self.parent.wait_cursor():
-            _, labels = getAllImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
-            if labels is None:
-                self.parent.PopupWarning('No predicted files')
+        thread = WorkerThread(work=self.saving, args=filename, callback_start=self.parent.emitBlockWindow,callback_end=self.parent.emitUnBlockWindow)
+        # thread.daemon = True
+        thread.start()
+
+
+        
+        
+    def saving(self, filename):
+            _, labels = getMatchingImageLabelPairsRecursive(self.parent.files.testImagespath,self.parent.dl.LabelFolderName)
+            # _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            if labels is None or not labels:
+                self.parent.emitPopup('No predicted files')
                 return
             try:
                 with open(filename, 'w', newline='') as csvfile:
@@ -200,15 +214,15 @@ class ResultsWindow(QMainWindow, Window):
                     elif self.parent.LearningMode() == dlMode.Object_Counting:
                         self.odResults.saveObjects(csvWriter, labels)
                     else:
-                        self.parent.PopupWarning('Not supported detection mode')
-                    
-                    self.parent.ProgressFinished.emit()
-                    self.parent.writeStatus('results saved')
+                        self.parent.emitPopup('No predicted files')
+                        # self.parent.PopupWarning('Not supported detection mode')
+
+                    self.parent.emitProgressFinished()
+                    self.parent.emitStatus('results saved')
                 
             except: 
                 self.parent.PopupWarning('Cannot write file (already open?)')
                 return
-            
             self.hide()
 
         

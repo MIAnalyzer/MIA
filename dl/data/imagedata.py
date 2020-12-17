@@ -8,7 +8,7 @@ Created on Thu Apr 16 14:56:23 2020
 import os
 import glob
 import cv2
-from dl.data.labels import getAllImageLabelPairPaths
+from dl.data.labels import getMatchingImageLabelPairsRecursive
 import numpy as np
 from utils.Image import ImageFile
 import random
@@ -74,8 +74,8 @@ class ImageData():
         return image
     
     
-    def initTrainingDataset(self, imagepath, labelpath):   
-        images, labels = getAllImageLabelPairPaths(imagepath, labelpath)
+    def initTrainingDataset(self, imagepath):   
+        images, labels = getMatchingImageLabelPairsRecursive(imagepath, self.parent.LabelFolderName)
         if images is None or labels is None:
             return None, None
              

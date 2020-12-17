@@ -41,20 +41,21 @@ class FilesAndFolders():
         path = self.currentimagespath
         if not path:
             return
-        path = path + os.path.sep + self.parent.LearningMode().name + "_labels"
+        path = path + os.path.sep + self.parent.dl.LabelFolderName
         if self.parent.hasStack():
             path = self.extendLabelPathByFolder(path, self.CurrentImageName()) 
         return path
     
     @property
+    # not used anymore 
     def trainImageLabelspath(self):
         if self.trainImagespath:
-            return self.trainImagespath + os.path.sep + self.parent.LearningMode().name + "_labels"
+            return self.trainImagespath + os.path.sep + self.parent.dl.LabelFolderName
        
     @property
     def testImageLabelspath(self):
         if self.testImagespath:
-            return self.testImagespath + os.path.sep + self.parent.LearningMode().name + "_labels"
+            return self.testImagespath + os.path.sep + self.parent.dl.LabelFolderName
         
     # @property
     def CurrentImageName(self): 

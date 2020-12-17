@@ -13,7 +13,6 @@ import csv
 import os
 import glob
 import concurrent.futures
-from dl.data.labels import getAllImageLabelPairPaths
 from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
@@ -54,7 +53,7 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
         header = ['image name'] + ['number of objects'] + ['object type']
         writer.writerow(header)
         num = len(labels)
-        self.parent.initProgress(num)
+        self.parent.emitinitProgress(num)
         
         for label in labels:
             if isinstance(label, tuple):
