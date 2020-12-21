@@ -75,16 +75,30 @@ class Window(object):
         self.BExportSettings.setIcon(QIcon('icons/savemodel.png'))
         self.vlayout.addWidget(self.BExportSettings)
         
-        self.BExportMasks = DCDButton(self.centralWidget, 'Export Masks')
+        hlayout = QHBoxLayout(self.centralWidget)
+        self.BExportMasks = DCDButton(self.centralWidget, 'Export all Masks')
         self.BExportMasks.setToolTip('Export contour masks of all images in prediction folder')
         self.BExportMasks.setIcon(QIcon('icons/savemodel.png'))
-        self.vlayout.addWidget(self.BExportMasks)
+        self.BExportMask = DCDButton(self.centralWidget, 'Export Mask')
+        self.BExportMask.setToolTip('Export contour mask of current image')
+        self.BExportMask.setIcon(QIcon('icons/savemodel.png'))
+        hlayout.addWidget(self.BExportMask)
+        hlayout.addWidget(self.BExportMasks)
+        self.vlayout.addLayout(hlayout)
         
-        self.BExport = DCDButton(self.centralWidget, 'Export as csv')
-        self.BExport.setToolTip('Export data from all images in prediction folder')
+        hlayout2 = QHBoxLayout(self.centralWidget)
+        self.BExport = DCDButton(self.centralWidget, 'Export')
+        self.BExport.setToolTip('Export data from current image')
         self.BExport.setIcon(QIcon('icons/savemodel.png'))
         self.BExport.setFlat(True)
-        self.vlayout.addWidget(self.BExport)
+        self.BExportAll = DCDButton(self.centralWidget, 'Export all')
+        self.BExportAll.setToolTip('Export data from all images in prediction folder')
+        self.BExportAll.setIcon(QIcon('icons/savemodel.png'))
+        self.BExportAll.setFlat(True)
+
+        hlayout2.addWidget(self.BExport)
+        hlayout2.addWidget(self.BExportAll)
+        self.vlayout.addLayout(hlayout2)
         
 
 
@@ -94,7 +108,9 @@ class ResultsWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
         self.BExportMasks.clicked.connect(self.exportAllMasks)
-        self.BExport.clicked.connect(self.saveResults)
+        self.BExportMask.clicked.connect(self.exportMask)
+        self.BExportAll.clicked.connect(self.saveResults)
+        self.BExport.clicked.connect(self.saveCurrent)
         self.BExportSettings.clicked.connect(self.showExportSettings)
         self.CBSize.stateChanged.connect(self.EnableSetScale)
         self.BSetScale.clicked.connect(self.setScaleTool)
@@ -132,7 +148,8 @@ class ResultsWindow(QMainWindow, Window):
         image = self.parent.getCurrentImage()
         label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
         
-        filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
+        #filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
+        filename = saveFile("Save Mask To File", "Tiff (*.tif)", 'tif')
         if filename.strip():
             with self.parent.wait_cursor():
                 cv2.imwrite(filename, label)
@@ -186,46 +203,53 @@ class ResultsWindow(QMainWindow, Window):
             self.BSetScale.setEnabled(False)
             self.LScale.setStyleSheet("color: gray")
 
-    def saveResults(self):
-        # filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
+    def saveCurrent(self):
         filename = saveFile("Save Results","Comma Separated File (*.csv)", 'csv') 
         if not filename:
             return
+        label = self.parent.files.CurrentLabelPath()
+
+        if not os.path.exists(label):
+            self.parent.emitPopup('No prediction')
+            return
+        self.saving([label], filename)
+
+
+    def saveResults(self):
+        # filename = QFileDialog.getSaveFileName(self, "Save Results", '', "Comma Separated File (*.csv)")[0]
+        filename = saveFile("Save Results", "Comma Separated File (*.csv)", 'csv') 
+        if not filename:
+            return
         
-        thread = WorkerThread(work=self.saving, args=filename, callback_start=self.parent.emitBlockWindow,callback_end=self.parent.emitUnBlockWindow)
+        thread = WorkerThread(work=self.saveAll, args=filename, callback_start=self.parent.emitBlockWindow,callback_end=self.parent.emitUnBlockWindow)
         # thread.daemon = True
         thread.start()
 
+    def saveAll(self,filename):
+        _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+        if labels is None or not labels:
+            self.parent.emitPopup('No predicted files')
+            return
+        self.saving(labels, filename)
 
-        
-        
-    def saving(self, filename):
-            #_, labels = getMatchingImageLabelPairsRecursive(self.parent.files.testImagespath,self.parent.dl.LabelFolderName)
-            _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
-            if labels is None or not labels:
-                self.parent.emitPopup('No predicted files')
-                return
-            try:
-                with open(filename, 'w', newline='') as csvfile:
-                    csvWriter = csv.writer(csvfile, delimiter = ';')
-                        
-                    if self.parent.LearningMode() == dlMode.Segmentation:
-                        self.segResults.saveContourData(csvWriter, labels)
-                    elif self.parent.LearningMode() == dlMode.Object_Counting:
-                        self.odResults.saveObjects(csvWriter, labels)
-                    else:
-                        self.parent.emitPopup('Not supported detection mode')
+    def saving(self, labels, filename):
+        #try:
+        if True:
+            with open(filename, 'w', newline='') as csvfile:
+                csvWriter = csv.writer(csvfile, delimiter = ';')
+                    
+                if self.parent.LearningMode() == dlMode.Segmentation:
+                    self.segResults.saveContourData(csvWriter, labels)
+                elif self.parent.LearningMode() == dlMode.Object_Counting:
+                    self.odResults.saveObjects(csvWriter, labels)
+                else:
+                    self.parent.emitPopup('Not supported detection mode')
 
-                    self.parent.emitProgressFinished()
-                    self.parent.emitStatus('results saved')
+                self.parent.emitProgressFinished()
+                self.parent.emitStatus('results saved')
 
-            except: 
-                self.parent.emitPopup('Cannot write file (already open?)')
-                return
+        #except: 
+        #    self.parent.emitPopup('Cannot write file (already open?)')
+        #    return
 
-        
-        
 
-            
-
-            
