@@ -84,6 +84,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.progresstick = 10
         self.progress = 0
         self.progresslock = threading.Lock()
+        self.processlock = threading.Lock()
         self.maxworker = 1
         self.lock = threading.Lock()
         
@@ -666,7 +667,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     @pyqtSlot()
     def finishProgress(self):
-        QApplication.processEvents()
         self.setProgress(100)
               
     @pyqtSlot()
@@ -680,14 +680,20 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setEnabled(True)
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
-    
+
     def setProgress(self,value):
         if value < 100:
             self.StatusProgress.show()
             self.StatusProgress.setValue(value)
         else:
             self.StatusProgress.hide()
-        QApplication.processEvents()
+        self.processEvents()
+
+    def processEvents(self):
+        if self.processlock.locked():
+            return
+        with self.processlock:
+            QApplication.processEvents()
     
     def writeStatus(self,msg):
         self.Status.setText(msg)
