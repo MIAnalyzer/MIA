@@ -233,8 +233,7 @@ class ResultsWindow(QMainWindow, Window):
         self.saving(labels, filename)
 
     def saving(self, labels, filename):
-        #try:
-        if True:
+        try:
             with open(filename, 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter = ';')
                     
@@ -248,8 +247,8 @@ class ResultsWindow(QMainWindow, Window):
                 self.parent.emitProgressFinished()
                 self.parent.emitStatus('results saved')
 
-        #except: 
-        #    self.parent.emitPopup('Cannot write file (already open?)')
-        #    return
+        except: 
+            self.parent.emitPopup('Cannot write file (already open?)')
+            return
 
 
