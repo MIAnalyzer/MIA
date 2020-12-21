@@ -200,8 +200,8 @@ class ResultsWindow(QMainWindow, Window):
         
         
     def saving(self, filename):
-            _, labels = getMatchingImageLabelPairsRecursive(self.parent.files.testImagespath,self.parent.dl.LabelFolderName)
-            # _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            #_, labels = getMatchingImageLabelPairsRecursive(self.parent.files.testImagespath,self.parent.dl.LabelFolderName)
+            _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
             if labels is None or not labels:
                 self.parent.emitPopup('No predicted files')
                 return
@@ -214,16 +214,14 @@ class ResultsWindow(QMainWindow, Window):
                     elif self.parent.LearningMode() == dlMode.Object_Counting:
                         self.odResults.saveObjects(csvWriter, labels)
                     else:
-                        self.parent.emitPopup('No predicted files')
-                        # self.parent.PopupWarning('Not supported detection mode')
+                        self.parent.emitPopup('Not supported detection mode')
 
                     self.parent.emitProgressFinished()
                     self.parent.emitStatus('results saved')
-                
+
             except: 
-                self.parent.PopupWarning('Cannot write file (already open?)')
+                self.parent.emitPopup('Cannot write file (already open?)')
                 return
-            self.hide()
 
         
         
