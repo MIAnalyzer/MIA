@@ -76,7 +76,7 @@ class ImageData():
     
     def initTrainingDataset(self, imagepath):   
         images, labels = getMatchingImageLabelPairsRecursive(imagepath, self.parent.LabelFolderName)
-        if images is None or labels is None:
+        if images is None or labels is None or not images or not labels:
             return None, None
              
         # careful: we got new validation set each time we start training
@@ -175,6 +175,8 @@ class ImageData():
             
         return train_img, train_mask
     
+        
+    
     def getTileIndices(self, validation = False, equalTilesperImage = False):
         if not equalTilesperImage:
             if validation:
@@ -190,7 +192,12 @@ class ImageData():
             tilenum = 0
             for _ in range(5):
                 index = random.randint(0,numImages-1)
-                img = self.readImage(images[index])
+                
+                if isinstance(images[index], tuple):
+                    image = images[index][0]
+                else:
+                    image = images[index]
+                img = self.readImage(image)
                 width = int(img.shape[1]*self.parent.ImageScaleFactor)
                 height= int(img.shape[0]*self.parent.ImageScaleFactor)
                 tilenum += self.parent.augmentation.getTilesPerImage(width, height)
@@ -242,6 +249,7 @@ class ImageData():
     def getAutoClassWeights(self):
         # this is only used when not training in memory
         # up to 1000 images of training set are loaded and classweights calculated
+        # would be much faster to only load labels 
         if not self.initialized():
             return
         self.initclassValues()

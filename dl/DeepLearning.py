@@ -60,7 +60,7 @@ class DeepLearning(dlObservable):
         self.Model = None
         # split factor and border need to be reworked and reasonable, get it from network
         self.split_factor = 64
-        self.borderremoval = 32
+        self.borderremoval = 128
         
         self.tracking = ObjectTracking(self)
         self.interrupted = False
@@ -80,9 +80,15 @@ class DeepLearning(dlObservable):
         self.learning_rate = 0.001
         self.preprocess = dlPreprocess.scale
         self.lrschedule = schedule.LearningRateSchedule(self)
-
-
         self.optimizer = Optimizer(self)
+        
+        # segmenatation settings
+        self.seg_useWeightedDistanceMap = False
+        
+        # object detection settings
+        self.od_kernel_stdev = 3
+        self.od_peak_val = 125
+        
 
     @property
     def NumClasses(self):

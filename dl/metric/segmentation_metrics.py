@@ -19,11 +19,11 @@ class SegmentationMetrics(Metrics):
         
     def getMetric(self):
         if self.metric == dlMetric.iou:
-            return self.mean_iou_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
+            return self.mean_iou_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.seg_useWeightedDistanceMap)
         if self.metric == dlMetric.dice_coeff:
-            return self.dice_coefficient_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
+            return self.dice_coefficient_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.seg_useWeightedDistanceMap)
         if self.metric == dlMetric.pixel_accuracy:
-            return self.pixel_accuracy_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.Mode.useWeightedDistanceMap)
+            return self.pixel_accuracy_function(binary = self.parent.NumClasses <= 2, weighted = self.parent.seg_useWeightedDistanceMap)
         else:
             raise # not supported
             

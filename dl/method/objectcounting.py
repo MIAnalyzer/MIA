@@ -28,8 +28,6 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
 
         self.kernel = None
         self.scalefactor = 1
-        self.kernel_stdev = 3
-        self.peak_val = 125
 
         self.maxDetectionLimit = 5000
         
@@ -42,9 +40,9 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
     def setObjectSize(self):
         # stdev should be between 1 and 10 and equals the expansion of an object
         # peakval is the max value of a single object at its coordinates
-        k = cv2.getGaussianKernel(67, self.kernel_stdev) 
+        k = cv2.getGaussianKernel(67, self.parent.od_kernel_stdev) 
         self.kernel = k*np.transpose(k)
-        self.scalefactor = self.peak_val/np.max(self.kernel)
+        self.scalefactor = self.parent.od_peak_val/np.max(self.kernel)
         
     def prepreprocessLabel(self, label):
         # should we create heatmap here?
@@ -128,6 +126,6 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
     def countLabelWeight(self, label):
         classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
         for i in range(1,self.parent.NumClasses_real):
-            classValues[i] = self.kernel_stdev*np.count_nonzero((label == i))
-        classValues[0] = label.size - self.kernel_stdev*np.count_nonzero(label)
+            classValues[i] = self.parent.od_kernel_stdev*np.count_nonzero((label == i))
+        classValues[0] = label.size - self.parent.od_kernel_stdev*np.count_nonzero(label)
         return classValues
