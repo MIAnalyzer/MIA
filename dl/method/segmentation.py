@@ -24,7 +24,6 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         self.type = dlMode.Segmentation
         self.metric = SegmentationMetrics(parent)
         self.loss = SegmentationLosses(parent)
-        self.useWeightedDistanceMap = False
 
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
@@ -32,7 +31,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         return Contour.drawContoursToLabel(label, contours)
     
     def addWeightMap(self, label):
-        if self.useWeightedDistanceMap:
+        if self.parent.seg_useWeightedDistanceMap:
             weights = dl_utils.createWeightedBorderMapFromLabel(label[np.newaxis,...])
             label = np.concatenate((label, weights[0,...]), axis = 2)
         return label
@@ -42,7 +41,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         
     def preprocessLabel(self, mask):
         if self.parent.NumClasses > 2:
-            if self.useWeightedDistanceMap:                 
+            if self.parent.seg_useWeightedDistanceMap:                 
                 label = mask[...,0]
                 weights = mask[...,1]
                 label = to_categorical(label, num_classes=self.parent.NumClasses)

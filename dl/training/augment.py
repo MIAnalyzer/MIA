@@ -10,6 +10,7 @@ import imgaug.augmenters as iaa
 import numpy as np
 import random
 import math
+from dl.method.mode import dlMode
 
 class ImageAugment():
     def __init__(self, parent):
@@ -21,7 +22,7 @@ class ImageAugment():
         self.enableAll = True
         self.flip_horz = True
         self.flip_vert = True
-        self.prob_gaussian = 0.4
+        self.prob_gaussian = 0.4 
         self.prob_piecewise = 0.3
         self.prob_dropout = 0.3
         
@@ -36,13 +37,44 @@ class ImageAugment():
         self.shear_min = -16
         self.shear_max = 16
         
-        self.ignoreBackground = True
-        self.ignorecycles = 5
-        self.minRequiredPixels = 1
+        self.seg_ignoreBackground = True
+        self.seg_ignorecycles = 5
+        self.seg_minRequiredPixels = 1
+        
+        self.od_ignoreBackground = True
+        self.od_ignorecycles = 5
+        self.od_minRequiredPixels = 1
         
         self.augmentation_sequence = None
         
         self.currentTile = 0
+        
+    @property
+    def ignoreBackground(self):
+        if self.parent.WorkingMode == dlMode.Segmentation:
+            return self.seg_ignoreBackground
+        elif self.parent.WorkingMode == dlMode.Object_Counting:
+            return self.od_ignoreBackground
+        else:
+            return False
+        
+    @property
+    def ignorecycles(self):
+        if self.parent.WorkingMode == dlMode.Segmentation:
+            return self.seg_ignorecycles
+        elif self.parent.WorkingMode == dlMode.Object_Counting:
+            return self.od_ignorecycles
+        else:
+            return 0
+    
+    @property
+    def minRequiredPixels(self):
+        if self.parent.WorkingMode == dlMode.Segmentation:
+            return self.seg_minRequiredPixels
+        elif self.parent.WorkingMode == dlMode.Object_Counting:
+            return self.od_minRequiredPixels
+        else:
+            return 1
         
     def setoutputwidth(self, w):
         self.outputwidth = w - w % self.parent.split_factor

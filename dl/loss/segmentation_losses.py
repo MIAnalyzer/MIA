@@ -20,13 +20,13 @@ class SegmentationLosses(Losses):
         
     def getLoss(self):
         if self.loss == dlLoss.focal_loss:
-            return self.focal_Loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.Mode.useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
+            return self.focal_Loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.seg_useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
         if self.loss == dlLoss.cross_entropy:
-            return self.categorical_cross_entropy_loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.Mode.useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
+            return self.categorical_cross_entropy_loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.seg_useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
         if self.loss == dlLoss.dice_loss:
-            return self.dice_coeffient_loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.Mode.useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
+            return self.dice_coeffient_loss_function(binary = self.parent.NumClasses <= 2, usedist = self.parent.seg_useWeightedDistanceMap, class_weights=self.parent.data.class_weights)
         if self.loss == dlLoss.kl_divergence:
-            return self.kullback_Leibler_divergence_loss_function(usedist = self.parent.Mode.useWeightedDistanceMap)
+            return self.kullback_Leibler_divergence_loss_function(usedist = self.parent.seg_useWeightedDistanceMap)
         else:
             raise # not supported
                     
