@@ -17,29 +17,32 @@ from dl.metric.metric_functions import dice_coefficient, dice_coefficient_binary
 def mean_squared_error(class_weights=None):
     if class_weights is None:
         class_weights = 1
-    def loss(y_true, y_pred):
+        
+    def _mean_squared_error(y_true, y_pred):
         mse = K.mean(K.square(y_pred - y_true)*class_weights, axis=-1)
         return mse
-    return loss
+    return _mean_squared_error
 
 def mean_absolute_error(class_weights=None):
     if class_weights is None:
         class_weights = 1
-    def loss(y_true, y_pred):
+
+    def _mean_absolute_error(y_true, y_pred):
         mae = K.mean(K.abs(y_true - y_pred)*class_weights, axis=-1)
         return mae
-    return loss
+    return _mean_absolute_error
 
 def mean_squared_logarithmic_error(class_weights=None):
     if class_weights is None:
         class_weights = 1
-    def loss(y_true, y_pred):
+
+    def _mean_squared_logarithmic_error(y_true, y_pred):
         # clip at 0 or (-1 + epsilon) ??
         y_pred = K.clip(y_pred, 0, None)
         y_true = K.clip(y_true, 0, None)
         msle = K.mean(K.square(K.log(y_true + 1) - K.log(y_pred + 1))*class_weights, axis=-1)
         return msle
-    return loss
+    return _mean_squared_logarithmic_error
 
 
 ## segmentation
@@ -48,7 +51,8 @@ def focal_loss(usedistmap=False, class_weights = None, gamma=2):
         class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.softmax_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
-    def loss(ytrue, ypred):
+    # global _focal_loss
+    def _focal_loss(ytrue, ypred):
         if usedistmap:
             weightmap = K.expand_dims(ytrue[...,-1], axis=3)
             ytrue = ytrue[...,:-1]
@@ -59,14 +63,14 @@ def focal_loss(usedistmap=False, class_weights = None, gamma=2):
         epsilon = K.epsilon()
         ypred = K.clip(ypred, epsilon, 1. - epsilon)
         return -K.mean(class_weights * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weightmap, axis=-1)
-    return loss
+    return _focal_loss
 
 def focal_loss_binary(usedistmap=False, class_weights = None, gamma=2):
     if class_weights is None:
         class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.sigmoid_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
-    def loss(y_true, y_pred):
+    def _focal_loss_binary(y_true, y_pred):
         if usedistmap:
             weightmap = K.expand_dims(y_true[...,-1], axis=3)
             y_true = y_true[...,:-1]
@@ -80,14 +84,14 @@ def focal_loss_binary(usedistmap=False, class_weights = None, gamma=2):
 
         return -K.mean(K.sum(alpha_t * K.pow((1 - p_t), gamma) * K.log(p_t) * weightmap, axis=1))
 
-    return loss
+    return _focal_loss_binary
 
 
 def jaccard_distance_loss(usedistmap=False, class_weights=None, smooth=100):
     if class_weights is None:
         class_weights = 1
     # from https://gist.github.com/wassname/f1452b748efcbeb4cb9b1d059dce6f96
-    def loss(y_true, y_pred):
+    def _jaccard_distance_loss(y_true, y_pred):
         if usedistmap:
             weightmap = K.expand_dims(y_true[...,-1], axis=3)
             y_true = y_true[...,:-1]
@@ -100,14 +104,14 @@ def jaccard_distance_loss(usedistmap=False, class_weights=None, smooth=100):
         sum_ = K.sum((K.abs(y_true) + K.abs(y_pred))*weightmap, axis=-1)
         jac = (intersection_w + smooth) / (sum_ - intersection + smooth)
         return (1 - jac) * smooth
-    return loss
+    return _jaccard_distance_loss
 
 
 def jaccard_distance_loss_binary(usedistmap=False, class_weights=None, smooth=100):
     if class_weights is None:
         class_weights = .5
 
-    def loss(y_true, y_pred):
+    def _jaccard_distance_loss_binary(y_true, y_pred):
         if usedistmap:
             weightmap = K.expand_dims(y_true[...,-1], axis=3)
             y_true = y_true[...,:-1]
@@ -122,11 +126,11 @@ def jaccard_distance_loss_binary(usedistmap=False, class_weights=None, smooth=10
         sum_ = K.sum((class_weights*K.abs(y_true) + (1-class_weights)*K.abs(y_pred))*weightmap, axis=-1)
         jac = (inter_nom + smooth) / (sum_ - inter_denom + smooth)
         return (1 - jac) * smooth
-    return loss
+    return _jaccard_distance_loss_binary
 
 
 def kullback_Leibler_divergence_loss_weighted(usedistmap=False):   
-    def loss(y_true, y_pred):
+    def _kullback_Leibler_divergence_loss_weighted(y_true, y_pred):
         # class_weights not supported atm
         if usedistmap:
             y_true = y_true[...,:-1]
@@ -139,11 +143,16 @@ def kullback_Leibler_divergence_loss_weighted(usedistmap=False):
         # kld = tf.keras.losses.KLDivergence()
         # return kld(y_true, y_pred)
     
-    return loss
+    return _kullback_Leibler_divergence_loss_weighted
+
 
 # for loading models trained with custom loss
-get_custom_objects()['focal_loss'] = focal_loss
-get_custom_objects()['focal_loss_binary'] = focal_loss_binary
-get_custom_objects()['jaccard_distance_loss'] = jaccard_distance_loss
-get_custom_objects()['kullback_Leibler_divergence_loss_weighted'] = kullback_Leibler_divergence_loss_weighted
+get_custom_objects()['_mean_squared_error'] = mean_squared_error()
+get_custom_objects()['_mean_absolute_error'] = mean_absolute_error()
+get_custom_objects()['_mean_squared_logarithmic_error'] = mean_squared_logarithmic_error()
+
+get_custom_objects()['_focal_loss'] = focal_loss()
+get_custom_objects()['_focal_loss_binary'] = focal_loss_binary()
+get_custom_objects()['_jaccard_distance_loss'] = jaccard_distance_loss()
+get_custom_objects()['_kullback_Leibler_divergence_loss_weighted'] = kullback_Leibler_divergence_loss_weighted()
 
