@@ -122,7 +122,17 @@ class DrawTool(AbstractTool):
         self.Text = "Draw"
         self.type = canvasTool.draw
         self.drawimage = None
-        
+
+    @property
+    def mode(self):
+        # 1 add, -1 del, 0 slice
+        if self.canvas.parent.CBAddShape.isChecked():
+            return 1
+        elif self.canvas.parent.CBDelShape.isChecked():
+            return -1
+        elif self.canvas.parent.CBSliceShape.isChecked():
+            return 0
+
     def __del__(self): 
         if self.canvas.painter.NewContour and self.canvas.painter.NewContour.numPoints() > 1 and self.drawimage is not None:
             self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getActiveDrawingRect())
@@ -133,7 +143,7 @@ class DrawTool(AbstractTool):
     def mouseMoveEvent(self, e):
         if self.canvas.painter.NewContour:
             p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
-            if not self.canvas.fastPainting:
+            if not self.canvas.fastPainting and self.mode != 0:
                 if self.drawimage is None:
                     self.drawimage = self.canvas.image().copy()
                 if self.canvas.painter.NewContour.numPoints() > 1:
@@ -152,7 +162,7 @@ class DrawTool(AbstractTool):
     @validTool
     def mouseReleaseEvent(self, e):       
         if self.canvas.painter.NewContour:
-            self.canvas.painter.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
+            self.canvas.painter.finishNewContour(delete = self.mode < 1, close = self.mode != 0, drawaspolygon = self.mode == 0)
             self.drawimage = None
     
     @validTool            
@@ -163,7 +173,12 @@ class DrawTool(AbstractTool):
                 self.canvas.painter.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.QPoint2np(self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))))
 
         if e.button() == Qt.RightButton:
-            self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+            if self.mode == 1:
+                self.canvas.parent.CBDelShape.setChecked(True) 
+            elif self.mode == 0:
+                self.canvas.parent.CBAddShape.setChecked(True)
+            elif self.mode == -1:
+                self.canvas.parent.CBSliceShape.setChecked(True)
             self.canvas.setCursor(self.Cursor())
        
     def Cursor(self):
