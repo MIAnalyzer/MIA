@@ -242,11 +242,16 @@ class Painter(ABC):
         self.contours.addShapes(contours)
         self.canvas.redrawImage()
         
-    def finishNewContour(self, delete = False):
+    def finishNewContour(self, delete = False, close = False, drawaspolygon = True):
         if self.NewContour is not None:
-            self.NewContour.closeContour()
+            if close:
+                self.NewContour.closeContour()
             i = 0 if delete else 1
-            cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1)  
+            if self.NewContour.numPoints() > 1:
+                if drawaspolygon:
+                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), self.canvas.pen_size)  
+                else:
+                    cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1)  
         self.getFinalContours()
         self.NewContour = None
         
