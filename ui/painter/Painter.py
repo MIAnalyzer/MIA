@@ -16,6 +16,12 @@ import numpy as np
 import cv2
 import utils.shapes.Contour as Contour
 from ui.Tools import canvasTool
+import random
+
+
+from dl.data.labels import getMatchingImageLabelPairPaths
+
+import time
 
 class Painter(ABC):
     # every painter can draw contours 
@@ -35,6 +41,7 @@ class Painter(ABC):
         self.maxChanges = 4
         self.contoursketch = None
         self.mask = None
+        self.objectcolors = []
     
     def clear(self):
         self.contours.clear()
@@ -89,6 +96,12 @@ class Painter(ABC):
     def draw(self):
         self.drawBackground()
     
+    def getObjectColor(self, objnum):
+        if len(self.objectcolors) < objnum:
+            for i in range(0, objnum-len(self.objectcolors)):
+                self.objectcolors.append(QColor(random.randint(0,255),random.randint(0,255),random.randint(0,255)))
+        return self.objectcolors[objnum-1]
+
     def enableDrawBackgroundMode(self):
         self.tools.clear()
         self.tools.append(canvasTool.drag)
@@ -166,12 +179,16 @@ class Painter(ABC):
     def drawcontour(self, contour):   
         painter = self.getPainter()
         path = self.contour2Path(contour)
-        if not path.isEmpty():           
-            color = self.canvas.parent.ClassColor(contour.classlabel)
+        if not path.isEmpty():    
+            if self.canvas.parent.TrackingModeEnabled and contour.objectNumber != -1:
+                color = self.getObjectColor(contour.objectNumber)
+            else:
+                color = self.canvas.parent.ClassColor(contour.classlabel)
             self.setPainterColor(painter, color)
             self.setColorTransparency(painter, color, transparency = 0)
             painter.drawPath(path)
             self.drawcontouraccessories(contour, painter)
+            self.drawtrack()
             
     def drawBackground(self):    
         painter = self.getPainter()
@@ -189,7 +206,10 @@ class Painter(ABC):
             painter.fillPath(path,brush)
             self.setColorTransparency(painter, color,-1)
             painter.drawPath(path)
-        
+
+    def drawtrack(self):
+        pass
+
     
     def contour2Path(self, contour):
         path = QPainterPath()
@@ -249,7 +269,7 @@ class Painter(ABC):
             i = 0 if delete else 1
             if self.NewContour.numPoints() > 1:
                 if drawaspolygon:
-                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), self.canvas.pen_size)  
+                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), max(self.canvas.pen_size,2))  
                 else:
                     cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1)  
         self.getFinalContours()
@@ -260,7 +280,7 @@ class Painter(ABC):
         color = self.canvas.parent.ClassColor(contour.classlabel)
         if painter is None:
             painter = self.getPainter(color = color)
-        
+        self.setPainterColor(painter, color)
         if self.canvas.drawShapeNumber:
             contournumber = self.contours.getShapeNumber(contour)
             painter.drawText(self.getLabelNumPosition(contour) , str(contournumber))

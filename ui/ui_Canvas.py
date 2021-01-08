@@ -316,6 +316,8 @@ class Canvas(QGraphicsView):
             self.tool = Tools.setImageClassTool(self)
         if tool == canvasTool.assignimageclass.name:
             self.tool = Tools.assignImageClassTool(self)
+        if tool == canvasTool.objectnumber.name:
+            self.tool = Tools.ObjectNumberTool(self)
         
         self.tool.initialize()
         self.tool.ShowSettings()

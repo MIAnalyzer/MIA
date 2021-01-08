@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.style import styleForm
 from ui.ui_utils import DCDButton
-
+from dl.method.mode import dlMode
 
 class Window(object):
     def setupUi(self, Form):
@@ -27,6 +27,10 @@ class Window(object):
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
+
+        self.CBTrackingMode = QCheckBox("Tracking Mode",self.centralWidget)
+        self.CBTrackingMode.setToolTip('Check to enable tracking mode')
+        self.CBTrackingMode.setObjectName('TrackingMode_seg')
         
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.SBminContourSize = QSpinBox(self.centralWidget)
@@ -55,10 +59,7 @@ class Window(object):
 
         self.vlayout.addLayout(self.h2layout)
         
-        self.BSequence = DCDButton(self.centralWidget, 'Tracking')
-        self.BSequence.setToolTip('Calculate object tracking for results')
-        self.BSequence.setIcon(QIcon('icons/tracking.png'))
-        self.vlayout.addWidget(self.BSequence)
+
         
 
 class SegmentationPostProcessingWindow(QMainWindow, Window):
@@ -69,15 +70,15 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
         self.SBminContourSize.setValue(self.parent.canvas.minContourSize)
         self.CBCalculateSkeleton.setChecked(self.parent.canvas.drawSkeleton)
         self.CBCalculateSkeleton.stateChanged.connect(self.showSkeleton)
+        self.CBTrackingMode.setChecked(self.parent.TrackingModeEnabled)
+        self.CBTrackingMode.stateChanged.connect(self.enableTrackingMode)
         self.SSkeletonSmoothing.valueChanged.connect(self.skeletonsmoothing)
         self.SSkeletonSmoothing.setValue(self.parent.canvas.skeletonsmoothingfactor)
-        self.SBminContourSize.valueChanged.connect(self.setminContourSize)
-        self.BSequence.clicked.connect(self.tracking)
-        
+        self.SBminContourSize.valueChanged.connect(self.setminContourSize)      
         
     def showSkeleton(self):
         self.parent.canvas.drawSkeleton = self.CBCalculateSkeleton.isChecked()
-        
+
     def skeletonsmoothing(self): 
         val = self.SSkeletonSmoothing.value()
         val = val + 1 if val % 2 == 0 else val
@@ -88,7 +89,7 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
     
     def setminContourSize(self):
         self.parent.canvas.setMinimumContourSize(self.SBminContourSize.value())
-        
-    def tracking(self):
-        self.parent.calcTracking()
 
+    def enableTrackingMode(self):
+        if self.parent.LearningMode() == dlMode.Segmentation:
+            self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())

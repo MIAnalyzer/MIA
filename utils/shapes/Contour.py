@@ -184,6 +184,9 @@ class Contour(Shape):
     
     def distance(self, point):
         return cv2.pointPolygonTest(self.points,  (point[0,0], point[0,1]), True) 
+
+    def getPosition(self):
+        return self.getCenter()
     
     def getCenter(self):
         M = cv2.moments(self.points)

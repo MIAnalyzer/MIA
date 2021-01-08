@@ -20,6 +20,7 @@ class ObjectPainter(Painter):
         super(ObjectPainter,self).__init__(canvas)
         self.points = Point.Points()
         self.backgroundmode = False
+        self.tools.append(canvasTool.objectnumber)
 
 
     @property
@@ -44,6 +45,8 @@ class ObjectPainter(Painter):
     def enableDrawBackgroundMode(self):
         super(ObjectPainter, self).enableDrawBackgroundMode()
         self.backgroundmode = True
+        self.tools.append(canvasTool.objectnumber)
+
 
     def disableDrawBackgroundMode(self):
         super(ObjectPainter, self).disableDrawBackgroundMode()
@@ -52,6 +55,7 @@ class ObjectPainter(Painter):
         self.tools.append(canvasTool.shift)
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.delete)
+        self.tools.append(canvasTool.objectnumber)
         self.backgroundmode = False
         
     def draw(self):
@@ -66,6 +70,7 @@ class ObjectPainter(Painter):
         shapes = self.points.getShapesOfClass_x(x)
         color = self.canvas.parent.ClassColor(x)
         self.setPainterColor(painter, color)
+        drawall = True
         for p in shapes:
             qp = self.canvas.Point2QPoint(p)
             p1 = QPoint(qp.x() - self.canvas.FontSize, qp.y())
@@ -78,10 +83,21 @@ class ObjectPainter(Painter):
             path.moveTo(p3)
             path.lineTo(p4)
 
+            if self.canvas.parent.TrackingModeEnabled and p.objectNumber != -1:
+                color = self.getObjectColor(p.objectNumber)
+                self.setPainterColor(painter, color)
+                painter.drawPath(path) 
+                path = QPainterPath()
+                drawall = False
+
             if self.canvas.drawShapeNumber:
+                if not drawall:
+                    color = self.canvas.parent.ClassColor(x)
+                    self.setPainterColor(painter, color)
                 pointnumber = self.points.getShapeNumber(p)
                 painter.drawText(self.getLabelNumPosition(p) , str(pointnumber))
-        painter.drawPath(path)   
+        if drawall:
+            painter.drawPath(path)   
     
     def clear(self):
         super(ObjectPainter, self).clear()

@@ -246,7 +246,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Baddclass.clicked.connect(self.addClass)
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
-        
+        self.BTrack.clicked.connect(self.calcTracking)
+        self.BSetObjectNumber.clicked.connect(self.setTrackingTool)
+       
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         self.CBExtend.clicked.connect(self.updateCursor)
@@ -359,13 +361,28 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.SegmentationSettings.show()
         else:
             self.SegmentationSettings.hide()
-        
+
+
         if self.initialized:
             # could be done in an observer
             self.results_form.ModeChanged()
             self.training_form.ModeChanged()
+
+            self.segpostprocessing_form.enableTrackingMode()
+            self.odpostprocessing_form.enableTrackingMode()
+
         self.setWorkingFolder()
+
+    def setTrackingTool(self):
+        self.canvas.setnewTool(canvasTool.objectnumber.name)
+
+    def enableTrackingMode(self, enable):
+        self.Tracking.setVisible(enable)
         
+    @property
+    def TrackingModeEnabled(self):
+        return self.Tracking.isVisible()
+
     def setToolButtons(self):
         if self.activeClass() == 0:
             self.canvas.painter.enableDrawBackgroundMode()                
@@ -379,7 +396,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if not widget:
                 continue
             widget.setVisible(False)
-        for tool in self.canvas.painter.tools:          
+        for tool in self.canvas.painter.tools: 
             widget = self.findChild(DCDButton, tool.name)
             if not widget:
                 continue

@@ -57,7 +57,16 @@ class Shapes(ABC):
             s.objectNumber = n
             return n
 
-    
+    def getShapeNumberX(self, shapenum):
+        givenNumbers = [x.objectNumber for x in self.shapes if x.objectNumber != -1]
+        try:
+            if givenNumbers == []:
+                return self.shapes[shapenum-1]
+            else:
+                return self.shapes[givenNumbers.index(shapesnum)]
+        except:
+            return None
+
     def empty(self):
         return not self.shapes
     
@@ -110,6 +119,10 @@ class Shape(ABC):
         
     def setObjectNumber(self, n):
         self.objectNumber = n
+
+    @abstractmethod
+    def getPosition(self):
+        pass
         
     @abstractmethod
     def inside(self, point, maxdistance):

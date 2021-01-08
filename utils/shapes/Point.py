@@ -66,6 +66,9 @@ class Point(Shape):
         self.coordinates = np.asarray(point).astype(int)
         super(Point,self).__init__(classlabel, PointContour_ID)
         
+    def getPosition(self):
+        return (self.coordinates[0], self.coordinates[1])
+
     def inside(self, point, distance):
         if distance_p1_p2(self.coordinates,point) <= distance:
             return True
