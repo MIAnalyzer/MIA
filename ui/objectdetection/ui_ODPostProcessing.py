@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.style import styleForm
 from ui.ui_utils import DCDButton
-
+from dl.method.mode import dlMode
 
 class Window(object):
     def setupUi(self, Form):
@@ -28,11 +28,11 @@ class Window(object):
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
 
-        
-        self.BSequence = DCDButton(self.centralWidget, 'Tracking')
-        self.BSequence.setToolTip('Calculate object tracking for results')
-        self.BSequence.setIcon(QIcon('icons/tracking.png'))
-        self.vlayout.addWidget(self.BSequence)
+        self.CBTrackingMode = QCheckBox("Tracking Mode",self.centralWidget)
+        self.CBTrackingMode.setToolTip('Check to enable tracking mode')
+        self.CBTrackingMode.setObjectName('TrackingMode_od')
+
+        self.vlayout.addWidget(self.CBTrackingMode)
         
 
 class ObjectDetectionPostProcessingWindow(QMainWindow, Window):
@@ -40,10 +40,11 @@ class ObjectDetectionPostProcessingWindow(QMainWindow, Window):
         super(ObjectDetectionPostProcessingWindow, self).__init__(parent)
         self.parent = parent
         self.setupUi(self)
+        self.CBTrackingMode.stateChanged.connect(self.enableTrackingMode)
+        self.CBTrackingMode.setChecked(self.parent.TrackingModeEnabled)
 
-        self.BSequence.clicked.connect(self.tracking)
+    def enableTrackingMode(self):
+        if self.parent.LearningMode() == dlMode.Object_Counting:
+            self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())
 
-        
-    def tracking(self):
-        self.parent.calcTracking()
 

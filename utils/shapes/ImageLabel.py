@@ -9,6 +9,9 @@ class ImageLabel(Shape):
 
     def inside(self, point, maxdistance):
         return True
+
+    def getPosition(self):
+        return None
     
 
 # utility

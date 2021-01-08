@@ -30,6 +30,7 @@ class canvasTool(Enum):
     point = 'point'
     setimageclass = 'setimageclass'
     assignimageclass = 'assignimageclass'
+    objectnumber = 'objectnumber'
     
     
 
@@ -271,6 +272,34 @@ class AssignTool(AbstractTool):
 
     def Cursor(self):
         return Qt.ArrowCursor
+
+class ObjectNumberTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "ObjectNumber"
+        self.type = canvasTool.objectnumber
+
+    def mouseMoveEvent(self, e):
+        pass
+        
+    @validTool
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.LeftButton:
+            contour = self.canvas.painter.shapes.getShape(self.canvas.QPoint2np(self.canvas.mapToScene(e.pos())),self.canvas.FontSize)
+            if contour is not None:
+                objnum,ok = QInputDialog.getInt(self.canvas.parent, "Set Object Number","Object Number")
+                if ok and objnum > 0:
+                    contour.setObjectNumber(objnum)
+                    self.canvas.painter.checkForChanges()
+
+                      
+    def mousePressEvent(self,e):
+        pass
+
+    def Cursor(self):
+        return Qt.ArrowCursor
+
         
 class DeleteTool(AbstractTool):
     def __init__(self, canvas):

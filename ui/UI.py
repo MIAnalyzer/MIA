@@ -9,7 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from ui.ui_utils import ClassList, ClassWidget, DCDButton
+from ui.ui_utils import ClassList, ClassWidget, DCDButton, LabelledSpinBox
 from ui.style import styleForm, getHighlightColor, getBackgroundColor, getBrightColor
 
 class MainWindow(object):
@@ -300,6 +300,55 @@ class MainWindow(object):
         line.setFrameShadow(QFrame.Sunken)
         line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
+
+        # tracking mode
+        self.Trackinglayout = QVBoxLayout(self.centralWidget)
+        self.Trackinglayout.setContentsMargins(0, 0, 0, 0)
+        self.Tracking = QFrame()
+        self.Tracking.setLayout(self.Trackinglayout)
+
+        self.BTrack = DCDButton(self.centralWidget, 'Calculate Tracking')
+        self.BTrack.setToolTip('Press to calculate tracking')
+
+        self.trcolorlayout = QHBoxLayout(self.centralWidget)
+        self.CBtrackcolor = QCheckBox("color coding",self.centralWidget)
+        self.CBtrackcolor.setToolTip("Check to change coloring by objects, uncheck to color by classes")
+        self.CBtrackcolor.setObjectName('TrackColor')
+        self.CBtrackcolor.setChecked(True)
+
+        self.CBshowtrack = QCheckBox("Show Track",self.centralWidget)
+        self.CBshowtrack.setToolTip("Check to show track")
+        self.CBshowtrack.setObjectName('ShowTrack')
+        self.CBshowtrack.setChecked(True)
+        self.trcolorlayout.addWidget(self.CBtrackcolor)
+        self.trcolorlayout.addWidget(self.CBshowtrack)
+
+        self.objNumLayout = QHBoxLayout(self.centralWidget)
+        self.BSetObjectNumber = DCDButton(self.centralWidget)
+        self.BSetObjectNumber.setMaximumSize(bwidth, bheight)
+        self.BSetObjectNumber.setIcon(QIcon('icons/poly.png'))
+        self.BSetObjectNumber.setToolTip('Select set object number tool')
+
+        self.SBObjNumber = LabelledSpinBox('Object Number', self.centralWidget)
+        self.SBObjNumber.SpinBox.setRange(1,9999)
+        self.SBObjNumber.setToolTip('Number of classes')
+
+        self.objNumLayout.addWidget(self.BSetObjectNumber)
+        self.objNumLayout.addWidget(self.SBObjNumber)
+
+        self.Trackinglayout.addWidget(self.BTrack)
+        self.Trackinglayout.addLayout(self.trcolorlayout)
+        self.Trackinglayout.addLayout(self.objNumLayout)
+
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
+        self.Trackinglayout.addWidget(line)
+
+        self.Tracking.setVisible(False)
+        self.vlayout.addWidget(self.Tracking)
+
 
         
         self.ralayout = QHBoxLayout(self.centralWidget)

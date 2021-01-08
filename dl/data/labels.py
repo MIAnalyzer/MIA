@@ -27,6 +27,11 @@ def getMatchingImageLabelPairsRecursive(imagepath, labelfoldername):
     return images, labels
 
 def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):
+    if not imagepath or not labelpath:
+        return list(), list()
+    if not os.path.isdir(imagepath) or not os.path.isdir(labelpath):
+        return list(), list()
+
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
               

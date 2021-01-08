@@ -19,23 +19,29 @@ class ObjectTracking():
         self.fadeawayperiod = 1
         self.newobjectperiod = 2
         self.objects = None
-        self.detections = []
         self.timepoints = 0
+        # results
+        self.tracks = []
         
     def performTracking(self, sequence):
-        self.detections.clear()
         self.timepoints = len(sequence)
         for tp,t in enumerate(sequence):
             shapes = self.parent.Mode.LoadShapes(t)
             self.addTimePoint(self.parent.Mode.LoadShapes(t), tp)
             for i in range(self.objects.shape[0]):
+                if len(self.tracks) < i+1:
+                    self.tracks.append([])
                 if self.objects[i,tp] > 0:
-                    shapes[self.objects[i,tp]-1].setObjectNumber(i+1)             
+                    shapes[self.objects[i,tp]-1].setObjectNumber(i+1) 
+                    self.tracks[i].append(shapes[self.objects[i,tp]-1].getPosition())
+                else:
+                    self.tracks[i].append((-1,-1))
             self.parent.Mode.saveShapes(shapes, t)
+
+        print(self.tracks)
 
     
     def addTimePoint(self, detections, t):
-        # self.detections.append(detections)
         if t == 0:
             self.objects = np.zeros((len(detections),self.timepoints),dtype=int)
             self.objects[:,0] = range(1,len(detections)+1)
