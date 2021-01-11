@@ -262,7 +262,7 @@ class Painter(ABC):
         self.contours.addShapes(contours)
         self.canvas.redrawImage()
         
-    def finishNewContour(self, delete = False, close = False, drawaspolygon = True):
+    def finishNewContour(self, delete = False, close = True, drawaspolygon = False):
         if self.NewContour is not None:
             if close:
                 self.NewContour.closeContour()
