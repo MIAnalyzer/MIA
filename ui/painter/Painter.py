@@ -169,7 +169,7 @@ class Painter(ABC):
         self.canvas.pen_size = psize
         self.canvas.updateImage()
         
-    def addCircle(self, center , radius, color = None):
+    def addCircle(self, center, radius, color = None):
         p = self.getPainter(color)
         p.drawEllipse(center, radius, radius)
         self.canvas.updateImage()
@@ -180,15 +180,16 @@ class Painter(ABC):
         painter = self.getPainter()
         path = self.contour2Path(contour)
         if not path.isEmpty():    
-            if self.canvas.parent.TrackingModeEnabled and contour.objectNumber != -1:
+            if self.canvas.parent.colorCodeObjects() and contour.objectNumber != -1:
                 color = self.getObjectColor(contour.objectNumber)
             else:
                 color = self.canvas.parent.ClassColor(contour.classlabel)
             self.setPainterColor(painter, color)
             self.setColorTransparency(painter, color, transparency = 0)
             painter.drawPath(path)
+            self.drawtrack(contour, painter, color)
             self.drawcontouraccessories(contour, painter)
-            self.drawtrack()
+            
             
     def drawBackground(self):    
         painter = self.getPainter()
@@ -207,10 +208,19 @@ class Painter(ABC):
             self.setColorTransparency(painter, color,-1)
             painter.drawPath(path)
 
-    def drawtrack(self):
-        pass
+    def drawtrack(self, shape, painter, color):
+        if self.canvas.parent.drawObjectTrack():
+            track = self.canvas.parent.tracking.getObjectTrack(shape.objectNumber)
+            if track and len(track) > 1:
+                track = track[:self.canvas.parent.files.currentImage+1]
+                path = QPainterPath()  
+                fp = next(x[0] for x in enumerate(track) if x[1] != (-1,-1))
+                path.moveTo(self.canvas.np2QPoint(track[fp]))
+                [path.lineTo(self.canvas.np2QPoint(x)) for x in track[1:] if x != (-1,-1)]
+                self.setColorTransparency(painter, color,-1)
+                painter.drawPath(path)
+                
 
-    
     def contour2Path(self, contour):
         path = QPainterPath()
         if contour.points is not None:
@@ -234,8 +244,7 @@ class Painter(ABC):
             self.NewContour.addPoint(self.canvas.QPoint2np(p_image))
             self.addline(p_last,p_image)
             
-
-            
+  
     def prepareNewContour(self):
         if self.canvas.hasImage():
             width = self.canvas.image().width()
@@ -243,7 +252,6 @@ class Painter(ABC):
 
             self.contoursketch = np.zeros((height, width), np.uint8) 
             Contour.drawContoursToImage(self.contoursketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
-
 
 
     def getFinalContours(self):
@@ -271,10 +279,9 @@ class Painter(ABC):
                 if drawaspolygon:
                     cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), max(self.canvas.pen_size,2))  
                 else:
-                    cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1)  
+                    cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1) 
         self.getFinalContours()
         self.NewContour = None
-        
 
     def drawcontouraccessories(self, contour, painter = None):
         color = self.canvas.parent.ClassColor(contour.classlabel)
