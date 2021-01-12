@@ -36,7 +36,6 @@ from dl.method.classification import Classification
 from dl.method.undefinedmode import UndefinedMode
 from dl.method.mode import dlMode
 from dl.optimizer.optimizer import Optimizer
-from dl.postprocessing.tracking import ObjectTracking
 
 from utils.Observer import dlObservable
 
@@ -61,8 +60,7 @@ class DeepLearning(dlObservable):
         # split factor and border need to be reworked and reasonable, get it from network
         self.split_factor = 64
         self.borderremoval = 128
-        
-        self.tracking = ObjectTracking(self)
+
         self.interrupted = False
 
         self.train_generator = None
@@ -252,9 +250,7 @@ class DeepLearning(dlObservable):
         ret = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
         
-       
-    def calculateTracking(self, labelsequence):
-        self.tracking.performTracking(labelsequence)
+
        
     def parameterFit(self, nclasses, mono):
         if not self.initialized:

@@ -49,13 +49,14 @@ class Shapes(ABC):
         if num != -1:
             return num
         else:
-            givenNumbers = [x.objectNumber for x in self.shapes if x.objectNumber != -1]
-            if givenNumbers == []:
-                return idx + 1
+            return idx +1
+            # givenNumbers = [x.objectNumber for x in self.shapes if x.objectNumber != -1]
+            # if givenNumbers == []:
+            #     return idx + 1
 
-            n = max(givenNumbers)+1
-            s.objectNumber = n
-            return n
+            # n = max(givenNumbers)+1
+            # # s.objectNumber = n
+            # return n
 
     def getShapeNumberX(self, shapenum):
         givenNumbers = [x.objectNumber for x in self.shapes if x.objectNumber != -1]

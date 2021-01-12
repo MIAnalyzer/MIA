@@ -23,22 +23,36 @@ class ObjectTracking():
         # results
         self.tracks = []
         
+    def addObject(self, obj, timepoint):
+        pass
+    
+    def deleteObject(self, obj, timepoint=None):
+        if timepoint is  None:
+            # delete for all timepoints
+            pass 
+        
+    def getObjectTrack(self, objnum):
+        if len(self.tracks)>objnum and objnum > 0:   
+            return self.tracks[objnum-1]
+        else:
+            return None
+
     def performTracking(self, sequence):
+        self.tracks = []
         self.timepoints = len(sequence)
         for tp,t in enumerate(sequence):
-            shapes = self.parent.Mode.LoadShapes(t)
-            self.addTimePoint(self.parent.Mode.LoadShapes(t), tp)
+            shapes = self.parent.dl.Mode.LoadShapes(t)
+            self.addTimePoint(self.parent.dl.Mode.LoadShapes(t), tp)
             for i in range(self.objects.shape[0]):
                 if len(self.tracks) < i+1:
-                    self.tracks.append([])
+                    self.tracks.append([(-1,-1)]*tp)
                 if self.objects[i,tp] > 0:
                     shapes[self.objects[i,tp]-1].setObjectNumber(i+1) 
                     self.tracks[i].append(shapes[self.objects[i,tp]-1].getPosition())
                 else:
                     self.tracks[i].append((-1,-1))
-            self.parent.Mode.saveShapes(shapes, t)
+            self.parent.dl.Mode.saveShapes(shapes, t)
 
-        print(self.tracks)
 
     
     def addTimePoint(self, detections, t):
@@ -51,7 +65,7 @@ class ObjectTracking():
         
     def calculateMatches(self,  t, tp):
         t_minus_one = [x for (x,i) in self.tracking_list]
-        corr_mat = [self.parent.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
+        corr_mat = [self.parent.dl.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
         mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))
         row,col = linear_sum_assignment(mat)
 

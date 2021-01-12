@@ -71,6 +71,7 @@ class ObjectPainter(Painter):
         color = self.canvas.parent.ClassColor(x)
         self.setPainterColor(painter, color)
         drawall = True
+
         for p in shapes:
             qp = self.canvas.Point2QPoint(p)
             p1 = QPoint(qp.x() - self.canvas.FontSize, qp.y())
@@ -83,19 +84,24 @@ class ObjectPainter(Painter):
             path.moveTo(p3)
             path.lineTo(p4)
 
-            if self.canvas.parent.TrackingModeEnabled and p.objectNumber != -1:
-                color = self.getObjectColor(p.objectNumber)
+            if self.canvas.parent.colorCodeObjects():
+                if p.objectNumber != -1:
+                    color = self.getObjectColor(p.objectNumber)
+                else:
+                    color = self.canvas.parent.ClassColor(x)
                 self.setPainterColor(painter, color)
                 painter.drawPath(path) 
                 path = QPainterPath()
                 drawall = False
 
+            self.drawtrack(p, painter, color)
             if self.canvas.drawShapeNumber:
                 if not drawall:
                     color = self.canvas.parent.ClassColor(x)
                     self.setPainterColor(painter, color)
                 pointnumber = self.points.getShapeNumber(p)
                 painter.drawText(self.getLabelNumPosition(p) , str(pointnumber))
+            
         if drawall:
             painter.drawPath(path)   
     
@@ -144,7 +150,8 @@ class ObjectPainter(Painter):
     def addPoint(self, point, classlabel=None):
         if classlabel == None:
             classlabel = self.canvas.parent.activeClass()
-        self.points.addShape(Point.Point(classlabel,self.canvas.QPoint2npPoint(point)))
+        
+        self.points.addShape(Point.Point(classlabel,self.canvas.QPoint2npPoint(point)))  
         self.canvas.redrawImage()
 
             

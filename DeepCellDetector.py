@@ -44,6 +44,8 @@ import utils.shapes.Point as Point
 from utils.Image import ImageFile, supportedImageFormats
 from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
+from utils.postprocessing.tracking import ObjectTracking
+
 from dl.data.labels import getMatchingImageLabelPairPaths
 
 from utils.workerthread import WorkerThread
@@ -98,6 +100,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height() 
+        
+        self.tracking = ObjectTracking(self)
 
         self.predictionRate = 0
         
@@ -247,6 +251,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bdelclass.clicked.connect(self.removeLastClass)
 
         self.BTrack.clicked.connect(self.calcTracking)
+        self.CBshowtrack.stateChanged.connect(self.updateImage)
+        self.CBtrackcolor.stateChanged.connect(self.updateImage)
+        
         self.BSetObjectNumber.clicked.connect(self.setTrackingTool)
        
 
@@ -379,6 +386,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def enableTrackingMode(self, enable):
         self.Tracking.setVisible(enable)
         
+    def drawObjectTrack(self):
+        return self.TrackingModeEnabled and self.CBshowtrack.isChecked()
+            
+    def colorCodeObjects(self):
+        return self.TrackingModeEnabled and self.CBtrackcolor.isChecked()
+    
     @property
     def TrackingModeEnabled(self):
         return self.Tracking.isVisible()
@@ -721,7 +734,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             return
         with self.wait_cursor():
             _, labels = getMatchingImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
-            self.dl.calculateTracking(labels)
+            self.tracking.performTracking(labels)
             self.canvas.ReloadImage()
             
     def toggleTrainStatus(self, training):
