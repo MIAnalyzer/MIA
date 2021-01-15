@@ -31,7 +31,8 @@ class canvasTool(Enum):
     setimageclass = 'setimageclass'
     assignimageclass = 'assignimageclass'
     objectnumber = 'objectnumber'
-    
+    objectcolor = 'objectcolor'
+    deleteobject = 'deleteobject'
     
 
 def validTool(f):
@@ -265,33 +266,6 @@ class AssignTool(AbstractTool):
             if contour is not None:
                 contour.setClassLabel(self.canvas.parent.activeClass())
                 self.canvas.painter.checkForChanges()
-
-                      
-    def mousePressEvent(self,e):
-        pass
-
-    def Cursor(self):
-        return Qt.ArrowCursor
-
-class ObjectNumberTool(AbstractTool):
-    def __init__(self, canvas):
-        super().__init__(canvas)
-        self.canvas = canvas
-        self.Text = "ObjectNumber"
-        self.type = canvasTool.objectnumber
-
-    def mouseMoveEvent(self, e):
-        pass
-        
-    @validTool
-    def mouseReleaseEvent(self,e):
-        if e.button() == Qt.LeftButton:
-            contour = self.canvas.painter.shapes.getShape(self.canvas.QPoint2np(self.canvas.mapToScene(e.pos())),self.canvas.FontSize)
-            if contour is not None:
-                objnum,ok = QInputDialog.getInt(self.canvas.parent, "Set Object Number","Object Number")
-                if ok and objnum > 0:
-                    contour.setObjectNumber(objnum)
-                    self.canvas.painter.checkForChanges()
 
                       
     def mousePressEvent(self,e):
@@ -552,7 +526,92 @@ class DummyTool(AbstractTool):
         pass
     def Cursor(self):
         return Qt.ArrowCursor  
+
+# tracking tools
+class ObjectNumberTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "ObjectNumber"
+        self.type = canvasTool.objectnumber
+
+    def mouseMoveEvent(self, e):
+        pass
+        
+    @validTool
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.LeftButton:
+            shape = self.canvas.painter.shapes.getShape(self.canvas.QPoint2np(self.canvas.mapToScene(e.pos())),self.canvas.FontSize)
+            if shape is not None:
+                objnum,ok = QInputDialog.getInt(self.canvas.parent, "Set Object Number","Object Number", shape.objectNumber, 1, 100000)
+                if ok and objnum > 0:
+                    old_obj = self.canvas.painter.shapes.getShapeNumberX(objnum)
+                    print(old_obj)
+                    if old_obj:
+                        old_obj.objectNumber = self.canvas.parent.tracking.getFirstFreeObjectNumber()
+                    oldobjnum = self.canvas.parent.tracking.setObjectNumber(obj=shape, objnum=objnum)
+                    self.canvas.redrawImage()
+                     
+    def mousePressEvent(self,e):
+        pass
+
+    def Cursor(self):
+        return Qt.ArrowCursor
+
+class ObjectColorTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "ObjectColor"
+        self.type = canvasTool.objectcolor
+
+    def mouseMoveEvent(self, e):
+        pass
+        
+    @validTool
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.LeftButton:
+            shape = self.canvas.painter.shapes.getShape(self.canvas.QPoint2np(self.canvas.mapToScene(e.pos())),self.canvas.FontSize)
+            if shape is not None:
+                color = QColorDialog.getColor()
+                if color.isValid():
+                    self.canvas.painter.objectcolors[shape.objectNumber-1] = color
+                    self.canvas.redrawImage()
+
+    def mousePressEvent(self,e):
+        pass
+
+    def Cursor(self):
+        return Qt.ArrowCursor
+
+class DeleteObjectTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "DeleteObject"
+        self.type = canvasTool.deleteobject
+
+    def mouseMoveEvent(self, e):
+        pass
+        
+    @validTool
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.LeftButton:
+            shape = self.canvas.painter.shapes.getShape(self.canvas.QPoint2np(self.canvas.mapToScene(e.pos())),self.canvas.FontSize)
+            if shape is not None:
+                with self.canvas.parent.wait_cursor():
+                    self.canvas.parent.tracking.deleteObject(shape)
+                    self.canvas.painter.shapes.deleteShape(shape)
+                    self.canvas.redrawImage()
+  
+    def mousePressEvent(self,e):
+        pass
+
+    def Cursor(self):
+        return Qt.ArrowCursor
     
+
+# classification tools
 class setImageClassTool(AbstractTool):
     def __init__(self, canvas):
         super().__init__(canvas)

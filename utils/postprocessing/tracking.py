@@ -10,49 +10,152 @@ Created on Fri Aug 14 16:56:31 2020
 
 from scipy.optimize import linear_sum_assignment
 import numpy as np
+import math
 
 class ObjectTracking():
-    def __init__(self,parent):
-        self.parent = parent
+    def __init__(self,dl,files):
+        self.dl = dl
+        self.files = files
         self.tracking_list = []
         self.thresh = 100
         self.fadeawayperiod = 1
         self.newobjectperiod = 2
         self.objects = None
         self.timepoints = 0
+        self.sequence = []
         # results
-        self.tracks = []
-        
-    def addObject(self, obj, timepoint):
-        pass
-    
-    def deleteObject(self, obj, timepoint=None):
-        if timepoint is  None:
-            # delete for all timepoints
-            pass 
-        
+        self.tracks = None
+          
+    def deleteObject(self, obj):
+        objnum = obj.objectNumber
+        for tp,t in self.labelGenerator():
+            shapes = self.dl.Mode.LoadShapes(t)
+            numbers = [x.objectNumber for x in shapes]
+            if objnum in numbers:
+                shapes.remove(shapes[numbers.index(objnum)])
+                self.dl.Mode.saveShapes(shapes, t)
+        np.delete(self.tracks, objnum-1,0)
+
+    def changeTimePoint(self, objects, tp):
+        self.tracks[:,tp,:] = -1
+        unmatched = []
+        for o in objects.shapes:
+            if o.objectNumber == -1:
+                unmatched.append(o)
+            else:
+                self.tracks[o.objectNumber-1,tp,:] = np.asarray(o.getPosition())
+        if len(unmatched) == 0:
+            return
+
+        if tp != 0:
+            t_minus_one = self.tracks[:,tp-1,:]
+            t = self.tracks[:,tp,:]
+            lost = np.where((t_minus_one > 0) & (t < 0))
+            if lost[0].size == 0:
+                for o in unmatched:
+                    self.setObjectNumber(o,tp)
+            else:
+                pos = [x for x in zip(t_minus_one[lost][0::2],t_minus_one[lost][1::2])]
+                corr_mat = [self.distance(x.getPosition(),y) for x in unmatched for y in pos]
+                mat = np.asarray(corr_mat).reshape(len(unmatched),len(lost[0])//2)
+                row,col = linear_sum_assignment(mat)
+                for r,c in zip(row,col):
+                    #prev_shapes = self.dl.Mode.LoadShapes(self.files.ImagePath2LabelPath(self.sequence[tp-1]))
+                    #prev_shape = prev_shapes[[x.objectNumber for x in prev_shapes].index(lost[0][c*2])]
+                    if mat[r,c] < self.thresh: # and unmatched[r].classlabel == prev_shape.classlabel:
+                        self.setObjectNumber(unmatched[r],tp,lost[0][c*2] + 1)
+                    else:
+                        self.setObjectNumber(unmatched[r],tp)
+
+                for o in range(len(unmatched)):
+                    if o not in row:
+                        self.setObjectNumber(unmatched[o],tp)
+        else:
+            for o in unmatched:
+                self.setObjectNumber(o,tp)
+
+    def labelGenerator(self):
+        for tp in range(len(self.sequence)):
+            t = self.files.ImagePath2LabelPath(self.sequence[tp], True)
+            if not t:
+                continue
+            yield tp, t
+
+    def setObjectNumber(self, obj, tp=None, objnum=None):
+        if objnum is None:
+            objnum = self.getFirstFreeObjectNumber()
+        if tp is None:
+            tp = self.files.currentImage
+        obj.objectNumber = objnum
+        self.addTrackPosition(tp, obj)
+
+
+    def getFirstFreeObjectNumber(self):
+        free  = np.where(np.all(self.tracks<0,axis=1))[0]
+        if len(free) > 0:
+            return free[0] + 1
+        else:
+            return self.tracks.shape[0]
+
+    def distance(self, p1, p2):
+        return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+
     def getObjectTrack(self, objnum):
-        if len(self.tracks)>objnum and objnum > 0:   
-            return self.tracks[objnum-1]
+        if self.tracks.shape[0]>=objnum and objnum > 0:   
+            return self.tracks[objnum-1,...].tolist()
         else:
             return None
 
-    def performTracking(self, sequence):
-        self.tracks = []
-        self.timepoints = len(sequence)
-        for tp,t in enumerate(sequence):
-            shapes = self.parent.dl.Mode.LoadShapes(t)
-            self.addTimePoint(self.parent.dl.Mode.LoadShapes(t), tp)
+    def resetTracking(self, numofTimePoints, numofObjects=250):
+        self.tracks = np.zeros((numofObjects,numofTimePoints,2),dtype=int)-1
+
+    def loadTrack(self, sequence):
+        # load from files
+        self.sequence = self.files.TestImages
+        self.resetTracking(len(self.sequence))
+        for tp,t in self.labelGenerator():
+            shapes = self.dl.Mode.LoadShapes(t)
+            save = False
+            for i,s in enumerate(shapes):
+                # fix object number
+                # that would preferably done with shape object 
+                if s.objectNumber == -1:
+                    s.objectNumber = i+1
+                    save = True
+                self.addTrackPosition(tp,s)
+            if save:
+                self.dl.Mode.saveShapes(shapes, t)
+            self.fillBlanksForMissingObjects(tp)
+
+    
+    #def saveTrack(self, filename):
+    # could be saved for perdormance reasons instead of reloaded from individual contour files
+    #    pass
+
+    def addTrackPosition(self, tp, obj):
+        objnum = obj.objectNumber
+        if self.tracks.shape[0] < objnum+1:
+            self.tracks = np.append(self.tracks,np.zeros((objnum - self.tracks.shape[0],self.tracks.shape[1],2))-1,axis = 0)
+        pos = obj.getPosition()
+        self.tracks[objnum-1,tp,:] = np.asarray(pos)
+
+
+    def fillBlanksForMissingObjects(self, tp):      
+        [x.append((-1,-1)) for x in self.tracks if len(x) < tp+1]
+
+    def performTracking(self):
+        self.timepoints = len(self.sequence)
+        self.resetTracking(self.timepoints)
+
+        for tp,t in self.labelGenerator():
+            shapes = self.dl.Mode.LoadShapes(t)
+            self.addTimePoint(self.dl.Mode.LoadShapes(t), tp)
             for i in range(self.objects.shape[0]):
-                if len(self.tracks) < i+1:
-                    self.tracks.append([(-1,-1)]*tp)
                 if self.objects[i,tp] > 0:
                     shapes[self.objects[i,tp]-1].setObjectNumber(i+1) 
-                    self.tracks[i].append(shapes[self.objects[i,tp]-1].getPosition())
-                else:
-                    self.tracks[i].append((-1,-1))
-            self.parent.dl.Mode.saveShapes(shapes, t)
-
+                    self.addTrackPosition(tp,shapes[self.objects[i,tp]-1])
+            self.fillBlanksForMissingObjects(tp)
+            self.dl.Mode.saveShapes(shapes, t)
 
     
     def addTimePoint(self, detections, t):
@@ -62,10 +165,11 @@ class ObjectTracking():
             self.tracking_list = [(x,i) for (x,i) in zip(detections,range(1,len(detections)+1))]
         else:
             self.calculateMatches( detections, t)
-        
+
+
     def calculateMatches(self,  t, tp):
         t_minus_one = [x for (x,i) in self.tracking_list]
-        corr_mat = [self.parent.dl.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
+        corr_mat = [self.dl.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
         mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))
         row,col = linear_sum_assignment(mat)
 

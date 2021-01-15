@@ -173,3 +173,12 @@ class FilesAndFolders():
         if not os.path.isdir(foldername):
             os.makedirs(foldername)
             # os.mkdir(foldername)
+
+    def ImagePath2LabelPath(self, imagepath, checkexistence = False):
+        if imagepath is None:
+            return None
+        path = os.path.join(os.path.dirname(imagepath), self.parent.dl.LabelFolderName, self.getFilenameFromPath(imagepath)) + ".npz"
+        if not checkexistence:
+            return path
+        else:
+            return path if os.path.exists(path) else None

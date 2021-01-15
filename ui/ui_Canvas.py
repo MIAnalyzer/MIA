@@ -262,10 +262,11 @@ class Canvas(QGraphicsView):
     def drawLabel(self, shapeschanged=True):
         if self.image() is None:
             return  
+        if shapeschanged:
+            self.parent.ShapesChanged()
         self.painter.draw()
         self.updateImage()
-        if shapeschanged:
-            self.parent.numOfShapesChanged()
+        
         
     def clearLabel(self):
         self.painter.clear()
@@ -318,7 +319,11 @@ class Canvas(QGraphicsView):
             self.tool = Tools.assignImageClassTool(self)
         if tool == canvasTool.objectnumber.name:
             self.tool = Tools.ObjectNumberTool(self)
-        
+        if tool == canvasTool.objectcolor.name:
+            self.tool = Tools.ObjectColorTool(self)
+        if tool == canvasTool.deleteobject.name:
+            self.tool = Tools.DeleteObjectTool(self)
+
         self.tool.initialize()
         self.tool.ShowSettings()
         self.parent.writeStatus('Current Tool: ' + self.tool.Text) 

@@ -214,9 +214,9 @@ class Painter(ABC):
             if track and len(track) > 1:
                 track = track[:self.canvas.parent.files.currentImage+1]
                 path = QPainterPath()  
-                fp = next(x[0] for x in enumerate(track) if x[1] != (-1,-1))
+                fp = next(x[0] for x in enumerate(track) if x[1] != [-1,-1])
                 path.moveTo(self.canvas.np2QPoint(track[fp]))
-                [path.lineTo(self.canvas.np2QPoint(x)) for x in track[1:] if x != (-1,-1)]
+                [path.lineTo(self.canvas.np2QPoint(x)) for x in track[1:] if x != [-1,-1]]
                 self.setColorTransparency(painter, color,-1)
                 painter.drawPath(path)
                 
