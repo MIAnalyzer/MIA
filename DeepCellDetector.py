@@ -101,11 +101,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height() 
         
-        self.tracking = ObjectTracking(self)
-
+        
         self.predictionRate = 0
         
         self.dl = DeepLearning.DeepLearning()
+        self.tracking = ObjectTracking(self.dl, self.files)
         # init observer
         self.dlobserver = QtObserver()
         self.dl.attachObserver(self.dlobserver)
@@ -255,6 +255,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBtrackcolor.stateChanged.connect(self.updateImage)
         
         self.BSetObjectNumber.clicked.connect(self.setTrackingTool)
+        self.BDeleteObject.clicked.connect(self.setTrackingTool)
+        self.BChangeObjectColor.clicked.connect(self.setTrackingTool)
        
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
@@ -339,7 +341,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         return msg.exec_() == QMessageBox.Ok
         
-    def numOfShapesChanged(self):
+    def ShapesChanged(self):
         for i in range (self.NumOfClasses()):
             label = self.findChild(QLabel, 'numOfContours_class' + str(i))
             if i == 0:
@@ -349,6 +351,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             else:
                 text = ""
             label.setText(text)
+        if self.TrackingModeEnabled:
+            self.tracking.changeTimePoint(self.canvas.painter.shapes, self.files.currentImage)
         self.canvas.SaveCurrentLabel()
         
     def setSmartMode(self):
@@ -380,8 +384,29 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
         self.setWorkingFolder()
 
+    def loadTrack(self):
+        if not self.files.testImagespath or not self.files.testImageLabelspath:
+            return
+        if self.TrackingModeEnabled:
+            _, labels = getMatchingImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
+            self.tracking.loadTrack(labels)
+        
+    def calcTracking(self):
+        if not self.TrackingModeEnabled or not self.files.testImagespath or not self.files.testImageLabelspath:
+            self.PopupWarning('No predicted files')
+            return
+        with self.wait_cursor():
+            self.tracking.performTracking()
+            self.canvas.ReloadImage()
+
     def setTrackingTool(self):
-        self.canvas.setnewTool(canvasTool.objectnumber.name)
+        toolname = self.sender().objectName()
+        if toolname == 'tracking_objectnumber':
+            self.canvas.setnewTool(canvasTool.objectnumber.name)
+        elif toolname == 'tracking_changeobjectcolor':
+            self.canvas.setnewTool(canvasTool.objectcolor.name)
+        elif toolname == 'tracking_deleteobject':
+            self.canvas.setnewTool(canvasTool.deleteobject.name)
 
     def enableTrackingMode(self, enable):
         self.Tracking.setVisible(enable)
@@ -394,7 +419,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     @property
     def TrackingModeEnabled(self):
-        return self.Tracking.isVisible()
+        if not self.files.train_test_dir:
+            return self.Tracking.isVisible()
+        return False
 
     def setToolButtons(self):
         if self.activeClass() == 0:
@@ -485,7 +512,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def nextImage(self):
         self.files.nextImage()
         self.changeImage()
-        
+
     def previousImage(self):
         self.files.previousImage()
         self.changeImage()
@@ -535,7 +562,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
     def setWorkingFolder(self):
         self.files.getFiles()
+
         if self.files.currentimagesrootpath:
+            if not self.files.train_test_dir:
+                self.loadTrack()
             model = QFileSystemModel()
             model.setRootPath(self.files.currentimagesrootpath)
             self.TVFiles.setModel(model)
@@ -727,15 +757,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     def writeStatus(self,msg):
         self.Status.setText(msg)
-        
-    def calcTracking(self):
-        if not self.files.testImagespath or not self.files.testImageLabelspath:
-            self.PopupWarning('No predicted files')
-            return
-        with self.wait_cursor():
-            _, labels = getMatchingImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
-            self.tracking.performTracking(labels)
-            self.canvas.ReloadImage()
+
             
     def toggleTrainStatus(self, training):
         self.lockModel(training)

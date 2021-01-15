@@ -33,7 +33,6 @@ class Contours(Shapes):
         new_cnts = [ x for x in cnts if x.labeltype == self.labeltype and x.isValid(self.minSize)]
         self.shapes.extend(new_cnts)
 
-        
     def deleteShapes(self, contours):
         for c in contours:
             self.deleteShape(c)

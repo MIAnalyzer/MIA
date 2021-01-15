@@ -21,6 +21,8 @@ class ObjectPainter(Painter):
         self.points = Point.Points()
         self.backgroundmode = False
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
 
 
     @property
@@ -46,6 +48,8 @@ class ObjectPainter(Painter):
         super(ObjectPainter, self).enableDrawBackgroundMode()
         self.backgroundmode = True
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
 
 
     def disableDrawBackgroundMode(self):
@@ -56,6 +60,8 @@ class ObjectPainter(Painter):
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.delete)
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
         self.backgroundmode = False
         
     def draw(self):

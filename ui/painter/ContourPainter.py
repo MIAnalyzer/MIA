@@ -24,6 +24,8 @@ class ContourPainter(Painter):
         super(ContourPainter,self).__init__(canvas)
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
         # self.mask = None
         self.smartmode = False
 
@@ -52,12 +54,16 @@ class ContourPainter(Painter):
     def enableDrawBackgroundMode(self):
         super(ContourPainter, self).enableDrawBackgroundMode()
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
 
 
     def disableDrawBackgroundMode(self):
         super(ContourPainter, self).enableDrawBackgroundMode()
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
 
     def clear(self):
         super(ContourPainter, self).clear()
