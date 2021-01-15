@@ -546,7 +546,6 @@ class ObjectNumberTool(AbstractTool):
                 objnum,ok = QInputDialog.getInt(self.canvas.parent, "Set Object Number","Object Number", shape.objectNumber, 1, 100000)
                 if ok and objnum > 0:
                     old_obj = self.canvas.painter.shapes.getShapeNumberX(objnum)
-                    print(old_obj)
                     if old_obj:
                         old_obj.objectNumber = self.canvas.parent.tracking.getFirstFreeObjectNumber()
                     oldobjnum = self.canvas.parent.tracking.setObjectNumber(obj=shape, objnum=objnum)
