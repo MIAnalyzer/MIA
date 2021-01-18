@@ -156,6 +156,22 @@ class MainWindow(object):
         self.SegmentationSettings.setLayout(self.SegmentationSettingslayout)
         self.SegmentationSettings.hide()
         self.vlayout.addWidget(self.SegmentationSettings)
+        
+        
+        # settings for object detection
+        self.DetectionSettingslayout = QHBoxLayout(self.centralWidget)
+        self.DetectionSettingslayout.setContentsMargins(0, 0, 0, 0)
+        self.Bautodect = DCDButton(self.centralWidget)
+        self.Bautodect.setToolTip('press to perform auto detection')
+        self.Bautodect.setText('Auto Detection')
+        self.Bautodect.setIcon(QIcon('icons/predict.png'))
+        
+        self.DetectionSettingslayout.addWidget(self.Bautodect)
+        self.DetectionSettings = QFrame()
+        self.DetectionSettings.setLayout(self.DetectionSettingslayout)
+        self.DetectionSettings.hide()
+        self.vlayout.addWidget(self.DetectionSettings)
+        
 
         
         # tools:

@@ -171,12 +171,17 @@ class ObjectTracking():
         t_minus_one = [x for (x,i) in self.tracking_list]
         corr_mat = [self.dl.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
         mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))
+                
+        # improves performance because it avoid (or equalizes to be more precisely) matches larger self.thresh
+        mat[mat>self.thresh] = 100000
         row,col = linear_sum_assignment(mat)
 
 
+
+            
         # matched     
         for r,c in zip(row,col):
-            if mat[r,c] < self.thresh and t_minus_one[r].classlabel == t[c].classlabel:
+            if mat[r,c] < self.thresh and t_minus_one[r].classlabel == t[c].classlabel: 
                 pos = self.tracking_list[r][1]-1
                 self.objects[pos,tp] = c+1
             else:
