@@ -60,9 +60,9 @@ class ObjectTracking():
                 mat = np.asarray(corr_mat).reshape(len(unmatched),len(lost[0])//2)
                 row,col = linear_sum_assignment(mat)
                 for r,c in zip(row,col):
-                    #prev_shapes = self.dl.Mode.LoadShapes(self.files.ImagePath2LabelPath(self.sequence[tp-1]))
-                    #prev_shape = prev_shapes[[x.objectNumber for x in prev_shapes].index(lost[0][c*2])]
-                    if mat[r,c] < self.thresh: # and unmatched[r].classlabel == prev_shape.classlabel:
+                    prev_shapes = self.dl.Mode.LoadShapes(self.files.ImagePath2LabelPath(self.sequence[tp-1]))
+                    prev_shape = prev_shapes[[x.objectNumber for x in prev_shapes].index(lost[0][c*2]+1)]
+                    if mat[r,c] < self.thresh and unmatched[r].classlabel == prev_shape.classlabel:
                         self.setObjectNumber(unmatched[r],tp,lost[0][c*2] + 1)
                     else:
                         self.setObjectNumber(unmatched[r],tp)
