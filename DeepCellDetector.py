@@ -242,6 +242,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBInner.stateChanged.connect(self.updateImage)
 
         self.Bresetmodel.clicked.connect(self.resetModel)
+        self.Bautodect.clicked.connect(self.autoPointDetection)
+        
         
         self.Bresults.clicked.connect(self.showResultsWindow)
         self.BSettings.clicked.connect(self.showSettingsWindow)
@@ -372,6 +374,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.SegmentationSettings.show()
         else:
             self.SegmentationSettings.hide()
+            
+        if self.LearningMode() == dlMode.Object_Counting:
+            self.DetectionSettings.show()
+        else:
+            self.DetectionSettings.hide()
 
 
         if self.initialized:
@@ -950,6 +957,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def autoSegment(self):
         with self.wait_cursor():
             self.canvas.painter.autosegment()
+    
+    def autoPointDetection(self):
+        with self.wait_cursor():
+            self.canvas.painter.autodetection()
         
     # deep learning observer functions
     def dlStarted(self):

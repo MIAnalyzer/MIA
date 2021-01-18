@@ -160,6 +160,27 @@ class ObjectPainter(Painter):
         self.points.addShape(Point.Point(classlabel,self.canvas.QPoint2npPoint(point)))  
         self.canvas.redrawImage()
 
+    def autodetection(self):
+        if self.canvas.hasImage():
+            self.clearFOV()
+            image = self.canvas.getFieldOfViewImage()
+            fov = self.canvas.getFieldOfViewRect()
+            # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
+    
+            if image is None:
+                self.canvas.parent.PopupWarning('No image loaded')
+                return
+            try:
+                prediction = self.canvas.parent.dl.AutoSegment(image)
+            except:
+                self.canvas.parent.PopupWarning('Auto prediction not possible')
+                return
+            shapes = Point.extractPointsFromContours(prediction, 5, offset = (int(fov.x()),int(fov.y())))
+            for s in shapes:
+                s.setClassLabel(self.canvas.parent.activeClass())
+            self.points.addShapes(shapes)
+            self.checkForChanges()
+
             
     def getLabelNumPosition(self, point):
         coo = point.coordinates

@@ -128,6 +128,7 @@ def extractPointsFromContours(image, minsize, offset = (0,0)):
     contours, _ = findContours(image, ext_only = True, offset=offset)
     points = []
     for c in contours:
+        c = cv2.convexHull(c, False)
         if cv2.contourArea(c) < minsize:
             continue
         M = cv2.moments(c)
