@@ -206,6 +206,16 @@ class PolygonTool(AbstractTool):
             self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getFieldOfViewRect())
             self.drawimage = None    
         
+    @property
+    def mode(self):
+        # 1 add, -1 del, 0 slice
+        if self.canvas.parent.CBAddShape.isChecked():
+            return 1
+        elif self.canvas.parent.CBDelShape.isChecked():
+            return -1
+        elif self.canvas.parent.CBSliceShape.isChecked():
+            return 0
+
     @validTool
     def mouseMoveEvent(self, e):
         if self.canvas.painter.NewContour is not None:
@@ -222,11 +232,17 @@ class PolygonTool(AbstractTool):
     def mouseReleaseEvent(self,e):
         if e.button() == Qt.RightButton:
             if self.canvas.painter.NewContour:
-                self.canvas.painter.finishNewContour(delete = self.canvas.parent.CBDelShape.isChecked())
+                self.canvas.painter.finishNewContour(delete = self.mode < 1, close = self.mode != 0, drawaspolygon = self.mode == 0)
                 self.drawimage = None
             else:
-                self.canvas.parent.CBAddShape.setChecked(True) if self.canvas.parent.CBDelShape.isChecked() else self.canvas.parent.CBDelShape.setChecked(True)
+                if self.mode == 1:
+                    self.canvas.parent.CBDelShape.setChecked(True) 
+                elif self.mode == 0:
+                    self.canvas.parent.CBAddShape.setChecked(True)
+                elif self.mode == -1:
+                    self.canvas.parent.CBSliceShape.setChecked(True)
                 self.canvas.setCursor(self.Cursor())
+
         elif e.button() == Qt.LeftButton:
             if self.canvas.painter.NewContour is None:
                 self.canvas.painter.prepareNewContour()
