@@ -181,17 +181,29 @@ class FilesAndFolders():
 
     def extendNameByFrameNumber(self,name, frame):
         return name + '_' + "{0:0=3d}".format(frame)
+
+    def getFrameNumber(self, labelpath):
+        return int(labelpath[-7:-4])
          
     def ensureFolder(self, foldername):
         if not os.path.isdir(foldername):
             os.makedirs(foldername)
             # os.mkdir(foldername)
 
-    def ImagePath2LabelPath(self, imagepath, checkexistence = False):
+    def ImagePath2LabelPath(self, imagepath, checkexistence = False, stack = False):
         if imagepath is None:
             return None
-        path = os.path.join(os.path.dirname(imagepath), self.parent.dl.LabelFolderName, self.getFilenameFromPath(imagepath)) + ".npz"
+        filename = self.getFilenameFromPath(imagepath)
+        path = os.path.join(os.path.dirname(imagepath), self.parent.dl.LabelFolderName, filename)
         if not checkexistence:
-            return path
+            if stack:
+                return glob.glob(os.path.join(path,'*.*'))
+            else:
+                return path +  ".npz"
         else:
-            return path if os.path.exists(path) else None
+            if stack:
+                return glob.glob(os.path.join(path,'*.*'))
+            else:
+                path += ".npz"
+                return path if os.path.exists(path) else None
+
