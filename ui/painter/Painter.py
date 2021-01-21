@@ -212,7 +212,8 @@ class Painter(ABC):
         if self.canvas.parent.drawObjectTrack():
             track = self.canvas.parent.tracking.getObjectTrack(shape.objectNumber)
             if track and len(track) > 1:
-                track = track[:self.canvas.parent.files.currentImage+1]
+                tp = self.canvas.parent.files.currentFrame if self.canvas.parent.tracking.stackMode else self.canvas.parent.files.currentImage
+                track = track[:tp+1]
                 path = QPainterPath()  
                 fp = next(x[0] for x in enumerate(track) if x[1] != [-1,-1])
                 path.moveTo(self.canvas.np2QPoint(track[fp]))

@@ -17,9 +17,7 @@ class ImageFile():
         if asBGR:
             self.normalizeImage()
             self.convertToBGR()
-                
 
-        
     def readImage(self, path):
         try: # open stack
             image = Image.open(path)
@@ -162,4 +160,10 @@ def readImageAsBGR(path):
     image = convertToBGR(image)
     return image
 
-
+def readNumOfImageFrames(path):
+    try:
+        image = Image.open(path)
+        image.seek(0)
+        return image.n_frames
+    except:
+        return 1

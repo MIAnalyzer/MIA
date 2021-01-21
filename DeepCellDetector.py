@@ -354,7 +354,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 text = ""
             label.setText(text)
         if self.TrackingModeEnabled:
-            self.tracking.changeTimePoint(self.canvas.painter.shapes, self.files.currentImage)
+            self.tracking.changeTimePoint(self.canvas.painter.shapes, self.files.currentFrame if self.tracking.stackMode else self.files.currentImage)
         self.canvas.SaveCurrentLabel()
         
     def setSmartMode(self):
@@ -394,7 +394,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def loadTrack(self):
         if not self.files.testImagespath or not self.files.testImageLabelspath:
             return
-        if self.TrackingModeEnabled:
+        if self.TrackingModeEnabled and not self.files.train_test_dir:
             self.tracking.loadTrack()
         
     def calcTracking(self):
@@ -572,8 +572,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.files.getFiles()
 
         if self.files.currentimagesrootpath:
-            if not self.files.train_test_dir:
-                self.loadTrack()
+            self.loadTrack()
             model = QFileSystemModel()
             model.setRootPath(self.files.currentimagesrootpath)
             self.TVFiles.setModel(model)

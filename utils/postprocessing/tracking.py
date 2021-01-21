@@ -11,6 +11,7 @@ Created on Fri Aug 14 16:56:31 2020
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 import math
+from utils.Image import readNumOfImageFrames
 
 class ObjectTracking():
     def __init__(self,dl,files):
@@ -23,6 +24,7 @@ class ObjectTracking():
         self.objects = None
         self.timepoints = 0
         self.sequence = []
+        self.stackMode = False
         # results
         self.tracks = None
           
@@ -60,7 +62,11 @@ class ObjectTracking():
                 mat = np.asarray(corr_mat).reshape(len(unmatched),len(lost[0])//2)
                 row,col = linear_sum_assignment(mat)
                 for r,c in zip(row,col):
-                    prev_shapes = self.dl.Mode.LoadShapes(self.files.ImagePath2LabelPath(self.sequence[tp-1]))
+                    if self.stackMode:
+                        frames = self.files.ImagePath2LabelPath(self.sequence[0], False, True)
+                        prev_shapes = self.dl.Mode.LoadShapes(frames[[self.files.getFrameNumber(x) for x in frames].index(tp-1)])
+                    else:
+                        prev_shapes = self.dl.Mode.LoadShapes(self.files.ImagePath2LabelPath(self.sequence[tp-1]))
                     prev_shape = prev_shapes[[x.objectNumber for x in prev_shapes].index(lost[0][c*2]+1)]
                     if mat[r,c] < self.thresh and unmatched[r].classlabel == prev_shape.classlabel:
                         self.setObjectNumber(unmatched[r],tp,lost[0][c*2] + 1)
@@ -75,11 +81,16 @@ class ObjectTracking():
                 self.setObjectNumber(o,tp)
 
     def labelGenerator(self):
-        for tp in range(len(self.sequence)):
-            t = self.files.ImagePath2LabelPath(self.sequence[tp], True)
+        for tp in range(len(self.files.files)):
+            imagefile = self.sequence[tp]
+            t = self.files.ImagePath2LabelPath(imagefile, True, self.stackMode)
             if not t:
                 continue
-            yield tp, t
+            if self.stackMode:
+                for t_ in t:
+                    yield tp + self.files.getFrameNumber(t_), t_
+            else:
+                yield tp, t
 
     def setObjectNumber(self, obj, tp=None, objnum=None):
         if objnum is None:
@@ -88,7 +99,6 @@ class ObjectTracking():
             tp = self.files.currentImage
         obj.objectNumber = objnum
         self.addTrackPosition(tp, obj)
-
 
     def getFirstFreeObjectNumber(self):
         free  = np.where(np.all(self.tracks<0,axis=1))[0]
@@ -114,8 +124,16 @@ class ObjectTracking():
         if not self.files.files:
             return
         self.sequence = self.files.files
-        self.resetTracking(len(self.sequence))
+        if len(self.files.files) > 1:
+            self.timepoints = len(self.files.files)
+        elif len(self.files.files) == 1:
+            self.timepoints = readNumOfImageFrames(self.files.files[0])
+            self.stackMode = True
+
+        self.resetTracking(self.timepoints)
+        #self.resetTracking(len(self.sequence))
         for tp,t in self.labelGenerator():
+
             shapes = self.dl.Mode.LoadShapes(t)
             save = False
             for i,s in enumerate(shapes):
@@ -141,12 +159,10 @@ class ObjectTracking():
         pos = obj.getPosition()
         self.tracks[objnum-1,tp,:] = np.asarray(pos)
 
-
     def fillBlanksForMissingObjects(self, tp):      
         [x.append((-1,-1)) for x in self.tracks if len(x) < tp+1]
 
     def performTracking(self):
-        self.timepoints = len(self.sequence)
         self.resetTracking(self.timepoints)
 
         for tp,t in self.labelGenerator():
@@ -178,9 +194,6 @@ class ObjectTracking():
         mat[mat>self.thresh] = 100000
         row,col = linear_sum_assignment(mat)
 
-
-
-            
         # matched     
         for r,c in zip(row,col):
             if mat[r,c] < self.thresh and t_minus_one[r].classlabel == t[c].classlabel: 
@@ -200,7 +213,6 @@ class ObjectTracking():
                 self.objects = np.append(self.objects,newobject, axis=0)
                 self.tracking_list.append((t[track], self.objects.shape[0]))
            
-
         # remove continuously undetected 
         gone = []
         if tp-self.fadeawayperiod >= 0:
