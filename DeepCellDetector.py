@@ -395,8 +395,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if not self.files.testImagespath or not self.files.testImageLabelspath:
             return
         if self.TrackingModeEnabled:
-            _, labels = getMatchingImageLabelPairPaths(self.files.testImagespath,self.files.testImageLabelspath)
-            self.tracking.loadTrack(labels)
+            self.tracking.loadTrack()
         
     def calcTracking(self):
         if not self.TrackingModeEnabled or not self.files.testImagespath or not self.files.testImageLabelspath:
@@ -538,6 +537,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if self.files.currentImage == -1:
             text = 'No Image Displayed'
         else:
+            if not self.files.CurrentImageName():
+                return
             text = "%d of %i: " % (self.files.currentImage+1,self.files.numofImages) + self.files.CurrentImageName() 
             if self.currentImageFile.isStack():
                 text = text + " " + "%d/%i: " % (self.files.currentFrame+1,self.currentImageFile.numOfImagesInStack())
@@ -586,7 +587,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def FileExplorerItemSelected(self, index):
         file = index.model().fileName(index)
         path = index.model().filePath(index)
-        self.files.moveToSubFolder(os.path.dirname(os.path.abspath(path)))
+        if self.files.moveToSubFolder(os.path.dirname(os.path.abspath(path))):
+            self.loadTrack()
         if self.files.setImagebyName(file):
             self.changeImage()
 

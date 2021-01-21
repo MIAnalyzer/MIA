@@ -109,9 +109,11 @@ class ObjectTracking():
     def resetTracking(self, numofTimePoints, numofObjects=250):
         self.tracks = np.zeros((numofObjects,numofTimePoints,2),dtype=int)-1
 
-    def loadTrack(self, sequence):
+    def loadTrack(self):
         # load from files
-        self.sequence = self.files.TestImages
+        if not self.files.files:
+            return
+        self.sequence = self.files.files
         self.resetTracking(len(self.sequence))
         for tp,t in self.labelGenerator():
             shapes = self.dl.Mode.LoadShapes(t)

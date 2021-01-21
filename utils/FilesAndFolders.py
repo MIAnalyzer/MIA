@@ -8,6 +8,7 @@ Created on Thu Jul  9 11:30:13 2020
 from utils.Image import supportedImageFormats
 import glob
 import os
+import time
 
 class FilesAndFolders():
     def __init__(self, parent):
@@ -87,9 +88,7 @@ class FilesAndFolders():
 
     @property
     def TestImages(self):
-        images = glob.glob(os.path.join(self.testImagespath,'*.*'))
-        images = [x for x in images if (x.lower().endswith(tuple(supportedImageFormats())))]
-        return images
+        return self.getImagesFromFolder(self.testImagespath)
 
     def nextImage(self):
         self.currentImage += 1
@@ -123,8 +122,13 @@ class FilesAndFolders():
     def getFiles(self):
         if self.currentimagespath is None:
             return
-        files = glob.glob(os.path.join(self.currentimagespath, '*.*'))          
-        self.files = [x for x in files if x.lower().endswith(tuple(supportedImageFormats()))]
+        self.files = self.getImagesFromFolder(self.currentimagespath)
+        filenames = [self.getFilenameFromPath(x) for x in self.files]
+        
+        if len(filenames) != len(set(filenames)):
+            self.parent.PopupWarning('Image names contain duplicates (without file extension). Please rename images to avoid duplicates')
+            self.files = []
+
         if not self.files:
             self.currentImage = -1
             self.files = None
@@ -138,11 +142,15 @@ class FilesAndFolders():
         curr_path = os.path.abspath(self.currentimagesrootpath)
         path = os.path.abspath(path)
         if curr_path not in path:
-            return
+            return False
         subfolder = path.replace(curr_path,'')
-        if subfolder is not self.subFolder:
+
+        if subfolder != self.subFolder:
             self.subFolder = subfolder
             self.getFiles()
+            return True
+        return False
+
 
 
     def setImagebyName(self,filename):
@@ -156,6 +164,11 @@ class FilesAndFolders():
             return False
         
     ## helper functions
+    def getImagesFromFolder(self, folder):
+        images = glob.glob(os.path.join(folder,'*.*'))
+        images = [x for x in images if (x.lower().endswith(tuple(supportedImageFormats())))]
+        return images
+
     def getFilenameFromPath(self, path, withfileextension=False):
         file = os.path.splitext(os.path.basename(path))
         if withfileextension:
