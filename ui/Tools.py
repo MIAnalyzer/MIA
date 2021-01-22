@@ -200,6 +200,7 @@ class PolygonTool(AbstractTool):
         self.Text = "Polygon"
         self.type = canvasTool.poly
         self.drawimage = None
+        self.lock = threading.Lock()
         
     def __del__(self): 
         if self.canvas.painter.NewContour and self.canvas.painter.NewContour.numPoints() > 1 and self.drawimage is not None:
@@ -220,7 +221,6 @@ class PolygonTool(AbstractTool):
     def mouseMoveEvent(self, e):
         if self.canvas.painter.NewContour is not None:
             if not self.canvas.fastPainting:
-
                 p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
                 if self.drawimage is None:
                     self.drawimage = self.canvas.image().copy()
@@ -250,6 +250,8 @@ class PolygonTool(AbstractTool):
             else:
                 p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
                 self.canvas.painter.addPoint2NewContour(p)
+                if self.drawimage is None:
+                    self.drawimage = self.canvas.image().copy()
                 self.canvas.copyRect(self.canvas.image(),self.drawimage, self.canvas.getFieldOfViewRect())
      
     @validTool                 
