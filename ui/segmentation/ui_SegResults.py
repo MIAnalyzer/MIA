@@ -44,6 +44,7 @@ class Window(object):
         self.CBSkeleton.setObjectName('ExportSkeleton')
         self.CBSkeleton.setChecked(True)
         self.CBSkeleton.setToolTip('Check to export skeleton length')
+
         self.vlayout.addWidget(self.CBSkeleton)
         
 
@@ -55,24 +56,37 @@ class SegmentationResultsWindow(QMainWindow, Window):
         self.parentwindow = parentwindow
         self.setupUi(self)
 
+
     def saveContourData(self, writer, labels):    
-        header = ['image name'] + ['object number'] + ['object type'] + ['size']
-        if self.parentwindow.CBSize.isChecked():
-            header += ['size in microns\u00b2']
-        if self.CBSkeleton.isChecked():
-            header += ['length in pixel']
+        if self.parent.TrackingModeEnabled:
+            header = ['object number'] + ['object type'] + ['image name'] + ['position'] + ['size']
             if self.parentwindow.CBSize.isChecked():
-                header += ['length in microns']
-            header += ['fatness (area / length)']
+                header += ['size in microns\u00b2']
+            if self.CBSkeleton.isChecked():
+                header += ['length in pixel']
+                if self.parentwindow.CBSize.isChecked():
+                    header += ['length in microns']
+                header += ['fatness (area / length)']
+            writer.writerow(header)
+            print(self.parent.tracking.getNumbersOfTrackedObjects())
+        else:
+            header = ['image name'] + ['object number'] + ['object type'] + ['size']
+            if self.parentwindow.CBSize.isChecked():
+                header += ['size in microns\u00b2']
+            if self.CBSkeleton.isChecked():
+                header += ['length in pixel']
+                if self.parentwindow.CBSize.isChecked():
+                    header += ['length in microns']
+                header += ['fatness (area / length)']
                         
-        writer.writerow(header)
-        num = len(labels)
-        self.parent.emitinitProgress(num)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
-            rows = executor.map(self.getSingleContourLabelFromList, labels)
+            writer.writerow(header)
+            num = len(labels)
+            self.parent.emitinitProgress(num)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
+                rows = executor.map(self.getSingleContourLabelFromList, labels)
           
-        for r in rows:
-            writer.writerows(r) 
+            for r in rows:
+                writer.writerows(r) 
         
     def getSingleContourLabelFromList(self, contourname):
         if isinstance(contourname, tuple):
@@ -80,7 +94,6 @@ class SegmentationResultsWindow(QMainWindow, Window):
             contourname = contourname[0]
         else:
             name = os.path.splitext(os.path.basename(contourname))[0]
-        
         contours = loadContours(contourname)
         contours = [x for x in contours if x.isValid(self.parent.canvas.minContourSize)]
         
@@ -101,13 +114,3 @@ class SegmentationResultsWindow(QMainWindow, Window):
             rows.append(row)
         self.parent.emitProgress()
         return rows
-       
-            
-        
-                   
-        
-        
-
-            
-
-            
