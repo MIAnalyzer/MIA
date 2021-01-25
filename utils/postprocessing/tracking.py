@@ -101,7 +101,7 @@ class ObjectTracking():
         self.addTrackPosition(tp, obj)
 
     def getFirstFreeObjectNumber(self):
-        free  = np.where(np.all(self.tracks<0,axis=1))[0]
+        free = np.where(np.all(self.tracks<0,axis=1))[0]
         if len(free) > 0:
             return free[0] + 1
         else:
@@ -115,6 +115,9 @@ class ObjectTracking():
             return self.tracks[objnum-1,...].tolist()
         else:
             return None
+
+    def getNumbersOfTrackedObjects(self):
+        return np.where(np.any(self.tracks[...,0]>=0,axis=1))[0]
 
     def resetTracking(self, numofTimePoints, numofObjects=250):
         self.tracks = np.zeros((numofObjects,numofTimePoints,2),dtype=int)-1
