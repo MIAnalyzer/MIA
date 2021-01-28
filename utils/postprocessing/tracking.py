@@ -116,6 +116,15 @@ class ObjectTracking():
         else:
             return None
 
+    def getObjectOccurences(self, objnum):
+        if self.tracks.shape[0]>=objnum and objnum > 0:   
+            return np.where(self.tracks[objnum-1,...,0]>0)[0].tolist()
+        else:
+            return []
+
+    def getTimePointFromImageName(self, imagepath):
+        return self.sequence.index(imagepath)
+
     def getNumbersOfTrackedObjects(self):
         return np.where(np.any(self.tracks[...,0]>=0,axis=1))[0]
 

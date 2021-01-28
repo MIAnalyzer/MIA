@@ -167,6 +167,8 @@ class FilesAndFolders():
     def getImagesFromFolder(self, folder):
         images = glob.glob(os.path.join(folder,'*.*'))
         images = [x for x in images if (x.lower().endswith(tuple(supportedImageFormats())))]
+        if images:
+            images.sort()
         return images
 
     def getFilenameFromPath(self, path, withfileextension=False):
@@ -184,6 +186,14 @@ class FilesAndFolders():
 
     def getFrameNumber(self, labelpath):
         return int(labelpath[-7:-4])
+
+    def convertLabelPath2FileName(self, labelpath):
+        if isinstance(labelpath, tuple):
+            name = os.path.splitext(os.path.basename(labelpath[0]))[0][:-3] + str(int(labelpath[1])+1)
+            labelpath = labelpath[0]
+        else:
+            name = os.path.splitext(os.path.basename(labelpath))[0]
+        return name, labelpath
          
     def ensureFolder(self, foldername):
         if not os.path.isdir(foldername):
