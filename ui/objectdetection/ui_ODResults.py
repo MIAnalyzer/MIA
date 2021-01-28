@@ -49,33 +49,54 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
         self.setupUi(self)
         
             
-    def saveObjects(self, writer, labels):
+    def saveObjects(self, writer, images, labels):
+
+        if self.parent.TrackingModeEnabled:
+            self.saveTrackResults(writer, images, labels)
+        else:
+            self.saveDetectionResults(writer, images, labels)
+
+    def saveDetectionResults(self, writer, images, labels):
         header = ['image name'] + ['number of objects'] + ['object type']
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
         
-        for label in labels:
-            if isinstance(label, tuple):
-                name = os.path.splitext(os.path.basename(label[0]))[0][:-3] + str(int(label[1])+1)
-                label = label[0]
-            else:
-                name = os.path.splitext(os.path.basename(label))[0]
+        for image, label in zip(images,labels):
+            name, contourname = self.parent.files.convertLabelPath2FileName(label)
+            name = self.parent.files.getFilenameFromPath(image,withfileextension=True)
 
             points,_ = loadPoints(label)
             pointlabels = [x.classlabel for x in points]
             for i in range(1,max(pointlabels)+1):
                 row = [name] + [pointlabels.count(i)] + [i]
                 writer.writerow(row) 
-        
-            
 
-            
-        
-                   
-        
-        
+    def saveTrackResults(self, writer, images, labels):
+        header = ['object number'] + ['time point'] +  ['image name'] + ['object type'] + ['position']
+        writer.writerow(header)
+        num = len(labels)
+        self.parent.emitinitProgress(num)
 
-            
+        f1 = lambda x: x.classlabel
+        f2 = lambda x: x.getPosition()
 
-            
+        pnt_data = (f1,f2)
+
+        points = [{} for x in range(self.parent.tracking.timepoints)]
+        for i,l in zip(images,labels):
+            name, pointname = self.parent.files.convertLabelPath2FileName(l)
+            name = self.parent.files.getFilenameFromPath(i,withfileextension=True)
+            point,_ = loadPoints(pointname)
+            tp = self.parent.tracking.getTimePointFromImageName(i)
+            points[tp] = {x.objectNumber: [name] + [f(x) for f in pnt_data] for x in point}
+            self.parent.emitProgress()
+
+
+        for n in self.parent.tracking.getNumbersOfTrackedObjects():
+            for t in self.parent.tracking.getObjectOccurences(n):
+                try:
+                    row = [n] + [t+1] + points[t][n]
+                    writer.writerow(row) 
+                except:
+                    pass

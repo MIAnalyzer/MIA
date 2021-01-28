@@ -226,21 +226,21 @@ class ResultsWindow(QMainWindow, Window):
         thread.start()
 
     def saveAll(self,filename):
-        _, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+        images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
         if labels is None or not labels:
             self.parent.emitPopup('No predicted files')
             return
-        self.saving(labels, filename)
+        self.saving(images,labels, filename)
 
-    def saving(self, labels, filename):
+    def saving(self, images, labels, filename):
         try:
             with open(filename, 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter = ';')
                     
                 if self.parent.LearningMode() == dlMode.Segmentation:
-                    self.segResults.saveContourData(csvWriter, labels)
+                    self.segResults.saveContourData(csvWriter, images, labels)
                 elif self.parent.LearningMode() == dlMode.Object_Counting:
-                    self.odResults.saveObjects(csvWriter, labels)
+                    self.odResults.saveObjects(csvWriter, images, labels)
                 else:
                     self.parent.emitPopup('Not supported detection mode')
 
