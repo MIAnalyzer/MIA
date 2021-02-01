@@ -135,10 +135,8 @@ class ContourPainter(Painter):
             prediction = self.canvas.parent.dl.SemiAutoSegment(image, mask)
             self.contours.deleteShapes(self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
             smartcontours = Contour.extractContoursFromImage(prediction, not self.canvas.parent.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
-            Contour.drawContoursToImage(self.contoursketch, smartcontours)
-            
+            Contour.drawContoursToImage(self.contoursketch, smartcontours)    
         super(ContourPainter, self).getFinalContours()
-        
         
     def autosegment(self):
         if self.canvas.hasImage():
@@ -160,7 +158,6 @@ class ContourPainter(Painter):
                 s.setClassLabel(self.canvas.parent.activeClass())
             self.contours.addShapes(shapes)
             self.checkForChanges()
-        
         
     def checkForChanges(self):
         if self.canvas.hasImage():

@@ -342,7 +342,7 @@ class ExtendTool(AbstractTool):
                 p = self.canvas.QPoint2np(p0)
                 x = p[0,0]
                 y = p[0,1]
-                self.canvas.painter.addCircle(p0, self.canvas.parent.SSize.value())
+                self.canvas.painter.addCircle(p0, self.canvas.parent.SSize.value(), erase = self.canvas.parent.CBErase.isChecked())
                 val = 1 if self.canvas.parent.CBErase.isChecked() == False else 0
                 cv2.circle(self.canvas.painter.sketch, (x, y), self.canvas.parent.SSize.value(), (val), -1)
 

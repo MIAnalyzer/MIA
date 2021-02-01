@@ -169,8 +169,11 @@ class Painter(ABC):
         self.canvas.pen_size = psize
         self.canvas.updateImage()
         
-    def addCircle(self, center, radius, color = None):
+    def addCircle(self, center, radius, color = None, erase = False):
         p = self.getPainter(color)
+        p.setPen(QPen(Qt.NoPen))
+        if erase:
+            p.setBrush(QBrush(self.canvas.displayedimage.getImage()))
         p.drawEllipse(center, radius, radius)
         self.canvas.updateImage()
 
