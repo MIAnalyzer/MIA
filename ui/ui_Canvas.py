@@ -188,6 +188,8 @@ class Canvas(QGraphicsView):
 
             
     def ReloadLabels(self, resetView = True):
+        if not self.image():
+            return
         self.clearLabel()
         self.getLabel()
         self.redrawImage()
@@ -205,7 +207,6 @@ class Canvas(QGraphicsView):
         if image is None:
             self.parent.PopupWarning('No image loaded')
             return
-        
         return self.convert2Pixmap(image)
         
     def convert2Pixmap(self, image):

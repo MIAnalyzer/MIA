@@ -208,11 +208,11 @@ class ResultsWindow(QMainWindow, Window):
         if not filename:
             return
         label = self.parent.files.CurrentLabelPath()
-
+        image = self.parent.files.CurrentImagePath()
         if not os.path.exists(label):
             self.parent.emitPopup('No prediction')
             return
-        self.saving([label], filename)
+        self.saving([image], [label], filename)
 
 
     def saveResults(self):

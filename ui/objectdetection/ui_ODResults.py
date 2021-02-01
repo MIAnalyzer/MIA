@@ -57,23 +57,26 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
             self.saveDetectionResults(writer, images, labels)
 
     def saveDetectionResults(self, writer, images, labels):
-        header = ['image name'] + ['number of objects'] + ['object type']
+        header = ['image name'] + ['frame number'] + ['number of objects'] + ['object type']
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
         
         for image, label in zip(images,labels):
-            name, contourname = self.parent.files.convertLabelPath2FileName(label)
-            name = self.parent.files.getFilenameFromPath(image,withfileextension=True)
-
-            points,_ = loadPoints(label)
+            name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(image),withfileextension=True)
+            points,_ = loadPoints(self.parent.files.convertIfStackPath(label))
+            if self.parent.files.isStackLabel(label):
+                frame = self.parent.files.getFrameNumber(label) + 1
+            else:
+                frame = 1
             pointlabels = [x.classlabel for x in points]
+            
             for i in range(1,max(pointlabels)+1):
-                row = [name] + [pointlabels.count(i)] + [i]
+                row = [name] + [frame] + [pointlabels.count(i)] + [i]
                 writer.writerow(row) 
 
     def saveTrackResults(self, writer, images, labels):
-        header = ['object number'] + ['time point'] +  ['image name'] + ['object type'] + ['position']
+        header = ['object number'] + ['time point'] + ['image name'] + ['frame number'] + ['object type'] + ['position']
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
@@ -85,13 +88,19 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
 
         points = [{} for x in range(self.parent.tracking.timepoints)]
         for i,l in zip(images,labels):
-            name, pointname = self.parent.files.convertLabelPath2FileName(l)
-            name = self.parent.files.getFilenameFromPath(i,withfileextension=True)
-            point,_ = loadPoints(pointname)
-            tp = self.parent.tracking.getTimePointFromImageName(i)
-            points[tp] = {x.objectNumber: [name] + [f(x) for f in pnt_data] for x in point}
-            self.parent.emitProgress()
+            name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(i),withfileextension=True)
+            point_s,_ = loadPoints(self.parent.files.convertIfStackPath(l))
 
+            if self.parent.tracking.stackMode:
+                tp = self.parent.files.getFrameNumber(l)
+            else:
+                tp = self.parent.tracking.getTimePointFromImageName(self.parent.files.convertIfStackPath(i))
+            if self.parent.files.isStackLabel(l):
+                frame = self.parent.files.getFrameNumber(l) + 1
+            else:
+                frame = 1
+            points[tp] = {x.objectNumber: [name] + [frame] + [f(x) for f in pnt_data] for x in point_s}
+            self.parent.emitProgress()
 
         for n in self.parent.tracking.getNumbersOfTrackedObjects():
             for t in self.parent.tracking.getObjectOccurences(n):

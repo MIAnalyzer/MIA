@@ -416,6 +416,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
     def enableTrackingMode(self, enable):
         self.Tracking.setVisible(enable)
+        self.loadTrack()
+        self.canvas.ReloadLabels()
         
     def drawObjectTrack(self):
         return self.TrackingModeEnabled and self.CBshowtrack.isChecked()
@@ -539,7 +541,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         else:
             if not self.files.CurrentImageName():
                 return
-            text = "%d of %i: " % (self.files.currentImage+1,self.files.numofImages) + self.files.CurrentImageName() 
+            text = "%d of %i: " % (self.files.currentImage+1,self.files.numofImages) + self.files.CurrentImageName(True) 
             if self.currentImageFile.isStack():
                 text = text + " " + "%d/%i: " % (self.files.currentFrame+1,self.currentImageFile.numOfImagesInStack())
         self.StatusFile.setText(text)

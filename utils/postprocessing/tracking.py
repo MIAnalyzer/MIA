@@ -126,7 +126,7 @@ class ObjectTracking():
         return self.sequence.index(imagepath)
 
     def getNumbersOfTrackedObjects(self):
-        return np.where(np.any(self.tracks[...,0]>=0,axis=1))[0]
+        return np.where(np.any(self.tracks[...,0]>=0,axis=1))[0]+1
 
     def resetTracking(self, numofTimePoints, numofObjects=250):
         self.tracks = np.zeros((numofObjects,numofTimePoints,2),dtype=int)-1
@@ -138,14 +138,14 @@ class ObjectTracking():
         self.sequence = self.files.files
         if len(self.files.files) > 1:
             self.timepoints = len(self.files.files)
+            self.stackMode = False
         elif len(self.files.files) == 1:
             self.timepoints = readNumOfImageFrames(self.files.files[0])
             self.stackMode = True
 
         self.resetTracking(self.timepoints)
-        #self.resetTracking(len(self.sequence))
         for tp,t in self.labelGenerator():
-
+            
             shapes = self.dl.Mode.LoadShapes(t)
             save = False
             for i,s in enumerate(shapes):

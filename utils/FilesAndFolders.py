@@ -59,10 +59,10 @@ class FilesAndFolders():
             return self.testImagespath + os.path.sep + self.parent.dl.LabelFolderName
         
     # @property
-    def CurrentImageName(self): 
+    def CurrentImageName(self, withext = False): 
         if self.CurrentImagePath() is None:
             return None
-        return self.getFilenameFromPath(self.CurrentImagePath())
+        return self.getFilenameFromPath(self.CurrentImagePath(), withext)
 
     # @property
     def CurrentLabelName(self):
@@ -185,15 +185,28 @@ class FilesAndFolders():
         return name + '_' + "{0:0=3d}".format(frame)
 
     def getFrameNumber(self, labelpath):
+        if self.isStackLabel(labelpath):
+            return int(labelpath[1])
+        labelpath = self.convertIfStackPath(labelpath)
         return int(labelpath[-7:-4])
 
+    def convertIfStackPath(self, path):
+        if self.isStackLabel(path):
+            return path[0]
+        return path
+
+    def isStackLabel(self,path):
+        if isinstance(path,tuple):
+            return True
+        else:
+            return False
+
     def convertLabelPath2FileName(self, labelpath):
-        if isinstance(labelpath, tuple):
+        if self.isStackLabel(labelpath):
             name = os.path.splitext(os.path.basename(labelpath[0]))[0][:-3] + str(int(labelpath[1])+1)
-            labelpath = labelpath[0]
         else:
             name = os.path.splitext(os.path.basename(labelpath))[0]
-        return name, labelpath
+        return name
          
     def ensureFolder(self, foldername):
         if not os.path.isdir(foldername):
