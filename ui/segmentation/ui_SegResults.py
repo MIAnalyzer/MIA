@@ -64,7 +64,7 @@ class SegmentationResultsWindow(QMainWindow, Window):
             self.saveSegmenatationResults(writer, images, labels)
 
     def saveSegmenatationResults(self,writer, images, labels):
-         header = ['image name'] + ['object number'] + ['object type'] + ['size']
+         header = ['image name'] + ['frame number'] + ['object number'] + ['object type'] + ['size']
          if self.parentwindow.CBSize.isChecked():
              header += ['size in microns\u00b2']
          if self.CBSkeleton.isChecked():
@@ -83,18 +83,19 @@ class SegmentationResultsWindow(QMainWindow, Window):
              writer.writerows(r) 
         
     def getSingleContourLabelFromList(self, im_labels):
-        print(im_labels)
-        name, contourname = self.parent.files.convertLabelPath2FileName(im_labels[1])
-        name = self.parent.files.getFilenameFromPath(im_labels[0],withfileextension=True)
 
-        contours = loadContours(contourname)
+        name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(im_labels[0]),withfileextension=True)
+        contours = loadContours(self.parent.files.convertIfStackPath(im_labels[1]))
         contours = [x for x in contours if x.isValid(self.parent.canvas.minContourSize)]
-        
+        if self.parent.files.isStackLabel(im_labels[1]):
+            frame = self.parent.files.getFrameNumber(im_labels[1]) + 1
+        else:
+            frame = 1
         x = 0
         rows = []
         for c in contours:
             x += 1
-            row = [name] + [x] + [c.classlabel] + [c.getSize()]
+            row = [name] + [frame] + [x] + [c.classlabel] + [c.getSize()]
             if self.parentwindow.CBSize.isChecked():
                 row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
             if self.CBSkeleton.isChecked():   
@@ -108,7 +109,7 @@ class SegmentationResultsWindow(QMainWindow, Window):
         return rows
 
     def saveTrackResults(self, writer, images, labels):
-        header = ['object number'] + ['time point'] +  ['image name'] + ['object type'] + ['position'] + ['size']
+        header = ['object number'] + ['time point'] +  ['image name'] + ['frame number'] + ['object type'] + ['position'] + ['size']
         if self.parentwindow.CBSize.isChecked():
             header += ['size in microns\u00b2']
         if self.CBSkeleton.isChecked():
@@ -145,14 +146,20 @@ class SegmentationResultsWindow(QMainWindow, Window):
 
         # add additional requirements here
         contours = [{} for x in range(self.parent.tracking.timepoints)]
-        for i,l in zip(images,labels):
-            name, contourname = self.parent.files.convertLabelPath2FileName(l)
-            name = self.parent.files.getFilenameFromPath(i,withfileextension=True)
-            contour = loadContours(contourname)
-            tp = self.parent.tracking.getTimePointFromImageName(i)
-            contours[tp] = {x.objectNumber: [name] + [f(x) for f in cnt_data] for x in contour if x.isValid(self.parent.canvas.minContourSize)}
-            self.parent.emitProgress()
 
+        for i,l in zip(images,labels):
+            name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(i),withfileextension=True)
+            contour = loadContours(self.parent.files.convertIfStackPath(l))
+            if self.parent.tracking.stackMode:
+                tp = self.parent.files.getFrameNumber(l)
+            else:
+                tp = self.parent.tracking.getTimePointFromImageName(self.parent.files.convertIfStackPath(i))
+            if self.parent.files.isStackLabel(l):
+                frame = self.parent.files.getFrameNumber(l) + 1
+            else:
+                frame = 1
+            contours[tp] = {x.objectNumber: [name] + [frame] + [f(x) for f in cnt_data] for x in contour if x.isValid(self.parent.canvas.minContourSize)}
+            self.parent.emitProgress()
         rows = []
         for n in self.parent.tracking.getNumbersOfTrackedObjects():
             for t in self.parent.tracking.getObjectOccurences(n):
@@ -161,5 +168,4 @@ class SegmentationResultsWindow(QMainWindow, Window):
                     rows.append(row)
                 except:
                     pass
-
         return rows
