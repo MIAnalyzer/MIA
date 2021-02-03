@@ -47,10 +47,6 @@ class ObjectPainter(Painter):
     def enableDrawBackgroundMode(self):
         super(ObjectPainter, self).enableDrawBackgroundMode()
         self.backgroundmode = True
-        self.tools.append(canvasTool.objectnumber)
-        self.tools.append(canvasTool.objectcolor)
-        self.tools.append(canvasTool.deleteobject)
-
 
     def disableDrawBackgroundMode(self):
         super(ObjectPainter, self).disableDrawBackgroundMode()
@@ -58,6 +54,7 @@ class ObjectPainter(Painter):
         self.tools.append(canvasTool.point)
         self.tools.append(canvasTool.shift)
         self.tools.append(canvasTool.assign)
+        self.tools.append(canvasTool.assist)
         self.tools.append(canvasTool.delete)
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)

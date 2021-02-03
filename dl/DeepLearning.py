@@ -26,7 +26,8 @@ import dl.training.datagenerator as datagenerator
 import dl.training.training_record as training_record
 import dl.training.augment as augment
 import dl.training.lrschedule as schedule
-import dl.models.hed as hed
+import dl.machine_learning.hed as hed
+import dl.machine_learning.dextr.dextr_segmentation as dextr
 import dl.machine_learning.grabcut_segmentation as gc
 import dl.data.imagedata as imagedata
 from dl.data.imagedata import dlPreprocess
@@ -50,6 +51,7 @@ class DeepLearning(dlObservable):
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()
+        self.dextr = dextr.DEXTR_Segmenatation()
         self.grabcut = gc.GrabCutSegmentation()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment(self)
@@ -223,6 +225,11 @@ class DeepLearning(dlObservable):
         _,thresh = cv2.threshold(pred,0,1,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         ret = cv2.resize(thresh, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
+
+    def AssistedSegmentation(self, image, extremepoints):      
+        # no resizing here, as image is cropped to target network size (512,512) anyway
+        # if resize is necessary remember to resize points, too
+        return self.dextr.predict(image, extremepoints)
     
     def SemiAutoSegment(self,image, mask = None, train=True):
         if image is None:
@@ -249,9 +256,7 @@ class DeepLearning(dlObservable):
             pred = self.grabcut.Segment(image)
         ret = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
-        
 
-       
     def parameterFit(self, nclasses, mono):
         if not self.initialized:
             return False    

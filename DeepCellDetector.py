@@ -25,7 +25,7 @@ from contextlib import contextmanager
 import dl.DeepLearning as DeepLearning
 from dl.method.mode import dlMode
 from ui.UI import MainWindow
-from ui.Tools import canvasTool
+from ui.Tools import canvasTool, canvasToolButton
 from ui.ui_Canvas import Canvas
 
 from ui.segmentation.ui_SegPostProcessing import SegmentationPostProcessingWindow
@@ -224,12 +224,19 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.Bextend.clicked.connect(self.setCanvasMode)
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
+        self.Bassist.clicked.connect(self.setCanvasMode)
         
         self.BassignClass.clicked.connect(self.setCanvasMode)
         self.BsetClass.clicked.connect(self.setCanvasMode)
         
         self.BsetObject.clicked.connect(self.setCanvasMode)
         self.BshiftObject.clicked.connect(self.setCanvasMode)
+
+        self.BSetObjectNumber.clicked.connect(self.setCanvasMode)
+        self.BDeleteObject.clicked.connect(self.setCanvasMode)
+        self.BChangeObjectColor.clicked.connect(self.setCanvasMode)
+
+
         
         
         self.Btrain.clicked.connect(self.showTrainingWindow)
@@ -256,9 +263,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBshowtrack.stateChanged.connect(self.updateImage)
         self.CBtrackcolor.stateChanged.connect(self.updateImage)
         
-        self.BSetObjectNumber.clicked.connect(self.setTrackingTool)
-        self.BDeleteObject.clicked.connect(self.setTrackingTool)
-        self.BChangeObjectColor.clicked.connect(self.setTrackingTool)
+
        
 
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
@@ -392,10 +397,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setWorkingFolder()
 
     def loadTrack(self):
+        self.Tracking.setEnabled(False)
         if not self.files.testImagespath or not self.files.testImageLabelspath:
             return
         if self.TrackingModeEnabled and not self.files.train_test_dir:
             self.tracking.loadTrack()
+            self.Tracking.setEnabled(True)
         
     def calcTracking(self):
         if not self.TrackingModeEnabled or not self.files.testImagespath or not self.files.testImageLabelspath:
@@ -404,15 +411,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         with self.wait_cursor():
             self.tracking.performTracking()
             self.canvas.ReloadImage()
-
-    def setTrackingTool(self):
-        toolname = self.sender().objectName()
-        if toolname == 'tracking_objectnumber':
-            self.canvas.setnewTool(canvasTool.objectnumber.name)
-        elif toolname == 'tracking_changeobjectcolor':
-            self.canvas.setnewTool(canvasTool.objectcolor.name)
-        elif toolname == 'tracking_deleteobject':
-            self.canvas.setnewTool(canvasTool.deleteobject.name)
 
     def enableTrackingMode(self, enable):
         self.Tracking.setVisible(enable)
@@ -439,7 +437,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             
         # we need to first set all to invisible as otherwise the widget_width is extended 
         # and somewhat hard to control with pyqt :(
-        for tool in canvasTool:
+        for tool in canvasToolButton:
             widget = self.findChild(DCDButton, tool.name)
             if not widget:
                 continue

@@ -298,32 +298,39 @@ class Canvas(QGraphicsView):
         self.tool.HideSettings()
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
-        if tool == canvasTool.draw.name:
+        elif tool == canvasTool.draw.name:
             self.tool = Tools.DrawTool(self)
-        if tool == canvasTool.assign.name:
+        elif tool == canvasTool.assign.name:
             self.tool = Tools.AssignTool(self)
-        if tool == canvasTool.extend.name:
+        elif tool == canvasTool.extend.name:
             self.tool = Tools.ExtendTool(self)
-        if tool == canvasTool.delete.name:
+        elif tool == canvasTool.delete.name:
             self.tool = Tools.DeleteTool(self)
-        if tool == canvasTool.poly.name:
+        elif tool == canvasTool.poly.name:
             self.tool = Tools.PolygonTool(self)
-        if tool == canvasTool.scale.name:
+        elif tool == canvasTool.assist.name:
+            self.tool = Tools.DEXTRTool(self)
+        elif tool == canvasTool.scale.name:
             self.tool = Tools.ScaleTool(self)
-        if tool == canvasTool.point.name:
+        elif tool == canvasTool.point.name:
             self.tool = Tools.PointTool(self)
-        if tool == canvasTool.shift.name:
+        elif tool == canvasTool.shift.name:
             self.tool = Tools.ShiftTool(self)
-        if tool == canvasTool.setimageclass.name:
+        elif tool == canvasTool.setimageclass.name:
             self.tool = Tools.setImageClassTool(self)
-        if tool == canvasTool.assignimageclass.name:
+        elif tool == canvasTool.assignimageclass.name:
             self.tool = Tools.assignImageClassTool(self)
-        if tool == canvasTool.objectnumber.name:
+        elif tool == canvasTool.objectnumber.name:
             self.tool = Tools.ObjectNumberTool(self)
-        if tool == canvasTool.objectcolor.name:
+        elif tool == canvasTool.objectcolor.name:
             self.tool = Tools.ObjectColorTool(self)
-        if tool == canvasTool.deleteobject.name:
+        elif tool == canvasTool.deleteobject.name:
             self.tool = Tools.DeleteObjectTool(self)
+
+        if self.tool.type not in self.painter.tools:
+            self.tool = Tools.DragTool(self)
+
+
 
         self.tool.initialize()
         self.tool.ShowSettings()

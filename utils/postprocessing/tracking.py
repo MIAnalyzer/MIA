@@ -5,9 +5,6 @@ Created on Fri Aug 14 16:56:31 2020
 @author: Koerber
 """
 
-#https://towardsdatascience.com/computer-vision-for-tracking-8220759eee85
-# hungarian algorithm
-
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 import math
@@ -130,6 +127,8 @@ class ObjectTracking():
 
     def resetTracking(self, numofTimePoints, numofObjects=250):
         self.tracks = np.zeros((numofObjects,numofTimePoints,2),dtype=int)-1
+        self.objects = None
+        self.tracking_list = []
 
     def loadTrack(self):
         # load from files
@@ -174,9 +173,9 @@ class ObjectTracking():
     def fillBlanksForMissingObjects(self, tp):      
         [x.append((-1,-1)) for x in self.tracks if len(x) < tp+1]
 
+
     def performTracking(self):
         self.resetTracking(self.timepoints)
-
         for tp,t in self.labelGenerator():
             shapes = self.dl.Mode.LoadShapes(t)
             self.addTimePoint(self.dl.Mode.LoadShapes(t), tp)
@@ -187,15 +186,14 @@ class ObjectTracking():
             self.fillBlanksForMissingObjects(tp)
             self.dl.Mode.saveShapes(shapes, t)
 
-    
     def addTimePoint(self, detections, t):
-        if t == 0:
+        #if t == 0:
+        if self.objects is None or self.tracking_list == []:
             self.objects = np.zeros((len(detections),self.timepoints),dtype=int)
             self.objects[:,0] = range(1,len(detections)+1)
             self.tracking_list = [(x,i) for (x,i) in zip(detections,range(1,len(detections)+1))]
         else:
-            self.calculateMatches( detections, t)
-
+            self.calculateMatches(detections, t)
 
     def calculateMatches(self,  t, tp):
         t_minus_one = [x for (x,i) in self.tracking_list]
