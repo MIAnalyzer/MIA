@@ -23,9 +23,11 @@ class ContourPainter(Painter):
     def __init__(self, canvas):
         super(ContourPainter,self).__init__(canvas)
         self.tools.append(canvasTool.assign)
+        self.tools.append(canvasTool.assist)
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)
         self.tools.append(canvasTool.deleteobject)
+        
         # self.mask = None
         self.smartmode = False
 
@@ -53,14 +55,11 @@ class ContourPainter(Painter):
 
     def enableDrawBackgroundMode(self):
         super(ContourPainter, self).enableDrawBackgroundMode()
-        self.tools.append(canvasTool.objectnumber)
-        self.tools.append(canvasTool.objectcolor)
-        self.tools.append(canvasTool.deleteobject)
-
 
     def disableDrawBackgroundMode(self):
         super(ContourPainter, self).enableDrawBackgroundMode()
         self.tools.append(canvasTool.assign)
+        self.tools.append(canvasTool.assist)
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)
         self.tools.append(canvasTool.deleteobject)
@@ -137,6 +136,16 @@ class ContourPainter(Painter):
             smartcontours = Contour.extractContoursFromImage(prediction, not self.canvas.parent.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             Contour.drawContoursToImage(self.contoursketch, smartcontours)    
         super(ContourPainter, self).getFinalContours()
+
+    def assistedSegmentation(self, extremepoints):
+        with self.canvas.parent.wait_cursor():
+            # do not use fov here because the target image is cropped to network size
+            prediction = self.canvas.parent.dl.AssistedSegmentation(self.canvas.parent.getCurrentImage(), np.asarray(extremepoints, dtype = np.int))
+            shapes = Contour.extractContoursFromLabel(prediction, not self.canvas.parent.allowInnerContours)
+            for s in shapes:
+                s.setClassLabel(self.canvas.parent.activeClass())
+            self.contours.addShapes(shapes)
+            self.checkForChanges()
         
     def autosegment(self):
         if self.canvas.hasImage():

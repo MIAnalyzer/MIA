@@ -134,10 +134,20 @@ class MainWindow(object):
         # settings for segmentation
         self.SegmentationSettingslayout = QHBoxLayout(self.centralWidget)
         self.SegmentationSettingslayout.setContentsMargins(0, 0, 0, 0)
+        layout0 = QVBoxLayout(self.centralWidget)
         self.Bautoseg = DCDButton(self.centralWidget)
         self.Bautoseg.setToolTip('press to perform auto segmentation')
         self.Bautoseg.setText('Autoseg')
         self.Bautoseg.setIcon(QIcon('icons/predict.png'))
+        
+        self.Bassist = DCDButton(self.centralWidget)
+        self.Bassist.setText('Dextr')
+        self.Bassist.setObjectName('assist')
+        self.Bassist.setToolTip('Select assisted extreme point segmentation')
+        self.Bassist.setIcon(QIcon('icons/poly.png'))
+        layout0.addWidget(self.Bautoseg)
+        layout0.addWidget(self.Bassist)
+
         layout = QVBoxLayout(self.centralWidget)
         self.CBSmartMode = QCheckBox("Smartmode",self.centralWidget)
         self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
@@ -149,9 +159,8 @@ class MainWindow(object):
         layout.addWidget(self.CBSmartMode)
         layout.addWidget(self.CBInner)
 
-        
         self.SegmentationSettingslayout.addLayout(layout)
-        self.SegmentationSettingslayout.addWidget(self.Bautoseg)
+        self.SegmentationSettingslayout.addLayout(layout0)
         self.SegmentationSettings = QFrame()
         self.SegmentationSettings.setLayout(self.SegmentationSettingslayout)
         self.SegmentationSettings.hide()
@@ -342,19 +351,19 @@ class MainWindow(object):
         self.objNumLayout = QHBoxLayout(self.centralWidget)
         self.BSetObjectNumber = DCDButton(self.centralWidget)
         self.BSetObjectNumber.setMaximumSize(bwidth, bheight)
-        self.BSetObjectNumber.setObjectName('tracking_objectnumber')
+        self.BSetObjectNumber.setObjectName('objectnumber')
         self.BSetObjectNumber.setIcon(QIcon('icons/poly.png'))
         self.BSetObjectNumber.setToolTip('Select set object number tool')
 
         self.BDeleteObject = DCDButton(self.centralWidget)
         self.BDeleteObject.setMaximumSize(bwidth, bheight)
-        self.BDeleteObject.setObjectName('tracking_deleteobject')
+        self.BDeleteObject.setObjectName('deleteobject')
         self.BDeleteObject.setIcon(QIcon('icons/delete.png'))
         self.BDeleteObject.setToolTip('Select delete object tool')
 
         self.BChangeObjectColor = DCDButton(self.centralWidget)
         self.BChangeObjectColor.setMaximumSize(bwidth, bheight)
-        self.BChangeObjectColor.setObjectName('tracking_changeobjectcolor')
+        self.BChangeObjectColor.setObjectName('objectcolor')
         self.BChangeObjectColor.setIcon(QIcon('icons/poly.png'))
         self.BChangeObjectColor.setToolTip('Select change color tool')
 

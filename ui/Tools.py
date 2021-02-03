@@ -25,6 +25,7 @@ class canvasTool(Enum):
     delete = 'delete'
     extend = 'extend'
     poly =  'poly'
+    assist = 'assist'
     scale =  'scale'
     shift = 'shift'
     point = 'point'
@@ -33,6 +34,19 @@ class canvasTool(Enum):
     objectnumber = 'objectnumber'
     objectcolor = 'objectcolor'
     deleteobject = 'deleteobject'
+
+class canvasToolButton(Enum):
+    # Buttons are set visible or invisible depending on mode
+    drag = canvasTool.drag
+    draw = canvasTool.draw
+    assign = canvasTool.assign
+    delete = canvasTool.delete
+    extend = canvasTool.extend
+    poly =  canvasTool.poly
+    shift = canvasTool.shift
+    point = canvasTool.point
+    setimageclass = canvasTool.setimageclass
+    assignimageclass = canvasTool.assignimageclass
     
 
 def validTool(f):
@@ -79,6 +93,23 @@ class AbstractTool(ABC):
     def HideSettings(self):
         pass
 
+
+class DummyTool(AbstractTool):
+    # dummy tool, that executes on Button press,
+    # no interaction with canvas
+    def __init__(self, canvas, text):
+        super().__init__(canvas)
+        self.Text = text
+        self.canvas.setnewTool(canvasTool.drag.name)
+        
+    def mouseMoveEvent(self, e):
+        pass
+    def mouseReleaseEvent(self,e):
+        pass
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
     
 class DragTool(AbstractTool):
     def __init__(self, canvas):
@@ -407,6 +438,36 @@ class ExtendTool(AbstractTool):
 
     def HideSettings(self):
         self.canvas.parent.ExtendSettings.hide()
+
+
+class DEXTRTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = 'Assisted Segmentation'
+        self.type = canvasTool.assist
+        self.extremePoints = []
+
+        
+    def mouseMoveEvent(self, e):
+        pass
+
+    @validTool  
+    def mouseReleaseEvent(self,e):
+        if self.canvas.image() is None:
+            return
+        if e.button() == Qt.LeftButton:  
+            p = self.canvas.mapToScene(e.pos())
+            self.extremePoints.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
+            if len(self.extremePoints) == 4:
+                self.canvas.painter.assistedSegmentation(self.extremePoints)
+                self.extremePoints.clear()
+
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
+
         
 class PointTool(AbstractTool):
     
@@ -527,23 +588,6 @@ class ScaleTool(AbstractTool):
     def Cursor(self):
         return Qt.UpArrowCursor
     
-    
-class DummyTool(AbstractTool):
-    # dummy tool, that executes on Button press,
-    # no interaction with canvas
-    def __init__(self, canvas, text):
-        super().__init__(canvas)
-        self.Text = text
-        self.canvas.setnewTool(canvasTool.drag.name)
-        
-    def mouseMoveEvent(self, e):
-        pass
-    def mouseReleaseEvent(self,e):
-        pass
-    def mousePressEvent(self,e):
-        pass
-    def Cursor(self):
-        return Qt.ArrowCursor  
 
 # tracking tools
 class ObjectNumberTool(AbstractTool):
