@@ -51,7 +51,7 @@ class DeepLearning(dlObservable):
         self.ImageScaleFactor = 0.5
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()
-        self.dextr = dextr.DEXTR_Segmenatation()
+        self.dextr = dextr.DEXTR_Segmentation()
         self.grabcut = gc.GrabCutSegmentation()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment(self)

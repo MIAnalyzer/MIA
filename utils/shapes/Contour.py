@@ -195,6 +195,9 @@ class Contour(Shape):
         cY = int(M["m01"] / M["m00"])
         return (cX, cY)
     
+    def getPerimeter(self):
+        return cv.arcLength(self.points,True)
+    
     def getSkeletonLength(self, smoothing):
         if self.skeleton is None:
             self.skeleton = self.getSkeleton(smoothing)
@@ -407,3 +410,20 @@ def matchcontours(contour1, contour2):
     # could be used additionally to compare, for now only the distance is calculated 
     return math.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2)
 
+def getContourMinIntensity(image, contour):
+    mask = np.zeros(image.shape, dtype = np.uint8)
+    cv2.drawcontours(mask, contour, -1,255,-1)
+    minval = cv2.min(image[mask>0])
+    return minval
+
+def getContourMeanIntensity(image, contour):
+    mask = np.zeros(image.shape, dtype = np.uint8)
+    cv2.drawcontours(mask, contour, -1,255,-1)
+    mean = cv2.mean(image, mask=mask)
+    return mean
+
+def getContourMaxIntensity(image, contour):
+    mask = np.zeros(image.shape, dtype = np.uint8)
+    cv2.drawcontours(mask, contour, -1,255,-1)
+    maxval = cv2.max(image[mask>0])
+    return maxval

@@ -7,11 +7,14 @@ import numpy as np
 from dl.machine_learning.dextr.dextr import DEXTR
 import dl.machine_learning.dextr.helpers as helpers
 
-class DEXTR_Segmenatation():
+class DEXTR_Segmentation():
     def __init__(self):
         self.pad = 50
         self.thres = 0.8
         modelName = './dextr/dextr_coco.h5'
+        self.net = None
+        
+    def loadModel(self):
         try:
             self.net = DEXTR(nb_classes=1, resnet_layers=101, input_shape=(512, 512), weights=modelName, num_input_channels=4, classifier='psp', sigmoid=True)
         except:
@@ -20,7 +23,9 @@ class DEXTR_Segmenatation():
 
     def predict(self, image, extreme_points_ori):
         if not self.net:
-            return 
+            self.loadModel()
+            if not self.net:
+                return 
 
         #  Crop image to the bounding box from the extreme points and resize
         bbox = helpers.get_bbox(image, points=extreme_points_ori, pad=self.pad, zero_pad=True)
