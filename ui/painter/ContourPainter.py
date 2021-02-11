@@ -141,6 +141,8 @@ class ContourPainter(Painter):
         with self.canvas.parent.wait_cursor():
             # do not use fov here because the target image is cropped to network size
             prediction = self.canvas.parent.dl.AssistedSegmentation(self.canvas.parent.getCurrentImage(), np.asarray(extremepoints, dtype = np.int))
+            if not prediction:
+                return
             shapes = Contour.extractContoursFromLabel(prediction, not self.canvas.parent.allowInnerContours)
             for s in shapes:
                 s.setClassLabel(self.canvas.parent.activeClass())

@@ -13,7 +13,7 @@ import csv
 import os
 import glob
 import concurrent.futures
-from utils.shapes.Contour import loadContours
+from utils.shapes.Contour import loadContours, getContourMinIntensity,getContourMeanIntensity, getContourMaxIntensity
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
 from ui.style import styleForm
@@ -21,7 +21,6 @@ from ui.ui_utils import DCDButton
 from utils.Image import ImageFile
 from dl.method.mode import dlMode
 import cv2
-import time
 
 
 class Window(object):
@@ -134,6 +133,10 @@ class SegmentationResultsWindow(QMainWindow, Window):
         f5 = lambda x: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor) 
         f6 = lambda x: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)/(self.parent.canvas.scale_pixel_per_mm/1000)
         f7 = lambda x: x.getSize()/max(1,x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor))
+        # f8 = lambda x, y = image: getContourMinIntensity(y,x)
+        # f9 = lambda x, y = image: getContourMeanIntensity(y,x)
+        # f10 = lambda x, y = image: getContourMaxIntensity(y,x)
+        # f11 = lambda x: x.getPerimeter()
 
         cnt_data = (f1,f2,f3)
         if self.parentwindow.CBSize.isChecked():
@@ -144,6 +147,8 @@ class SegmentationResultsWindow(QMainWindow, Window):
                 cnt_data += (f6,)
             cnt_data += (f7,)
 
+        
+        
         # add additional requirements here
         contours = [{} for x in range(self.parent.tracking.timepoints)]
 
