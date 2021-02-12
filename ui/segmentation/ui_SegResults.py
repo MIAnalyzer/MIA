@@ -44,7 +44,31 @@ class Window(object):
         self.CBSkeleton.setChecked(True)
         self.CBSkeleton.setToolTip('Check to export skeleton length')
 
+        self.CBPerimeter = QCheckBox("Export Perimeter",self.centralWidget)
+        self.CBPerimeter.setObjectName('Exportperimeter')
+        self.CBPerimeter.setChecked(True)
+        self.CBPerimeter.setToolTip('Check to export Perimeter length')
+
+        self.CBMin = QCheckBox("Export Min Intensity",self.centralWidget)
+        self.CBMin.setObjectName('ExportMin')
+        self.CBMin.setChecked(True)
+        self.CBMin.setToolTip('Check to export minimum pixel intensity')
+
+        self.CBMean = QCheckBox("Export Mean Intensity",self.centralWidget)
+        self.CBMean.setObjectName('ExportMean')
+        self.CBMean.setChecked(True)
+        self.CBMean.setToolTip('Check to export mean pixel intensity')
+
+        self.CBMax = QCheckBox("Export Max Intensity",self.centralWidget)
+        self.CBMax.setObjectName('ExportMax')
+        self.CBMax.setChecked(True)
+        self.CBMax.setToolTip('Check to export maximum pixel intensity')
+
         self.vlayout.addWidget(self.CBSkeleton)
+        self.vlayout.addWidget(self.CBPerimeter)
+        self.vlayout.addWidget(self.CBMin)
+        self.vlayout.addWidget(self.CBMean)
+        self.vlayout.addWidget(self.CBMax)
         
 
 
@@ -54,68 +78,116 @@ class SegmentationResultsWindow(QMainWindow, Window):
         self.parent = parent
         self.parentwindow = parentwindow
         self.setupUi(self)
+        self.funcs = []
 
 
     def saveContourData(self, writer, images, labels):    
+        self.funcs = []
         if self.parent.TrackingModeEnabled:
             self.saveTrackResults(writer, images, labels)
         else:
-            self.saveSegmenatationResults(writer, images, labels)
+            self.saveSegmentationResults(writer, images, labels)
 
-    def saveSegmenatationResults(self,writer, images, labels):
-         header = ['image name'] + ['frame number'] + ['object number'] + ['object type'] + ['size']
-         if self.parentwindow.CBSize.isChecked():
-             header += ['size in microns\u00b2']
-         if self.CBSkeleton.isChecked():
-             header += ['length in pixel']
-             if self.parentwindow.CBSize.isChecked():
-                 header += ['length in microns']
-             header += ['fatness (area / length)']
-                     
-         writer.writerow(header)
-         num = len(labels)
-         self.parent.emitinitProgress(num)
-         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
-             rows = executor.map(self.getSingleContourLabelFromList, zip(images,labels))
+    def saveSegmentationResults(self,writer, images, labels):
+        header = ['image name'] + ['frame number'] + ['object number'] + ['object type'] 
+
+        header = self.addOptionalParameters(header)
+                    
+        writer.writerow(header)
+        num = len(labels)
+        self.parent.emitinitProgress(num)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.maxworker) as executor:
+            rows = executor.map(self.getSingleContourLabelFromList, zip(images,labels))
         
-         for r in rows:
+        for r in rows:
              writer.writerows(r) 
+
+
+    def addOptionalParameters(self, header):
+        f1 = lambda x, _: x.getSize()
+        f2 = lambda x, _: x.getSize() /((self.parent.canvas.scale_pixel_per_mm/1000)**2)
+        f3 = lambda x, _: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor) 
+        f4 = lambda x, _: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)/(self.parent.canvas.scale_pixel_per_mm/1000)
+        f5 = lambda x, _: x.getSize()/max(1,x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor))
+        f6 = lambda x, _: x.getPerimeter()
+        f7 = lambda x, _: x.getPerimeter()/(self.parent.canvas.scale_pixel_per_mm/1000)
+        f8 = lambda x, y: getContourMinIntensity(y,x)
+        f9 = lambda x, y: getContourMeanIntensity(y,x)
+        f10 = lambda x, y: getContourMaxIntensity(y,x)
+
+        if self.parentwindow.CBSize.isChecked():
+            header += ['size in microns\u00b2']
+            self.funcs += (f2,)
+        else:
+            header += ['size']
+            self.funcs += (f1,)
+        if self.CBSkeleton.isChecked():
+            if self.parentwindow.CBSize.isChecked():
+                header += ['length in microns']
+                self.funcs += (f4,)
+            else:
+                header += ['length in pixel']
+                self.funcs += (f3,)
+            header += ['fatness (area / length)']
+            self.funcs += (f5,)
+        if self.CBPerimeter.isChecked(): 
+            if self.parentwindow.CBSize.isChecked():
+                header += ['perimeter in microns']
+                self.funcs += (f7,)
+            else:
+                header += ['perimeter']
+                self.funcs += (f6,)
+        if self.CBMin.isChecked():
+            header += ['minimum pixel intensity']
+            self.funcs += (f8,)
+        if self.CBMean.isChecked():
+            header += ['mean pixel intensity']
+            self.funcs += (f9,)
+        if self.CBMax.isChecked():
+            header += ['max pixel intensity']
+            self.funcs += (f10,)
+
+        return header
+
+    def LoadImageIfNecessary(self, name, frame):
+        if self.CBMin.isChecked() or self.CBMean.isChecked() or self.CBMax.isChecked(): 
+            imagefile = ImageFile(self.parent.files.convertIfStackPath(name))
+            image = imagefile.getImage(frame)
+        else: 
+            image = None
+        return image
+
+    def getFrameNumber(self, label):
+        if self.parent.files.isStackLabel(label):
+            frame = self.parent.files.getFrameNumber(label) + 1
+        else:
+            frame = 1
+        return frame
         
     def getSingleContourLabelFromList(self, im_labels):
 
         name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(im_labels[0]),withfileextension=True)
         contours = loadContours(self.parent.files.convertIfStackPath(im_labels[1]))
         contours = [x for x in contours if x.isValid(self.parent.canvas.minContourSize)]
-        if self.parent.files.isStackLabel(im_labels[1]):
-            frame = self.parent.files.getFrameNumber(im_labels[1]) + 1
-        else:
-            frame = 1
+        frame = self.getFrameNumber(im_labels[1])
         x = 0
         rows = []
         for c in contours:
             x += 1
-            row = [name] + [frame] + [x] + [c.classlabel] + [c.getSize()]
-            if self.parentwindow.CBSize.isChecked():
-                row += ['%.2f'%(c.getSize()/((self.parent.canvas.scale_pixel_per_mm/1000)**2))]
-            if self.CBSkeleton.isChecked():   
-                length = c.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)   
-                row += ['%.0f'%length]
-                if self.parentwindow.CBSize.isChecked():
-                    row += ['%.2f'%(length/(self.parent.canvas.scale_pixel_per_mm/1000))]
-                row += ['%.2f'%(c.getSize()/max(1,length))]
+            row = [name] + [frame] + [c.objectNumber] + [c.classlabel]
+            image = self.LoadImageIfNecessary(im_labels[0],frame-1)
+            row += [f(c,image) for f in self.funcs]
             rows.append(row)
         self.parent.emitProgress()
         return rows
 
     def saveTrackResults(self, writer, images, labels):
-        header = ['object number'] + ['time point'] +  ['image name'] + ['frame number'] + ['object type'] + ['position'] + ['size']
-        if self.parentwindow.CBSize.isChecked():
-            header += ['size in microns\u00b2']
-        if self.CBSkeleton.isChecked():
-            header += ['length in pixel']
-            if self.parentwindow.CBSize.isChecked():
-                header += ['length in microns']
-            header += ['fatness (area / length)']
+        header = ['object number'] + ['time point'] +  ['image name'] + ['frame number'] + ['object type'] + ['position'] 
+        f1 = lambda x, _: x.classlabel
+        f2 = lambda x, _: x.getCenter()
+        self.funcs = (f1,f2)
+        header = self.addOptionalParameters(header)
+
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
@@ -125,31 +197,6 @@ class SegmentationResultsWindow(QMainWindow, Window):
         
     def getTRackResults(self, images,labels):
         contours = []
-
-        f1 = lambda x: x.classlabel
-        f2 = lambda x: x.getCenter()
-        f3 = lambda x: x.getSize()
-        f4 = lambda x: x.getSize() /((self.parent.canvas.scale_pixel_per_mm/1000)**2)
-        f5 = lambda x: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor) 
-        f6 = lambda x: x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor)/(self.parent.canvas.scale_pixel_per_mm/1000)
-        f7 = lambda x: x.getSize()/max(1,x.getSkeletonLength(self.parent.canvas.skeletonsmoothingfactor))
-        # f8 = lambda x, y = image: getContourMinIntensity(y,x)
-        # f9 = lambda x, y = image: getContourMeanIntensity(y,x)
-        # f10 = lambda x, y = image: getContourMaxIntensity(y,x)
-        # f11 = lambda x: x.getPerimeter()
-
-        cnt_data = (f1,f2,f3)
-        if self.parentwindow.CBSize.isChecked():
-            cnt_data += (f4,)
-        if self.CBSkeleton.isChecked(): 
-            cnt_data += (f5,)
-            if self.parentwindow.CBSize.isChecked():
-                cnt_data += (f6,)
-            cnt_data += (f7,)
-
-        
-        
-        # add additional requirements here
         contours = [{} for x in range(self.parent.tracking.timepoints)]
 
         for i,l in zip(images,labels):
@@ -159,11 +206,10 @@ class SegmentationResultsWindow(QMainWindow, Window):
                 tp = self.parent.files.getFrameNumber(l)
             else:
                 tp = self.parent.tracking.getTimePointFromImageName(self.parent.files.convertIfStackPath(i))
-            if self.parent.files.isStackLabel(l):
-                frame = self.parent.files.getFrameNumber(l) + 1
-            else:
-                frame = 1
-            contours[tp] = {x.objectNumber: [name] + [frame] + [f(x) for f in cnt_data] for x in contour if x.isValid(self.parent.canvas.minContourSize)}
+            frame = self.getFrameNumber(l)
+
+            image = self.LoadImageIfNecessary(i,frame-1)
+            contours[tp] = {x.objectNumber: [name] + [frame] + [f(x,image) for f in self.funcs] for x in contour if x.isValid(self.parent.canvas.minContourSize)}
             self.parent.emitProgress()
         rows = []
         for n in self.parent.tracking.getNumbersOfTrackedObjects():

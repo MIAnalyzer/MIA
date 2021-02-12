@@ -9,6 +9,7 @@ from utils.Image import supportedImageFormats
 import glob
 import os
 import time
+import re
 
 class FilesAndFolders():
     def __init__(self, parent):
@@ -134,7 +135,7 @@ class FilesAndFolders():
             self.files = None
             self.numofImages = 0
         else:
-            self.files.sort()
+            self.sortNatural(self.files)
             self.currentImage = 0
             self.numofImages = len(self.files)
 
@@ -151,8 +152,6 @@ class FilesAndFolders():
             return True
         return False
 
-
-
     def setImagebyName(self,filename):
         if not self.files:
             return
@@ -164,11 +163,19 @@ class FilesAndFolders():
             return False
         
     ## helper functions
+    def sortNatural(self, alist):
+        def atoi(text):
+            return int(text) if text.isdigit() else text
+        def natural_keys(text):
+            # http://nedbatchelder.com/blog/200712/human_sorting.html
+            return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+        if alist:
+            return alist.sort(key=natural_keys)
+
     def getImagesFromFolder(self, folder):
         images = glob.glob(os.path.join(folder,'*.*'))
         images = [x for x in images if (x.lower().endswith(tuple(supportedImageFormats())))]
-        if images:
-            images.sort()
+        self.sortNatural(images)
         return images
 
     def getFilenameFromPath(self, path, withfileextension=False):
