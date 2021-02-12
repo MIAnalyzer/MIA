@@ -196,7 +196,7 @@ class Contour(Shape):
         return (cX, cY)
     
     def getPerimeter(self):
-        return cv.arcLength(self.points,True)
+        return cv2.arcLength(self.points,True)
     
     def getSkeletonLength(self, smoothing):
         if self.skeleton is None:
@@ -411,19 +411,19 @@ def matchcontours(contour1, contour2):
     return math.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2)
 
 def getContourMinIntensity(image, contour):
-    mask = np.zeros(image.shape, dtype = np.uint8)
-    cv2.drawcontours(mask, contour, -1,255,-1)
-    minval = cv2.min(image[mask>0])
+    mask = np.zeros(image.shape[0:2], dtype = np.uint8)
+    cv2.drawContours(mask, contour.points, -1,255,-1)
+    minval = np.min(image[mask>0])
     return minval
 
 def getContourMeanIntensity(image, contour):
-    mask = np.zeros(image.shape, dtype = np.uint8)
-    cv2.drawcontours(mask, contour, -1,255,-1)
-    mean = cv2.mean(image, mask=mask)
-    return mean
+    mask = np.zeros(image.shape[0:2], dtype = np.uint8)
+    cv2.drawContours(mask, contour.points, -1,255,-1)
+    meanval = np.mean(image[mask>0])
+    return meanval
 
 def getContourMaxIntensity(image, contour):
-    mask = np.zeros(image.shape, dtype = np.uint8)
-    cv2.drawcontours(mask, contour, -1,255,-1)
-    maxval = cv2.max(image[mask>0])
+    mask = np.zeros(image.shape[0:2], dtype = np.uint8)
+    cv2.drawContours(mask, contour.points, -1,255,-1)
+    maxval = np.max(image[mask>0])
     return maxval
