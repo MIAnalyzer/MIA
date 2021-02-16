@@ -12,10 +12,11 @@ from ui.style import styleForm
 from ui.ui_utils import DCDButton
 from dl.method.mode import dlMode
 
+
 class Window(object):
     def setupUi(self, Form):
         width = 180
-        height= 50
+        height= 65
         Form.setWindowTitle('Post Processing') 
         styleForm(Form)
 
@@ -32,8 +33,12 @@ class Window(object):
         self.CBTrackingMode.setToolTip('Check to enable tracking mode')
         self.CBTrackingMode.setObjectName('TrackingMode_od')
 
+        self.BCopyStackLabels = DCDButton(self.centralWidget, "Use as Stack Label")
+        self.BCopyStackLabels.setToolTip('Press to reuse current label for all frames in the current stack')
+
         self.vlayout.addWidget(self.CBTrackingMode)
-        
+        self.vlayout.addWidget(self.BCopyStackLabels)
+
 
 class ObjectDetectionPostProcessingWindow(QMainWindow, Window):
     def __init__(self, parent ):
@@ -42,9 +47,13 @@ class ObjectDetectionPostProcessingWindow(QMainWindow, Window):
         self.setupUi(self)
         self.CBTrackingMode.stateChanged.connect(self.enableTrackingMode)
         self.CBTrackingMode.setChecked(self.parent.TrackingModeEnabled)
+        self.BCopyStackLabels.clicked.connect(self.shareStackLabels)
 
     def enableTrackingMode(self):
         if self.parent.LearningMode() == dlMode.Object_Counting:
             self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())
+
+    def shareStackLabels(self):
+        self.parent.copyStackLabels()
 
 
