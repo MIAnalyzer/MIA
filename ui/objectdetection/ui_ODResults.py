@@ -91,7 +91,7 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
             name = self.parent.files.getFilenameFromPath(self.parent.files.convertIfStackPath(i),withfileextension=True)
             point_s,_ = loadPoints(self.parent.files.convertIfStackPath(l))
 
-            if self.parent.tracking.stackMode:
+            if self.parent.tracking.stackMode and self.parent.files.isStackLabel(l):
                 tp = self.parent.files.getFrameNumber(l)
             else:
                 tp = self.parent.tracking.getTimePointFromImageName(self.parent.files.convertIfStackPath(i))
