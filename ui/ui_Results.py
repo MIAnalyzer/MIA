@@ -26,7 +26,7 @@ from dl.method.mode import dlMode
 from utils.workerthread import WorkerThread
 import cv2
 import threading
-
+import sys
 
 class Window(object):
     def setupUi(self, Form):
@@ -247,7 +247,7 @@ class ResultsWindow(QMainWindow, Window):
                 self.parent.emitProgressFinished()
                 self.parent.emitStatus('results saved')
 
-         except: 
+         except PermissionError: 
              self.parent.emitPopup('Cannot write file (already open?)')
              return
 
