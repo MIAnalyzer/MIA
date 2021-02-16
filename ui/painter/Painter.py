@@ -178,6 +178,12 @@ class Painter(ABC):
         self.canvas.updateImage()
 
 
+    def addRectangle(self, x, y, width, height, color = None):
+        p = self.getPainter(color)
+        p.drawRect(x, y, width, height)
+        self.canvas.updateImage()
+
+
     #### contour drawing functions
     def drawcontour(self, contour):   
         painter = self.getPainter()

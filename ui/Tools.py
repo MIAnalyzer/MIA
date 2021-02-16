@@ -448,6 +448,9 @@ class DEXTRTool(AbstractTool):
         self.type = canvasTool.assist
         self.extremePoints = []
 
+    def __del__(self): 
+        self.extremePoints.clear()
+        self.canvas.redrawImage()
         
     def mouseMoveEvent(self, e):
         pass
@@ -458,6 +461,13 @@ class DEXTRTool(AbstractTool):
             return
         if e.button() == Qt.LeftButton:  
             p = self.canvas.mapToScene(e.pos())
+
+            h = self.canvas.pen_size
+            w = self.canvas.pen_size
+            x = p.x() - w//2
+            y = p.y() - h//2
+
+            self.canvas.painter.addRectangle(x, y, h, w)
             self.extremePoints.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
             if len(self.extremePoints) == 4:
                 self.canvas.painter.assistedSegmentation(self.extremePoints)
