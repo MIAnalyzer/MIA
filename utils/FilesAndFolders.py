@@ -10,6 +10,8 @@ import glob
 import os
 import time
 import re
+from shutil import copyfile
+
 
 class FilesAndFolders():
     def __init__(self, parent):
@@ -220,6 +222,9 @@ class FilesAndFolders():
             os.makedirs(foldername)
             # os.mkdir(foldername)
 
+    def removeFrameNumFromLabelName(self, stacklabel):
+        return stacklabel[:-4]
+
     def ImagePath2LabelPath(self, imagepath, checkexistence = False, stack = False):
         if imagepath is None:
             return None
@@ -237,3 +242,18 @@ class FilesAndFolders():
                 path += ".npz"
                 return path if os.path.exists(path) else None
 
+    def copyStackLabels(self, label, frames):
+        print(label)
+        print(frames)
+        if not self.parent.hasStack():
+            return
+        label = self.convertIfStackPath(label)
+        folder = os.path.dirname(os.path.abspath(label))
+        name = self.removeFrameNumFromLabelName(self.getFilenameFromPath(label))
+        _,ext = os.path.splitext(label)
+        for f in range(frames):
+            if f ==  self.getFrameNumber(label):
+                continue
+            else:
+                filename = self.extendNameByFrameNumber(name,f) + ext
+                copyfile(label, os.path.join(folder,filename))

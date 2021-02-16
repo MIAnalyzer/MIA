@@ -58,6 +58,11 @@ class Window(object):
         self.h2layout.addWidget(self.SSkeletonSmoothing)
 
         self.vlayout.addLayout(self.h2layout)
+
+        self.BCopyStackLabels = DCDButton(self.centralWidget, "Use as Stack Label")
+        self.BCopyStackLabels.setToolTip('Press to reuse current label for all frames in the current stack')
+
+        self.vlayout.addWidget(self.BCopyStackLabels)
         
 
         
@@ -74,7 +79,8 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
         self.CBTrackingMode.stateChanged.connect(self.enableTrackingMode)
         self.SSkeletonSmoothing.valueChanged.connect(self.skeletonsmoothing)
         self.SSkeletonSmoothing.setValue(self.parent.canvas.skeletonsmoothingfactor)
-        self.SBminContourSize.valueChanged.connect(self.setminContourSize)      
+        self.SBminContourSize.valueChanged.connect(self.setminContourSize)     
+        self.BCopyStackLabels.clicked.connect(self.shareStackLabels)
         
     def showSkeleton(self):
         self.parent.canvas.drawSkeleton = self.CBCalculateSkeleton.isChecked()
@@ -93,3 +99,6 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
     def enableTrackingMode(self):
         if self.parent.LearningMode() == dlMode.Segmentation:
             self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())
+
+    def shareStackLabels(self):
+        self.parent.copyStackLabels()
