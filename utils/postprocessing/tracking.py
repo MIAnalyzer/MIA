@@ -39,7 +39,7 @@ class ObjectTracking():
         self.tracks[:,tp,:] = -1
         unmatched = []
         for o in objects.shapes:
-            if o.objectNumber == -1:
+            if o.objectNumber == -1 or self.tracks.shape[0] < o.objectNumber:
                 unmatched.append(o)
             else:
                 self.tracks[o.objectNumber-1,tp,:] = np.asarray(o.getPosition())
@@ -144,7 +144,6 @@ class ObjectTracking():
 
         self.resetTracking(self.timepoints)
         for tp,t in self.labelGenerator():
-            
             shapes = self.dl.Mode.LoadShapes(t)
             save = False
             for i,s in enumerate(shapes):
