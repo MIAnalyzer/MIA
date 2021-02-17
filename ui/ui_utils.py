@@ -237,10 +237,10 @@ class ClassWidget(QWidget):
         self.edit_name = QLineEdit(parent)
         self.edit_name.setText(name)
         self.edit_name.setToolTip('Edit class name')
-        self.edit_name.setObjectName('class %i' % self.id)
+        self.edit_name.setObjectName('nn_class_%i' % self.id)
         self.edit_name.setStyleSheet("QLineEdit { border: None }")
 
-        self.classweight = QSetting(parent, 'classweight %i' % self.id, 0.5)
+        self.classweight = QSetting(parent, 'nn_classweight_%i' % self.id, 0.5)
         
         
         self.label_numOfContours = QLabel(parent)

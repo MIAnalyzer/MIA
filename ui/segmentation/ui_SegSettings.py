@@ -27,19 +27,19 @@ class Window(object):
         vlayout.setSpacing(2)
         
         self.CBDitanceMap = QCheckBox("Separate contours",self.centralWidget)
-        self.CBDitanceMap.setObjectName('CreateWeightedDistanceMap')
+        self.CBDitanceMap.setObjectName('nn_CreateWeightedDistanceMap')
         self.CBDitanceMap.setToolTip('Check to separate adjacent contours')
 
         self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
         self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
-        self.CBIgnoreBackgroundTiles.setObjectName('IgnoreBackground_seg')
+        self.CBIgnoreBackgroundTiles.setObjectName('nn_IgnoreBackground_seg')
 
         self.SBDiscard = LabelledSpinBox ('Discard up to x background tiles', self.centralWidget)
-        self.SBDiscard.setObjectName('DiscardBGTiles_seg')
+        self.SBDiscard.setObjectName('nn_DiscardBGTiles_seg')
         self.SBDiscard.SpinBox.setRange(1,20)
 
         self.SBMinPixels = LabelledSpinBox ('Minimum required labelled pixels', self.centralWidget)
-        self.SBMinPixels.setObjectName('MinLabelledPixels_seg')
+        self.SBMinPixels.setObjectName('nn_MinLabelledPixels_seg')
         self.SBMinPixels.SpinBox.setRange(1,1000)
 
         

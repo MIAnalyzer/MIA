@@ -821,7 +821,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         if filename:
             with self.wait_cursor():
                 self.dl.SaveModel(filename)
-                self.settings.saveSettings(filename.replace("h5", "json"))
+                self.settings.saveSettings(filename.replace("h5", "json"), networksettingsonly=True)
                 self.writeStatus('model saved')
 
     def resetModel(self):

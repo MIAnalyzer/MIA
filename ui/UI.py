@@ -84,7 +84,7 @@ class MainWindow(object):
         self.CBLearningMode.addItem("3D Segmentation")
         self.CBLearningMode.addItem("Instance Segmentation")
         self.CBLearningMode.setToolTip('Select analysis mode')        
-        self.CBLearningMode.setObjectName("Learning_Mode")
+        self.CBLearningMode.setObjectName("nn_Learning_Mode")
         self.CBLearningMode.setEditable(False)
         self.CBLearningMode.setFocus(False)
         self.vlayout.addWidget(self.CBLearningMode)

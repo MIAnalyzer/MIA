@@ -37,16 +37,16 @@ class Window(object):
         layout = QHBoxLayout(self.centralWidget)
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
-        self.CBMemory.setObjectName('TrainInMemory')
+        self.CBMemory.setObjectName('nn_TrainInMemory')
         layout.addWidget(self.CBMemory)
 
         self.SBPredictEvery = LabelledSpinBox ('Predict an image every x epochs', self.centralWidget)
         self.SBPredictEvery.setToolTip('Predict the current selected test image after every x epochs')
         self.SBPredictEvery.SpinBox.setRange(0,100)
         self.SBPredictEvery.SpinBox.setValue(0)
-        self.SBPredictEvery.setObjectName('PredictEveryX')
+        self.SBPredictEvery.setObjectName('nn_PredictEveryX')
         self.CBPreprocess = QComboBox(self.centralWidget)
-        self.CBPreprocess.setObjectName('Preprocessing')
+        self.CBPreprocess.setObjectName('nn_Preprocessing')
         for pre in dlPreprocess:
             self.CBPreprocess.addItem(pre.name)
 
@@ -71,15 +71,15 @@ class Window(object):
         self.LWeights = QLabel("Class Weighting",self.centralWidget)
         self.RBAutoClassWeight = QRadioButton("Auto weighting",self.centralWidget)
         self.RBAutoClassWeight.setToolTip('Check to automatically calculate the weight of each class')
-        self.RBAutoClassWeight.setObjectName('AutoClassWeight')
+        self.RBAutoClassWeight.setObjectName('nn_AutoClassWeight')
         
         self.RBManuClassWeight = QRadioButton("Manual weighting",self.centralWidget)
         self.RBManuClassWeight.setToolTip('Check to manual set weight of each class')
-        self.RBManuClassWeight.setObjectName('ManualClassWeight')
+        self.RBManuClassWeight.setObjectName('nn_ManualClassWeight')
         
         self.RBNoClassWeight = QRadioButton("Disable weighting",self.centralWidget)
         self.RBNoClassWeight.setToolTip('Check to disable class weights')
-        self.RBNoClassWeight.setObjectName('NoClassWeight')
+        self.RBNoClassWeight.setObjectName('nn_NoClassWeight')
         
         hlayout_2.addWidget(self.RBNoClassWeight)
         hlayout_2.addWidget(self.RBAutoClassWeight)
@@ -103,7 +103,7 @@ class Window(object):
         vlayout_1 = QVBoxLayout(self.centralWidget)
         self.LLoss = QLabel("Loss",self.centralWidget)
         self.CBLoss = QComboBox(self.centralWidget)
-        self.CBLoss.setObjectName('Loss')
+        self.CBLoss.setObjectName('nn_Loss')
         self.CBLoss.setToolTip('Set loss function that is optimized during training')
         vlayout_1.addWidget(self.LLoss)
         vlayout_1.addWidget(self.CBLoss)
@@ -111,14 +111,14 @@ class Window(object):
         vlayout_2 = QVBoxLayout(self.centralWidget)
         self.LMetric = QLabel("Metric",self.centralWidget)
         self.CBMetrics = QComboBox(self.centralWidget)
-        self.CBMetrics.setObjectName('Metric')
+        self.CBMetrics.setObjectName('nn_Metric')
         self.CBMetrics.setToolTip('Set metric to measure network performance')
         vlayout_2.addWidget(self.LMetric)
         vlayout_2.addWidget(self.CBMetrics)
         vlayout_3 = QVBoxLayout(self.centralWidget)
         self.LOptimizer = QLabel("Optimizer",self.centralWidget)
         self.CBOptimizer = QComboBox(self.centralWidget)
-        self.CBOptimizer.setObjectName('Optimizer')
+        self.CBOptimizer.setObjectName('nn_Optimizer')
         vlayout_3.addWidget(self.LOptimizer)
         vlayout_3.addWidget(self.CBOptimizer)
         
@@ -141,7 +141,7 @@ class Window(object):
         
         hlayout = QHBoxLayout(self.centralWidget)
         self.STrainVal = QSlider(Qt.Horizontal, self.centralWidget)
-        self.STrainVal.setObjectName('TrainValSplit')
+        self.STrainVal.setObjectName('nn_TrainValSplit')
         self.STrainVal.setMinimum(20)
         self.STrainVal.setMaximum(100)
         self.STrainVal.setValue(100)
@@ -162,18 +162,18 @@ class Window(object):
         hlayout = QHBoxLayout(self.centralWidget)
 
         self.RBConstant = QRadioButton(self.centralWidget)
-        self.RBConstant.setObjectName('ConstantLR')
+        self.RBConstant.setObjectName('nn_ConstantLR')
         self.RBConstant.setText("Constant")
         self.RBConstant.setToolTip('Toggle to set constant learning rate')
 
 
         self.RBRlroP = QRadioButton(self.centralWidget)
-        self.RBRlroP.setObjectName('ReduceLR')
+        self.RBRlroP.setObjectName('nn_ReduceLR')
         self.RBRlroP.setText("on Plateau")
         self.RBRlroP.setToolTip('Toggle to reduce learning rate on plateau')
 
         self.RBLRschedule = QRadioButton(self.centralWidget)
-        self.RBLRschedule.setObjectName('ScheduleLR')
+        self.RBLRschedule.setObjectName('nn_ScheduleLR')
         self.RBLRschedule.setText("Schedule")
         self.RBLRschedule.setToolTip('Toggle to set learning rate schedule')
 
@@ -183,7 +183,7 @@ class Window(object):
         layout.addLayout(hlayout)
 
         self.SBlr = LabelledAdaptiveDoubleSpinBox ('Learning Rate', self.centralWidget)
-        self.SBlr.setObjectName('Learning_Rate')
+        self.SBlr.setObjectName('nn_Learning_Rate')
         self.SBlr.SpinBox.setRange(0.000001,1)
         self.SBlr.setToolTip('Set learning rate')
         self.SBlr.SpinBox.setDecimals(6)
@@ -191,14 +191,14 @@ class Window(object):
         layout.addWidget(self.SBlr)
         
         self.SBReduction = LabelledAdaptiveDoubleSpinBox ('Reduction Factor', self.centralWidget)
-        self.SBReduction.setObjectName('LRReduction')
+        self.SBReduction.setObjectName('nn_LRReduction')
         self.SBReduction.SpinBox.setRange(0.001,1)
         self.SBReduction.SpinBox.setDecimals(3)
         self.SBReduction.SpinBox.setSingleStep(0.1)
         layout.addWidget(self.SBReduction)
 
         self.SBEveryx = LabelledSpinBox ('Reduce every x epochs', self.centralWidget)
-        self.SBEveryx.setObjectName('LREpochs')
+        self.SBEveryx.setObjectName('nn_LREpochs')
         self.SBEveryx.SpinBox.setRange(1,1000)
         self.SBEveryx.SpinBox.setValue(25)
         layout.addWidget(self.SBEveryx)

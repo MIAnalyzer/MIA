@@ -18,8 +18,8 @@ class Settings:
         self.settingsDict = {}
     
     
-    def saveSettings(self, path):
-        self.collectSettings()
+    def saveSettings(self, path, networksettingsonly=False):
+        self.collectSettings(networksettingsonly)
         try:
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(self.settingsDict, f, ensure_ascii=False, indent=4)
@@ -41,28 +41,32 @@ class Settings:
 
             
     
-    def collectSettings(self):
+    def collectSettings(self, nnsettingsonly):
         self.settingsDict.clear()
-        self.addObjectSetting(QCheckBox, QCheckBox.isChecked)
-        self.addObjectSetting(QRadioButton, QRadioButton.isChecked)
-        self.addObjectSetting(QSlider, QSlider.value)
-        self.addObjectSetting(QComboBox, QComboBox.currentIndex)
-        self.addObjectSetting(QDoubleSpinBox, QDoubleSpinBox.value)
-        self.addObjectSetting(QSpinBox, QSpinBox.value)
-        self.addObjectSetting(QGroupBox, QGroupBox.isChecked)
-        self.addObjectSetting(QLineEdit, QLineEdit.text)
-        self.addObjectSetting(QSetting, QSetting.value)
+        self.addObjectSetting(QCheckBox, QCheckBox.isChecked, nnsettingsonly)
+        self.addObjectSetting(QRadioButton, QRadioButton.isChecked, nnsettingsonly)
+        self.addObjectSetting(QSlider, QSlider.value, nnsettingsonly)
+        self.addObjectSetting(QComboBox, QComboBox.currentIndex, nnsettingsonly)
+        self.addObjectSetting(QDoubleSpinBox, QDoubleSpinBox.value, nnsettingsonly)
+        self.addObjectSetting(QSpinBox, QSpinBox.value, nnsettingsonly)
+        self.addObjectSetting(QGroupBox, QGroupBox.isChecked, nnsettingsonly)
+        self.addObjectSetting(QLineEdit, QLineEdit.text, nnsettingsonly)
+        self.addObjectSetting(QSetting, QSetting.value, nnsettingsonly)
 
    
-    def addObjectSetting(self, objectType, function):
+    def addObjectSetting(self, objectType, function, nnsettingsonly):
         items = self.parent.findChildren(objectType)
         for i in items:
             if i.objectName() != '' and i.objectName() != 'qt_spinbox_lineedit': # spinbox line edit has qt_spinbox_lineedit as default name
-                self.settingsDict[i.objectName()] = function(i)
+                if not nnsettingsonly:
+                    self.settingsDict[i.objectName()] = function(i)
+                else:
+                    if i.objectName().startswith('nn'):
+                        self.settingsDict[i.objectName()] = function(i)
         
             
     def applySettings(self):
-        self.parent.setNumberOfClasses(self.settingsDict['NumOfClasses'])
+        self.parent.setNumberOfClasses(self.settingsDict['nn_NumOfClasses'])
         for obj in self.settingsDict:
             widget = self.parent.findChild(QWidget, obj)
             if isinstance(widget, QCheckBox):

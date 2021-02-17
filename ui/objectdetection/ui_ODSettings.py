@@ -32,7 +32,7 @@ class Window(object):
         self.SObjectSize =  QSlider(Qt.Horizontal, self.centralWidget)
         self.SObjectSize.setMinimum(1)
         self.SObjectSize.setMaximum(10)
-        self.SObjectSize.setObjectName('CountingObjectSize')
+        self.SObjectSize.setObjectName('nn_CountingObjectSize')
         self.SObjectSize.setToolTip('Use to adapt object size and distribution. Use smaller values for small and densely distributed objects')
         self.LObjSize = QLabel(self.centralWidget)
         self.LObjSize.setText('Object Size')
@@ -43,21 +43,21 @@ class Window(object):
         self.SObjectIntensity =  QSlider(Qt.Horizontal, self.centralWidget)
         self.SObjectIntensity.setMinimum(1)
         self.SObjectIntensity.setMaximum(500)
-        self.SObjectIntensity.setObjectName('CountingObjectIntensity')
+        self.SObjectIntensity.setObjectName('nn_CountingObjectIntensity')
         self.SObjectIntensity.setToolTip('Use to set object peak intensity')
         self.LObjIntensity = QLabel(self.centralWidget)
         self.LObjIntensity.setText('Object Intensity')
 
         self.CBIgnoreBackgroundTiles = QCheckBox("Prefer labelled parts",self.centralWidget)
         self.CBIgnoreBackgroundTiles.setToolTip('When checked image parts which contain only background are ignored during training')
-        self.CBIgnoreBackgroundTiles.setObjectName('IgnoreBackground_od')
+        self.CBIgnoreBackgroundTiles.setObjectName('nn_IgnoreBackground_od')
 
         self.SBDiscard = LabelledSpinBox ('Discard up to x background tiles', self.centralWidget)
-        self.SBDiscard.setObjectName('DiscardBGTiles_od')
+        self.SBDiscard.setObjectName('nn_DiscardBGTiles_od')
         self.SBDiscard.SpinBox.setRange(1,20)
 
         self.SBMinPixels = LabelledSpinBox ('Minimum required labelled pixels', self.centralWidget)
-        self.SBMinPixels.setObjectName('MinLabelledPixels_od')
+        self.SBMinPixels.setObjectName('nn_MinLabelledPixels_od')
         self.SBMinPixels.SpinBox.setRange(1,1000)
 
 
