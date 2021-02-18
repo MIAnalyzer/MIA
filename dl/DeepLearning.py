@@ -28,7 +28,7 @@ import dl.training.augment as augment
 import dl.training.lrschedule as schedule
 import dl.machine_learning.hed as hed
 import dl.machine_learning.dextr.dextr_segmentation as dextr
-import dl.machine_learning.grabcut_segmentation as gc
+import dl.machine_learning.grabcut_segmentation as gcs
 import dl.data.imagedata as imagedata
 from dl.data.imagedata import dlPreprocess
 from dl.method.segmentation import Segmentation
@@ -39,7 +39,7 @@ from dl.method.mode import dlMode
 from dl.optimizer.optimizer import Optimizer
 
 from utils.Observer import dlObservable
-
+import gc
 
 import utils.shapes.Contour
 import multiprocessing
@@ -52,7 +52,7 @@ class DeepLearning(dlObservable):
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()
         self.dextr = dextr.DEXTR_Segmentation()
-        self.grabcut = gc.GrabCutSegmentation()
+        self.grabcut = gcs.GrabCutSegmentation()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment(self)
         self.record = training_record.TrainingRecording(self)
@@ -147,10 +147,15 @@ class DeepLearning(dlObservable):
             self.notifyError()
             return False
 
+    def cleanMemory(self):
+        # where/when do we need to put this
+        gc.collect()
+        tf.keras.backend.clear_session()
        
     def startTraining(self, trainingimages_path):
         if not self.initialized or trainingimages_path is None:
             return False
+        self.cleanMemory()
 
         thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path,))
         thread.daemon = True
@@ -159,7 +164,7 @@ class DeepLearning(dlObservable):
     def resumeTraining(self):
         if not self.initialized:
             return False
-
+        self.cleanMemory()
         thread = threading.Thread(target=self.Training)
         thread.daemon = True
         thread.start()
