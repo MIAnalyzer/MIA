@@ -12,6 +12,7 @@ from dl.metric.metric_functions import dice_coefficient, dice_coefficient_binary
 
 
 ## classification
+# see segmentation
 
 ## regression
 def mean_squared_error(class_weights=None):
@@ -51,7 +52,6 @@ def focal_loss(usedistmap=False, class_weights = None, gamma=2):
         class_weights = .25
     # would be numerically more stable to use logits directly tf.nn.softmax_cross_entropy_with_logits and extend for focal and weights
     # similar as https://github.com/umbertogriffo/focal-loss-keras/blob/master/losses.py
-    # global _focal_loss
     def _focal_loss(ytrue, ypred):
         if usedistmap:
             weightmap = K.expand_dims(ytrue[...,-1], axis=3)
