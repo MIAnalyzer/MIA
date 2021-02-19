@@ -11,7 +11,30 @@ from tensorflow.keras.utils import get_custom_objects
 import tensorflow as tf
 
 # classification metrcis
-# ...
+def accuracy():
+    return tf.keras.metrics.CategoricalAccuracy()
+
+def accuracy_binary():
+    tf.keras.metrics.BinaryAccuracy()
+
+def recall(y_true, y_pred):
+    y_true = K.ones_like(y_true) 
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    all_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    recall = true_positives / (all_positives + K.epsilon())
+    return recall
+
+def precision(y_true, y_pred):
+    y_true = K.ones_like(y_true) 
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    return precision
+
+def f1_score(y_true, y_pred):
+    precision = precision_m(y_true, y_pred)
+    recall = recall_m(y_true, y_pred)
+    return 2*((precision*recall)/(precision+recall+K.epsilon()))
 
 
 # regression         
@@ -106,6 +129,17 @@ def pixel_accuracy_weighted(y_true, y_pred):
 
 
 # for loading models trained with custom metrics
+get_custom_objects()['recall'] = recall
+get_custom_objects()['precision'] = precision
+get_custom_objects()['f1_score'] = f1_score
+
+
+
+get_custom_objects()['pixel_accuracy_binary'] = pixel_accuracy_binary
+get_custom_objects()['pixel_accuracy_binary_weighted'] = pixel_accuracy_binary_weighted
+get_custom_objects()['pixel_accuracy'] = pixel_accuracy
+get_custom_objects()['pixel_accuracy_weighted'] = pixel_accuracy_weighted
+
 get_custom_objects()['mean_iou'] = mean_iou
 get_custom_objects()['mean_iou_weighted'] = mean_iou_weighted
 get_custom_objects()['mean_iou_binary'] = mean_iou_binary

@@ -60,7 +60,7 @@ class ImageLabelPainter(Painter):
     def save(self):
         if len(self.trackChanges) > self.maxChanges:
             self.trackChanges.pop(0)
-        self.trackChanges.append((self.imagelabel), self.backgroundshapes.copy())
+        self.trackChanges.append((self.imagelabel, self.backgroundshapes.copy()))
         self.canvas.parent.checkIfUndoPossible()
 
         if self.imagelabel or not self.contours.empty():

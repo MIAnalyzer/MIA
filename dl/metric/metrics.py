@@ -17,6 +17,10 @@ class dlMetric(Enum):
     root_mean_squared_err = 5
     mean_abs_err = 6
     mean_squared_log_err = 7
+    accuracy = 8
+    precision = 9
+    recall = 10
+    f1 = 11
 
 
 class Metrics(ABC):

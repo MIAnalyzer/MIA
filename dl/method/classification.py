@@ -6,12 +6,16 @@ Created on Wed Jul 22 16:24:31 2020
 """
 
 from dl.method.mode import LearningMode, dlMode
+from dl.loss.classification_losses import ClassificationLosses
+from dl.metric.classification_metrics import ClassificationMetrics
 
 
 class Classification(LearningMode):
     def __init__(self, parent):
         super(Classification,self).__init__(parent)
         self.type = dlMode.Classification
+        self.loss = ClassificationLosses(parent)
+        self.metric = ClassificationMetrics(parent)
         
     def LoadLabel(self, filename, height, width):
         pass

@@ -9,14 +9,15 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 class dlMode(Enum):
+    Undefined = -1
     Classification = 0
     Object_Counting = 1
-    Object_Tracking = 2
-    Segmentation = 3
-    Segmentation_Tracking = 4
-    Segmentation_3D = 5
-    Instance_Segmentation = 6
-    Undefined = -1
+    Segmentation = 2
+    # potentially at some point
+    #Object_Detection = 3
+    #Segmentation_3D = 4
+    #Instance_Segmentation = 5
+    
 
 class LearningMode(ABC):
     def __init__(self, parent):
