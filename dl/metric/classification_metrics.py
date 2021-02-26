@@ -31,7 +31,8 @@ class ClassificationMetrics(Metrics):
 
 
     def accuracy_function(self, binary):
+        # return 'accuracy' 
         if binary:
-            return [accuracy_binary]
+            return [accuracy_binary()]
         else:
-            return [accuracy]
+            return [accuracy()]

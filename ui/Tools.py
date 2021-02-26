@@ -315,8 +315,7 @@ class AssignTool(AbstractTool):
             if contour is not None:
                 contour.setClassLabel(self.canvas.parent.activeClass())
                 self.canvas.painter.checkForChanges()
-
-                      
+                
     def mousePressEvent(self,e):
         pass
 

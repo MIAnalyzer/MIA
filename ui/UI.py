@@ -304,9 +304,16 @@ class MainWindow(object):
         self.ToolButtonslayout.addWidget(self.Bassign)
         self.ToolButtonslayout.addWidget(self.Bextend)
         self.ToolButtonslayout.addWidget(self.Bdelete)
-        self.ToolButtonslayout.addWidget(self.BassignClass)
-        self.ToolButtonslayout.addWidget(self.BsetClass)
+
+        self.ClassificationToolButtonslayout = QHBoxLayout(self.centralWidget)
+        self.ClassificationToolButtonslayout.setContentsMargins(0, 0, 0, 0)
+        self.ClassificationToolButtons = QFrame()
+        self.ClassificationToolButtons.setLayout(self.ClassificationToolButtonslayout)
+        self.ClassificationToolButtons.hide()
+        self.ClassificationToolButtonslayout.addWidget(self.BassignClass)
+        self.ClassificationToolButtonslayout.addWidget(self.BsetClass)
         
+        self.vlayout.addWidget(self.ClassificationToolButtons)
         self.vlayout.addWidget(self.ToolButtons)
 
         

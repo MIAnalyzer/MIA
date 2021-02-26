@@ -95,7 +95,7 @@ class DeepLearning(dlObservable):
         # returns model output
         if not self.initialized:
             raise ('model not initialized')
-        return self.Model.output_shape[3]
+        return self.Model.output_shape[-1]
 
     @property
     def NumClasses_real(self):

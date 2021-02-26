@@ -15,7 +15,7 @@ def accuracy():
     return tf.keras.metrics.CategoricalAccuracy()
 
 def accuracy_binary():
-    tf.keras.metrics.BinaryAccuracy()
+    return tf.keras.metrics.BinaryAccuracy()
 
 def recall(y_true, y_pred):
     y_true = K.ones_like(y_true) 
