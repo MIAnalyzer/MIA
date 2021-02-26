@@ -10,6 +10,7 @@ import imgaug.augmenters as iaa
 import numpy as np
 import random
 import math
+import cv2
 from dl.method.mode import dlMode
 
 class ImageAugment():
@@ -160,6 +161,9 @@ class ImageAugment():
 
         return imgs, labls
         
+    def fitFullSizeImage2OutputSize(self, images):
+        # add random crop
+        return [cv2.resize(x, (self.outputwidth, self.outputheight), interpolation = cv2.INTER_CUBIC) for x in images]
         
     def initAugmentation(self):
         self.currentTile = 0
@@ -205,11 +209,25 @@ class ImageAugment():
                 ))))
 
             
-    def augment(self, image, label, validation = False):       
-        if validation:
-            x, y = self.systematiccrop_or_pad(image, label)
+    def augment(self, image, label, validation = False):     
+        if self.parent.Mode.type == dlMode.Segmentation or self.parent.Mode.type == dlMode.Object_Counting:
+            if validation:
+                x, y = self.systematiccrop_or_pad(image, label)
+            else:
+                image, label = self.randomcrop_or_pad(image, label)
+                x,y = self.augmentation_sequence(images=image, segmentation_maps=label)
+        elif self.parent.Mode.type == dlMode.Classification:
+            if validation:
+                x = self.fitFullSizeImage2OutputSize(image)
+                y = label
+            else:
+                image = self.fitFullSizeImage2OutputSize(image)
+                y = label
+                x = self.augmentation_sequence(images=image)
         else:
-            image, label = self.randomcrop_or_pad(image, label)
-            x,y = self.augmentation_sequence(images=image, segmentation_maps=label)
+            raise 
+
+
+
         return np.asarray(x),np.asarray(y)
 

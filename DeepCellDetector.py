@@ -384,7 +384,11 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.DetectionSettings.show()
         else:
             self.DetectionSettings.hide()
-
+        
+        if self.LearningMode() == dlMode.Classification:
+            self.ClassificationToolButtons.show()
+        else:
+            self.ClassificationToolButtons.hide()
 
         if self.initialized:
             # could be done in an observer
@@ -447,8 +451,18 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             if not widget:
                 continue
             widget.setVisible(True)
+
+        self.ToolButtons.setVisible(True)
+        show = False
+        for index in range(self.ToolButtonslayout.count()):
+            if self.ToolButtonslayout.itemAt(index).widget().isVisible():
+                show = True
+        self.ToolButtons.setVisible(show)
+
         if self.canvas.tool.type not in self.canvas.painter.tools:
             self.setCanvasTool(canvasTool.drag.name)
+
+
 
         
     def addClass(self):

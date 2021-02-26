@@ -23,6 +23,10 @@ class ImageLabelPainter(Painter):
         self.tools.append(canvasTool.assignimageclass)
         self.imagelabel = None
 
+    def enableDrawBackgroundMode(self):
+        super(ImageLabelPainter, self).enableDrawBackgroundMode()
+        self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.assignimageclass)
 
     def disableDrawBackgroundMode(self):
         super(ImageLabelPainter, self).disableDrawBackgroundMode()

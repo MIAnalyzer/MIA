@@ -1,7 +1,7 @@
 
 from utils.shapes.Shape import Shape, IMAGELABEL_ID
 import numpy as np
-from utils.shapes.Contour import packContours, unpackContours
+from utils.shapes.Contour import packContours, unpackContours, drawbackgroundToLabel
 
 class ImageLabel(Shape):
     def __init__(self, classlabel):
@@ -21,8 +21,11 @@ def saveImageLabel(label, filename, background = None):
         l = [label.labeltype]
         l.append(label.classlabel)
     else:
-        if bg:
-            l = [IMAGELABEL_ID, []]
+        # not saving background only, anymore
+        return
+    #else:
+    #    if bg:
+    #        l = [IMAGELABEL_ID, []]
     if bg:
         l.extend(bg)
     np.savez(filename, *l)
@@ -32,7 +35,7 @@ def loadImageLabel(filename):
     data = [container[key] for key in container]
     ret = []
     if data[0] == IMAGELABEL_ID:
-        if data[1]:
+        if data[1] or data[1] == 0:
             ret = ImageLabel(data[1])
         else:
             ret = None
@@ -41,3 +44,11 @@ def loadImageLabel(filename):
     else:
         bg = None
     return ret, bg
+
+def drawImageLabel(image, imagelabel, bg):
+    image = drawbackgroundToLabel(image, bg)
+    if np.all(image) != 0:
+        image[:] = imagelabel.classlabel  
+    else:
+        image[image==0] = imagelabel.classlabel
+    return image
