@@ -59,7 +59,8 @@ def focal_loss(usedistmap=False, class_weights = None, gamma=2):
         else: 
             weightmap = 1
 
-        ypred /= K.sum(ypred, axis=-1, keepdims=True)
+
+
         epsilon = K.epsilon()
         ypred = K.clip(ypred, epsilon, 1. - epsilon)
         return -K.mean(class_weights * K.pow(1. - ypred, gamma) * ytrue * K.log(ypred) * weightmap, axis=-1)
