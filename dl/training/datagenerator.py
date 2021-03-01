@@ -57,6 +57,7 @@ class TrainingDataGenerator(Sequence):
                 batch_images,batch_masks = self._loadBatchFromDisk(batch_start, batch_end)
 
             img, mask = self.parent.augmentation.augment(batch_images,batch_masks, self.validation)
+
             img = self.parent.data.preprocessImage(img)     
             mask = self.parent.data.preprocessLabel(mask)
 

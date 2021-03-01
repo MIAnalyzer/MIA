@@ -1,7 +1,7 @@
 
 from utils.shapes.Shape import Shape, IMAGELABEL_ID
 import numpy as np
-from utils.shapes.Contour import packContours, unpackContours, drawbackgroundToLabel
+from utils.shapes.Contour import packContours, unpackContours, drawbackgroundToLabel, BACKGROUNDCLASS
 
 class ImageLabel(Shape):
     def __init__(self, classlabel):
@@ -47,8 +47,9 @@ def loadImageLabel(filename):
 
 def drawImageLabel(image, imagelabel, bg):
     image = drawbackgroundToLabel(image, bg)
+    label = BACKGROUNDCLASS if imagelabel.classlabel == 0 else imagelabel.classlabel
     if np.all(image) != 0:
-        image[:] = imagelabel.classlabel  
+        image[:] = label
     else:
-        image[image==0] = imagelabel.classlabel
+        image[image==0] = label
     return image

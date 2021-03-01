@@ -119,7 +119,11 @@ class ImageAugment():
         return imgs, labls
     
     def getTilesPerImage(self, width, height):
-        return  math.ceil(width/self.outputwidth) * math.ceil(height/self.outputheight)
+        if self.parent.Mode.type == dlMode.Segmentation or self.parent.Mode.type == dlMode.Object_Counting:
+            return  math.ceil(width/self.outputwidth) * math.ceil(height/self.outputheight)
+        elif self.parent.Mode.type == dlMode.Classification:
+            return 1
+            
     
     def systematiccrop_or_pad(self, images, labels):     
         # images are cropped from left-to-right and top-to-bot      
@@ -162,7 +166,7 @@ class ImageAugment():
         return imgs, labls
         
     def fitFullSizeImage2OutputSize(self, images):
-        # add random crop
+        # add random crop?
         return [cv2.resize(x, (self.outputwidth, self.outputheight), interpolation = cv2.INTER_CUBIC) for x in images]
         
     def initAugmentation(self):
@@ -226,8 +230,6 @@ class ImageAugment():
                 x = self.augmentation_sequence(images=image)
         else:
             raise 
-
-
 
         return np.asarray(x),np.asarray(y)
 
