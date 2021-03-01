@@ -172,7 +172,6 @@ class ImageData():
         train_img = train_img.reshape(height, width, channels)
 
         train_mask = self.parent.Mode.prepreprocessLabel(train_mask)
-            
         return train_img, train_mask  
     
     def getTileIndices(self, validation = False, equalTilesperImage = False):
@@ -188,7 +187,7 @@ class ImageData():
             # draw xtimes an images and calculate tilenumber and equally distribute
             xtimes = 5
             tilenum = 0
-            for _ in range(5):
+            for _ in range(xtimes):
                 index = random.randint(0,numImages-1)
                 
                 if isinstance(images[index], tuple):

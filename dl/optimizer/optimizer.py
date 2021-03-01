@@ -26,9 +26,9 @@ class Optimizer():
         if self.Optimizer == dlOptim.adam:
             return Adam(learning_rate=self.parent.learning_rate)
         if self.Optimizer == dlOptim.adamax:
-            return AdaMax(learning_rate=self.parent.learning_rate)
+            return Adamax(learning_rate=self.parent.learning_rate)
         if self.Optimizer == dlOptim.adadelta:
-            return AdaDelta(learning_rate=self.parent.learning_rate)
+            return Adadelta(learning_rate=self.parent.learning_rate)
         if self.Optimizer == dlOptim.adagrad:
             return Adagrad(learning_rate=self.parent.learning_rate)
         if self.Optimizer == dlOptim.SGDNesterov:
