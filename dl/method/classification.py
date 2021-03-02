@@ -8,7 +8,7 @@ Created on Wed Jul 22 16:24:31 2020
 from dl.method.mode import LearningMode, dlMode
 from dl.loss.classification_losses import ClassificationLosses
 from dl.metric.classification_metrics import ClassificationMetrics
-from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel, drawImageLabel
+from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel, drawImageLabel, extractImageLabel
 import dl.models.simple_ClassNet as simple_ClassNet
 from tensorflow.keras.utils import to_categorical
 import numpy as np
@@ -42,16 +42,30 @@ class Classification(LearningMode):
         return simple_ClassNet.simple_ClassNet(nclasses, monochr, False)
 
     def extractShapesFromPrediction(self, prediction, unused1, unused2):
-        return None
+        return extractImageLabel(prediction)
     
     def saveShapes(self, contours, path):
-        pass
+        saveImageLabel(contours, path)
     
     def PredictImage(self, image):
-        pass
+        if not self.parent.initialized or image is None:
+            return None
+
+        width, height = self.getImageSize4ModelInput()
+        image = cv2.resize(image, (width, height))
+
+        image = self.parent.data.preprocessImage(image)
+        image = image[np.newaxis, ...]
+        pred = self.parent.Model.predict(image)
+        return np.argmax(pred)
     
     def resizeLabel(self, label, shape):
         return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)
 
     def countLabelWeight(self, label):
         return np.zeros((self.parent.NumClasses_real), dtype = np.float)
+
+    def getImageSize4ModelInput(self):
+        width = self.parent.augmentation.outputwidth
+        height = self.parent.augmentation.outputheight
+        return width, height

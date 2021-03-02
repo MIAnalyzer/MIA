@@ -104,6 +104,11 @@ class PixelBasedPrediction(ABC):
         pred = pred[0:pred.shape[0]-pad[0],0:pred.shape[1]-pad[1],...]
         pred = pred.astype('uint8')
         return pred
+
+    def getImageSize4ModelInput(self):
+        width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
+        height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
+        return width, height
     
     @abstractmethod
     def convert2Image(self,prediction):

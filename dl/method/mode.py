@@ -63,4 +63,8 @@ class LearningMode(ABC):
     @abstractmethod
     def countLabelWeight(self, label):
         pass
+
+    @abstractmethod
+    def getImageSize4ModelInput(self):
+        pass
         
