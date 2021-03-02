@@ -39,7 +39,7 @@ class Classification(LearningMode):
         return label
 
     def getModel(self, nclasses, monochr):
-        return simple_ClassNet.simple_ClassNet(nclasses, monochr, True)
+        return simple_ClassNet.simple_ClassNet(nclasses, monochr, False)
 
     def extractShapesFromPrediction(self, prediction, unused1, unused2):
         return None
