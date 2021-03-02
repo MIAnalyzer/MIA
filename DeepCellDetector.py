@@ -967,6 +967,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         fov = self.canvas.getFieldOfViewRect()
         shapes = self.extractPredictedResults(prediction, offset = (int(fov.x()),int(fov.y())))
         self.updateCurrentShapes(shapes)
+
         
     def updateCurrentShapes(self, newshapes):
         if newshapes:

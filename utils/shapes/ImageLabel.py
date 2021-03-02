@@ -53,3 +53,6 @@ def drawImageLabel(image, imagelabel, bg):
     else:
         image[image==0] = label
     return image
+
+def extractImageLabel(prediction):
+    return ImageLabel(prediction)

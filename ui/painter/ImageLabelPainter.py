@@ -42,7 +42,7 @@ class ImageLabelPainter(Painter):
         pass
     
     def addShapes(self,shapes):
-        pass
+        self.addImageLabel(shapes.classlabel)
     
     def clear(self):
         super(ImageLabelPainter, self).clear()
