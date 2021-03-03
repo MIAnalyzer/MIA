@@ -129,6 +129,8 @@ class DeepLearning(dlObservable):
             self.Mode = Classification(self)
         else:
             self.Mode = UndefinedMode(self)
+        # we reset here to avoid using a wrong model
+        self.Model = None
      
     @property
     def LabelFolderName(self):

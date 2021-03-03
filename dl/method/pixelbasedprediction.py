@@ -105,9 +105,9 @@ class PixelBasedPrediction(ABC):
         pred = pred.astype('uint8')
         return pred
 
-    def getImageSize4ModelInput(self):
-        width = int(train_img.shape[1]*self.parent.ImageScaleFactor)
-        height= int(train_img.shape[0]*self.parent.ImageScaleFactor)
+    def getImageSize4ModelInput(self, inputWidth, inputHeight):
+        width = int(inputWidth*self.parent.ImageScaleFactor)
+        height= int(inputHeight*self.parent.ImageScaleFactor)
         return width, height
     
     @abstractmethod

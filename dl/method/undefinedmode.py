@@ -38,5 +38,5 @@ class UndefinedMode(LearningMode):
     def resizeLabel(self, label, shape):
         return label
 
-    def getImageSize4ModelInput(self):
+    def getImageSize4ModelInput(self, inputWidth, inputHeight):
         return 1,1
