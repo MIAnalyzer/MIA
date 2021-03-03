@@ -156,7 +156,7 @@ class ImageData():
             
         train_img = self.readImage(image, frame)
 
-        width, height = self.parent.Mode.getImageSize4ModelInput()
+        width, height = self.parent.Mode.getImageSize4ModelInput(train_img.shape[1], train_img.shape[0])
               
         train_mask = self.parent.Mode.LoadLabel(mask, train_img.shape[0], train_img.shape[1])
 

@@ -65,7 +65,7 @@ class Classification(LearningMode):
     def countLabelWeight(self, label):
         return np.zeros((self.parent.NumClasses_real), dtype = np.float)
 
-    def getImageSize4ModelInput(self):
+    def getImageSize4ModelInput(self, inputWidth, inputHeight):
         width = self.parent.augmentation.outputwidth
         height = self.parent.augmentation.outputheight
         return width, height
