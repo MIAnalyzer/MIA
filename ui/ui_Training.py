@@ -21,7 +21,7 @@ class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Training Settings') 
         width = 350
-        height= 250
+        height= 350
 
         Form.setFixedSize(width, height)
         styleForm(Form)
@@ -34,18 +34,8 @@ class Window(object):
         self.centralWidget.setLayout(self.vlayout)
         
         # row 0
-        hlayout = QHBoxLayout(self.centralWidget)
-        self.CBModel = QComboBox(self.centralWidget)
-        self.CBModel.setObjectName('nn_Model')
-        self.CBModel.addItem("Untrained Model")
-        self.CBModel.addItem("Resnet50 Model")
-        self.CBModel.setToolTip('Select model for training')
-        self.LModel = QLabel(self.centralWidget)
-        self.LModel.setText('Deep Learning Model')
-        hlayout.addWidget(self.CBModel)
-        hlayout.addWidget(self.LModel)
-        
-        self.vlayout.addLayout(hlayout)
+        self.Model = self.ModelGroup()
+        self.vlayout.addWidget(self.Model)
         
         self.Parameter = self.ParameterGroup()
         self.vlayout.addWidget(self.Parameter)
@@ -71,6 +61,41 @@ class Window(object):
         self.BTrain.setIcon(QIcon('icons/train.png'))
         self.BTrain.setToolTip('Start training with selected parameters')
         self.vlayout.addWidget(self.BTrain)  
+
+
+    def ModelGroup(self):
+        groupBox = QGroupBox("Deep Learning Model")
+        layout = QVBoxLayout(self.centralWidget)
+
+        hlayout = QHBoxLayout(self.centralWidget)
+        self.CBArchitecture = QComboBox(self.centralWidget)
+        self.CBArchitecture.setObjectName('nn_Architecture')
+        self.CBArchitecture.setToolTip('Select model architecture for training')
+        self.LArchitecture = QLabel(self.centralWidget)
+        self.LArchitecture.setText('Deep Learning Architecture')
+        hlayout.addWidget(self.CBArchitecture)
+        hlayout.addWidget(self.LArchitecture)
+     
+        layout.addLayout(hlayout)
+
+        h2layout = QHBoxLayout(self.centralWidget)
+        self.CBBackbone = QComboBox(self.centralWidget)
+        self.CBBackbone.setObjectName('nn_Backbone')
+        self.CBBackbone.setToolTip('Select model Backbone')
+        self.LBackbone = QLabel(self.centralWidget)
+        self.LBackbone.setText('Model Backbone')
+        h2layout.addWidget(self.CBBackbone)
+        h2layout.addWidget(self.LBackbone)
+     
+        layout.addLayout(h2layout)
+
+        self.CBPretrained = QCheckBox("Pretrained Net",self.centralWidget)
+        self.CBPretrained.setObjectName('nn_preTrained')
+        self.CBPretrained.setToolTip('Select to use an imagenet-pretrained model')
+        layout.addWidget(self.CBPretrained)
+        groupBox.setLayout(layout)
+        return groupBox
+
 
     def ParameterGroup(self):
         groupBox = QGroupBox("Training Parameter")
@@ -154,8 +179,13 @@ class TrainingWindow(QMainWindow, Window):
         self.SBEpochs.SpinBox.valueChanged.connect(self.EpochsChanged)
         self.SBLearningRate.SpinBox.valueChanged.connect(self.LRChanged)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
-        self.CBModel.currentIndexChanged.connect(self.ModelType)
-        
+        self.CBArchitecture.currentIndexChanged.connect(self.ModelType)
+        self.CBBackbone.currentIndexChanged.connect(self.ModelType)
+        self.CBPretrained.setChecked(self.parent.dl.Mode.pretrained)
+        self.CBPretrained.stateChanged.connect(self.UsePretrained)
+
+        self.setModelOptions()
+
         self.settings_form = TrainSettingsWindow(self)
         self.augmentation_form = AugmentWindow(self.parent)
         # training mode settings
@@ -177,11 +207,16 @@ class TrainingWindow(QMainWindow, Window):
         if not self.parent.dl.initialized:
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)
-            self.CBModel.setEnabled(True)
+            self.CBArchitecture.setEnabled(True)
+            self.CBBackbone.setEnabled(True)
+            self.CBPretrained.setEnabled(True)
         else:
             self.CBMono.setEnabled(False)
             self.CBRGB.setEnabled(False)
-            self.CBModel.setEnabled(False)
+            self.CBArchitecture.setEnabled(False)
+            self.CBBackbone.setEnabled(False)
+            self.CBPretrained.setEnabled(False)
+
             if self.parent.dl.MonoChrome:
                 self.CBMono.setChecked(True)
             else:
@@ -210,15 +245,35 @@ class TrainingWindow(QMainWindow, Window):
     def ModeChanged(self):
         self.settings_form.updateLossesAndMetrics()
         self.closeWindows()
+        self.setModelOptions()
         if self.parent.LearningMode() == dlMode.Segmentation:
             self.BModeSettings.setToolTip('Open segmentation settings')
             self.BModeSettings.setText('Segmentation')
         elif self.parent.LearningMode() == dlMode.Object_Counting:
             self.BModeSettings.setToolTip('Open object detection settings')
             self.BModeSettings.setText('Detection')
+
+    def setModelOptions(self):
+        defaultarchitecture= self.parent.dl.Mode.architecture
+        defaultbackbone = self.parent.dl.Mode.backbone
+        self.CBArchitecture.clear()
+        self.CBBackbone.clear()
+        for arch in self.parent.dl.Mode.getArchitectures():
+            self.CBArchitecture.addItem(arch)   
+        for bb in self.parent.dl.Mode.getBackbones():
+            self.CBBackbone.addItem(bb) 
+        
+        self.CBArchitecture.setCurrentIndex(self.CBArchitecture.findText(defaultarchitecture))
+        self.CBBackbone.setCurrentIndex(self.CBBackbone.findText(defaultbackbone))
         
     def ModelType(self):
-        self.parent.dl.ModelType = self.CBModel.currentIndex()
+        if self.CBArchitecture.currentText() != '':
+            self.parent.dl.Mode.setArchitecture(self.CBArchitecture.currentText())
+        if self.CBBackbone.currentText() != '':
+            self.parent.dl.Mode.setBackbone(self.CBBackbone.currentText())
+
+    def UsePretrained(self):
+        self.parent.dl.Mode.pretrained = self.CBPretrained.isChecked()
         
     def BatchSizeChanged(self):
         self.parent.dl.batch_size = self.SBBatchSize.SpinBox.value()

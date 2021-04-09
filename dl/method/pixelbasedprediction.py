@@ -10,12 +10,15 @@ import numpy as np
 import tensorflow as tf
 from abc import ABC, abstractmethod
 import dl.training.datagenerator as datagenerator
-# import time
+from segmentation_models import Unet, FPN, Linknet, PSPNet, get_preprocessing
+from segmentation_models.backbones.backbones_factory import Backbones
+from enum import Enum
+
 
 class PixelBasedPrediction(ABC):
     def __init__(self, parent):
         self.parent = parent
-    
+
     def PredictImage(self, image):    
         if not self.parent.initialized or image is None:
             return None
@@ -29,7 +32,6 @@ class PixelBasedPrediction(ABC):
         return pred
 
     def PredictFromGenerator(self, image):
-        
         if image.shape[0] * image.shape[1] < self.parent.augmentation.outputwidth * self.parent.augmentation.outputheight:
             return self.Predict(image)
         generator = datagenerator.PredictionDataGenerator(self.parent, image)
@@ -98,7 +100,7 @@ class PixelBasedPrediction(ABC):
         image = image[np.newaxis, ...]
         
         # convert_to_tensor is not necessary but improves performance because it avoids retracing
-        pred = self.parent.Model.predict(tf.convert_to_tensor(image,np.float32))
+        pred = self.parent.Model.predict(tf.convert_to_tensor(self.parent.augmentation.checkModelSizeCompatibility(image),np.float32))
         pred = self.convert2Image(pred)
 
         pred = pred[0:pred.shape[0]-pad[0],0:pred.shape[1]-pad[1],...]
@@ -109,6 +111,60 @@ class PixelBasedPrediction(ABC):
         width = int(inputWidth*self.parent.ImageScaleFactor)
         height= int(inputHeight*self.parent.ImageScaleFactor)
         return width, height
+
+    def setBackbone(self, backbone):
+        self.backbone = backbone
+
+    def setArchitecture(self, architecture):
+        self.architecture = architecture
+
+    def getBackbones(self):
+        return Backbones.models_names()
+
+    def getArchitectures(self):
+        return ['UNet','FPN', 'Linknet', 'PSPNet']
+
+    def getPixelModel(self, nclasses, channels, activation):
+        addextraInputLayer = False
+        if self.pretrained:
+            weights = 'imagenet'
+            self.preprocessingfnc = get_preprocessing(self.backbone)
+            inputsize = (None, None, 3)
+            if channels != 3:
+                addextraInputLayer = True 
+        else:
+            weights = None
+            self.preprocessingfnc = None
+            inputsize = (None, None, channels)
+
+
+        if self.architecture == 'UNet':
+            model = Unet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+        elif self.architecture == 'FPN':
+            model = FPN(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+        elif self.architecture == 'Linknet':
+            model = Linknet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+        elif self.architecture == 'PSPNet':
+            # must be divisible by 48
+            width = self.parent.augmentation.outputwidth - self.parent.augmentation.outputwidth % 48
+            height = self.parent.augmentation.outputheight - self.parent.augmentation.outputheight % 48
+            self.parent.augmentation.outputwidth = width
+            self.parent.augmentation.outputheight = height
+            if self.pretrained:
+                inputsize = (width, height, 3)
+            else:
+                inputsize = (width, height, channels)
+            model = PSPNet(backbone_name = self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+        else:
+            raise ValueError("not a supported network architecture")
+
+        if addextraInputLayer:
+            input = tf.keras.layers.Input(shape=(None, None, channels))
+            layer0 = tf.keras.layers.Conv2D(3, (1, 1))(input) 
+            out = model(layer0)
+            model = tf.keras.models.Model(input, out, name=model.name)
+        
+        return model
     
     @abstractmethod
     def convert2Image(self,prediction):

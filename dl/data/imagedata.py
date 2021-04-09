@@ -17,12 +17,7 @@ from itertools import repeat
 import math
 import random
 import time
-from enum import Enum
 
-class dlPreprocess(Enum):
-    scale = 0
-    scale_shift = 1
-    imagenet_mean = 2
 
 class ImageData():
     def __init__(self, parent):
@@ -107,18 +102,7 @@ class ImageData():
         return True if len(self.ValidationImagePaths) * len(self.ValidationLabelPaths) > 0 else False
 
     def preprocessImage(self, image):
-        if self.parent.preprocess == dlPreprocess.imagenet_mean:
-            image = image.astype('float')
-            # bgr mean of imagenet dataset
-            mean = [103.939, 116.779, 123.68]
-            image[...,0] -= mean[0]
-            image[...,1] -= mean[1]
-            image[...,2] -= mean[2]
-            return image
-        if self.parent.preprocess == dlPreprocess.scale:
-            return image.astype('float')/255
-        if self.parent.preprocess == dlPreprocess.scale_shift:
-            return image.astype('float')/127.5 -1
+        return self.parent.Mode.preprocessImage(image)
         
     def preprocessLabel(self,label):
         return self.parent.Mode.preprocessLabel(label)
