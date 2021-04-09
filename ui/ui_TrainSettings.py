@@ -15,7 +15,7 @@ from dl.optimizer.optimizer import dlOptim
 from dl.training.lrschedule import lrMode
 from dl.metric.metrics import dlMetric
 from dl.loss.losses import dlLoss
-from dl.data.imagedata import dlPreprocess
+from dl.method.mode import dlPreprocess
 
 
 class Window(object):

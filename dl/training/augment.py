@@ -17,8 +17,8 @@ class ImageAugment():
     def __init__(self, parent):
         # this is the model input size
         self.parent = parent
-        self.outputwidth = 256  
-        self.outputheight = 256
+        self.outputwidth = 224  
+        self.outputheight = 224
         
         self.enableAll = True
         self.flip_horz = True
@@ -168,6 +168,17 @@ class ImageAugment():
     def fitFullSizeImage2OutputSize(self, images):
         # add random crop?
         return [cv2.resize(x, (self.outputwidth, self.outputheight), interpolation = cv2.INTER_CUBIC) for x in images]
+
+    def checkModelSizeCompatibility(self, image, label  = None):
+        targetsize = self.parent.InputSize
+        currsize = image.shape[1:3]
+        if (targetsize[0] is not None or targetsize[1] is not None) and (targetsize != currsize):
+            image = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_CUBIC) for x in image], axis=0)
+            if label:
+                label = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_NEAREST) for x in label], axis=0)
+        if label is not None:
+            return image, label
+        return image
         
     def initAugmentation(self):
         self.currentTile = 0
@@ -220,6 +231,8 @@ class ImageAugment():
             else:
                 image, label = self.randomcrop_or_pad(image, label)
                 x,y = self.augmentation_sequence(images=image, segmentation_maps=label)
+            x, y = self.checkModelSizeCompatibility(np.asarray(x), np.asarray(y))
+
         elif self.parent.Mode.type == dlMode.Classification:
             if validation:
                 x = self.fitFullSizeImage2OutputSize(image)
@@ -228,8 +241,10 @@ class ImageAugment():
                 image = self.fitFullSizeImage2OutputSize(image)
                 y = label
                 x = self.augmentation_sequence(images=image)
+            
+            x = self.checkModelSizeCompatibility(np.asarray(x))
+            y = np.asarray(y)
         else:
             raise 
-
-        return np.asarray(x),np.asarray(y)
+        return x,y
 

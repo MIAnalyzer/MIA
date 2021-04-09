@@ -17,7 +17,6 @@ import cv2
 import glob
 import os
 import numpy as np
-from enum import Enum
 import threading
 import traceback
 import sys
@@ -30,12 +29,11 @@ import dl.machine_learning.hed as hed
 import dl.machine_learning.dextr.dextr_segmentation as dextr
 import dl.machine_learning.grabcut_segmentation as gcs
 import dl.data.imagedata as imagedata
-from dl.data.imagedata import dlPreprocess
 from dl.method.segmentation import Segmentation
 from dl.method.objectcounting import ObjectCounting
 from dl.method.classification import Classification
 from dl.method.undefinedmode import UndefinedMode
-from dl.method.mode import dlMode
+from dl.method.mode import dlMode, dlPreprocess
 from dl.optimizer.optimizer import Optimizer
 
 from utils.Observer import dlObservable
@@ -57,11 +55,10 @@ class DeepLearning(dlObservable):
         self.augmentation = augment.ImageAugment(self)
         self.record = training_record.TrainingRecording(self)
         
-        self.ModelType = 0
         self.Model = None
         # split factor and border need to be reworked and reasonable, get it from network
-        self.split_factor = 64
-        self.borderremoval = 128
+        self.split_factor = 32
+        self.borderremoval = 112
 
         self.interrupted = False
 
@@ -112,6 +109,12 @@ class DeepLearning(dlObservable):
         return True if self.Model.input_shape[3] == 1 else False
 
     @property
+    def InputSize(self):        
+        if not self.initialized:
+            raise ('model not initialized')
+        return self.Model.input_shape[1:3]
+
+    @property
     def initialized(self):
         return True if self.Model else False
      
@@ -143,7 +146,7 @@ class DeepLearning(dlObservable):
           
     def initModel(self, numClasses, MonoChrome):
         try:
-            self.Model = self.Mode.getModel(numClasses, MonoChrome)
+            self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
             return self.initialized
         except:
             self.notifyError()

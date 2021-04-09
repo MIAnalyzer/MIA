@@ -20,7 +20,6 @@ import dl.utils.dl_utils as dl_utils
 class TrainingDataGenerator(Sequence):
     def __init__(self, parent, validation = False):
         self.parent = parent
-        self.batch_size = parent.batch_size
         self.lock = threading.Lock()
         self.inMemory  = parent.TrainInMemory
         self.validation = validation
@@ -49,8 +48,8 @@ class TrainingDataGenerator(Sequence):
     def __getitem__(self, idx):
         with self.lock:
 
-            batch_start = idx * self.batch_size
-            batch_end = min(batch_start + self.batch_size, self.numTiles)
+            batch_start = idx * self.parent.batch_size
+            batch_end = min(batch_start + self.parent.batch_size, self.numTiles)
             if self.inMemory:
                 batch_images,batch_masks = self._loadBatchFromMemory(batch_start, batch_end)
             else:
@@ -88,7 +87,6 @@ class TrainingDataGenerator(Sequence):
 class PredictionDataGenerator(Sequence):
     def __init__(self, parent, image):
         self.parent = parent
-        self.batch_size = parent.batch_size
         self.lock = threading.Lock()
         self.inMemory  = parent.TrainInMemory
 
@@ -113,12 +111,12 @@ class PredictionDataGenerator(Sequence):
         self.numTiles = int(self.num_in_width * self.num_in_height)
 
     def __len__(self):
-        return int(np.ceil(self.num_in_width * self.num_in_height / (self.batch_size)))
+        return int(np.ceil(self.num_in_width * self.num_in_height / (self.parent.batch_size)))
 
     def __getitem__(self, idx):
         with self.lock:
-            batch_start = idx * self.batch_size
-            batch_end = min(batch_start + self.batch_size, self.numTiles)
+            batch_start = idx * self.parent.batch_size
+            batch_end = min(batch_start + self.parent.batch_size, self.numTiles)
 
 
             batch = []
@@ -143,4 +141,4 @@ class PredictionDataGenerator(Sequence):
                 batch.append(tile)
                 
             img = self.parent.data.preprocessImage(np.asarray(batch))
-            return img
+            return self.parent.augmentation.checkModelSizeCompatibility(img)

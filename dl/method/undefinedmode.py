@@ -22,6 +22,17 @@ class UndefinedMode(LearningMode):
     def preprocessLabel(self, label):
         return label
 
+    def setBackbone(self, bbname):
+        pass
+
+    def setArchitecture(self, aname):
+        pass
+
+    def getBackbones(self):
+        return None
+
+    def getArchitectures(self):
+        return None
 
     def getModel(self, nclasses, monochr):
         return None

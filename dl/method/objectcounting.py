@@ -30,7 +30,9 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         self.scalefactor = 1
 
         self.maxDetectionLimit = 5000
-        
+
+        self.architecture = 'UNet'
+        self.backbone = 'resnet50'
         
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
@@ -64,12 +66,10 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
             
         return label*self.scalefactor
 
-    def getModel(self, nclasses, monochr):
-        if self.parent.ModelType == 0:
-            return simple_SegNet.simple_SegNet(nclasses, monochr, True)
-        elif self.parent.ModelType == 1:    
-            return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, True)
-        
+    def getModel(self, nclasses, channels):
+        return PixelBasedPrediction.getPixelModel(self, nclasses, channels, None)
+
+ 
     def extractShapesFromPrediction(self, prediction, unused, offset=(0,0)):
         return Point.extractPointsFromLabel(prediction, offset)
     

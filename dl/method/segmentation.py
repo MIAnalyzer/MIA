@@ -17,6 +17,7 @@ from dl.loss.segmentation_losses import SegmentationLosses
 from dl.metric.segmentation_metrics import SegmentationMetrics
 from tensorflow.keras.utils import to_categorical
 
+
 class Segmentation(PixelBasedPrediction, LearningMode):
     def __init__(self, parent):
         PixelBasedPrediction.__init__(self,parent)  
@@ -24,6 +25,8 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         self.type = dlMode.Segmentation
         self.metric = SegmentationMetrics(parent)
         self.loss = SegmentationLosses(parent)
+        self.architecture = 'Unet'
+        self.backbone = 'resnet50'
 
     def LoadLabel(self, filename, height, width):
         label = np.zeros((height, width, 1), np.uint8)
@@ -52,12 +55,13 @@ class Segmentation(PixelBasedPrediction, LearningMode):
             mask = mask.astype('float')
         return mask
 
-    def getModel(self, nclasses, monochr):
-        if self.parent.ModelType == 0:
-            return simple_SegNet.simple_SegNet(nclasses, monochr, False)
-        elif self.parent.ModelType == 1:    
-            return resnet50_SegNet.resnet50_SegNet(nclasses, monochr, False)
-        
+    def getModel(self, nclasses, channels):
+        if nclasses > 2:
+            out_activation = 'softmax'
+        else:
+            out_activation =  'sigmoid'
+        return PixelBasedPrediction.getPixelModel(self, nclasses, channels, out_activation)
+
     def extractShapesFromPrediction(self, prediction, innercontours, offset=(0,0)):
         return Contour.extractContoursFromLabel(prediction, innercontours, offset)
     
