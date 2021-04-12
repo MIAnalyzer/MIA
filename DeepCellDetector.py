@@ -271,6 +271,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBErase.clicked.connect(self.updateCursor)
         self.CBAddShape.clicked.connect(self.setCanvasFocus)
         self.CBDelShape.clicked.connect(self.setCanvasFocus)
+        self.CBSliceShape.clicked.connect(self.setCanvasFocus)
         
         self.SBrightness.sliderReleased.connect(self.setBrightness)
         self.SContrast.sliderReleased.connect(self.setContrast)
