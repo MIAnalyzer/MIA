@@ -7,8 +7,6 @@ Created on Wed Jul 22 16:15:28 2020
 
 from dl.method.mode import LearningMode, dlMode
 from dl.method.pixelbasedprediction import PixelBasedPrediction
-import dl.models.resnet50_SegNet as resnet50_SegNet
-import dl.models.simple_SegNet as simple_SegNet
 from skimage.feature import peak_local_max
 import utils.shapes.Point as Point
 import numpy as np
