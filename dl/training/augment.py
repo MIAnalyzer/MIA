@@ -181,6 +181,9 @@ class ImageAugment():
         return image
         
     def initAugmentation(self):
+        # imgaug was compared to albumentation and imgaug was faster (see test sheet)
+        # problem with albumentation it only takes a single image as input and processes 1-by-1
+
         self.currentTile = 0
         gaussian = lambda aug: iaa.Sometimes(self.prob_gaussian, aug)
         piecewise = lambda aug: iaa.Sometimes(self.prob_piecewise, aug)

@@ -11,9 +11,8 @@ import cv2
 import numpy as np
 import random
 import threading
-
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
+import time
 from tensorflow.python.keras.utils.data_utils import Sequence
 import dl.utils.dl_utils as dl_utils
 
@@ -46,7 +45,9 @@ class TrainingDataGenerator(Sequence):
         return self.parent.data.getNumberOfBatches(self.validation)
 
     def __getitem__(self, idx):
-        with self.lock:
+        # important question: do we need a lock here (slows down training time significantly)
+        # so far no problems detected
+        #with self.lock:
 
             batch_start = idx * self.parent.batch_size
             batch_end = min(batch_start + self.parent.batch_size, self.numTiles)
@@ -54,10 +55,10 @@ class TrainingDataGenerator(Sequence):
                 batch_images,batch_masks = self._loadBatchFromMemory(batch_start, batch_end)
             else:
                 batch_images,batch_masks = self._loadBatchFromDisk(batch_start, batch_end)
-
+              
             img, mask = self.parent.augmentation.augment(batch_images,batch_masks, self.validation)
 
-            img = self.parent.data.preprocessImage(img)     
+            img = self.parent.data.preprocessImage(img)   
             mask = self.parent.data.preprocessLabel(mask)
 
             return img, mask
