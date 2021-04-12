@@ -287,7 +287,7 @@ class Painter(ABC):
             i = 0 if delete else 1
             if self.NewContour.numPoints() > 1:
                 if drawaspolygon:
-                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), max(self.canvas.pen_size,2))  
+                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), thickness=max(self.canvas.pen_size,1), lineType =cv2.LINE_4)  
                 else:
                     cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1) 
         self.getFinalContours()
