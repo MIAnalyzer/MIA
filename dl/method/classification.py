@@ -9,7 +9,6 @@ from dl.method.mode import LearningMode, dlMode
 from dl.loss.classification_losses import ClassificationLosses
 from dl.metric.classification_metrics import ClassificationMetrics
 from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel, drawImageLabel, extractImageLabel
-import dl.models.simple_ClassNet as simple_ClassNet
 from tensorflow.keras.utils import to_categorical
 from classification_models.tfkeras import Classifiers
 import tensorflow as tf

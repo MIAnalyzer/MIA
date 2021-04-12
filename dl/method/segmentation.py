@@ -7,8 +7,6 @@ Created on Wed Jul 22 14:04:30 2020
 
 from dl.method.mode import LearningMode, dlMode
 from dl.method.pixelbasedprediction import PixelBasedPrediction
-import dl.models.resnet50_SegNet as resnet50_SegNet
-import dl.models.simple_SegNet as simple_SegNet
 import utils.shapes.Contour as Contour
 import dl.utils.dl_utils as dl_utils
 import numpy as np
