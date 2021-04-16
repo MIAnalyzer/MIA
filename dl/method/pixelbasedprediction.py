@@ -11,7 +11,9 @@ import tensorflow as tf
 from abc import ABC, abstractmethod
 import dl.training.datagenerator as datagenerator
 from segmentation_models import Unet, FPN, Linknet, PSPNet, get_preprocessing
+from dl.models.deeplab.deeplab import Deeplabv3, deeplab_preprocess, deeplab_backbones
 from segmentation_models.backbones.backbones_factory import Backbones
+
 from enum import Enum
 
 
@@ -23,12 +25,14 @@ class PixelBasedPrediction(ABC):
         if not self.parent.initialized or image is None:
             return None
 
+
         width = image.shape[1]
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
 
         pred = self.PredictFromGenerator(image)
         pred = self.resizeLabel(pred, (width, height))
+
         return pred
 
     def PredictFromGenerator(self, image):
@@ -90,12 +94,6 @@ class PixelBasedPrediction(ABC):
         if len(image.shape) == 2:
             image = image[...,np.newaxis]
 
-        pad = (self.parent.split_factor - image.shape[0] % self.parent.split_factor, self.parent.split_factor - image.shape[1] % self.parent.split_factor)
-        pad = (pad[0] % self.parent.split_factor, pad[1] % self.parent.split_factor)            
-        if pad != (0,0):
-            image = np.pad(image, ((0, pad[0]), (0, pad[1]), (0,0)),'constant', constant_values=(0, 0))
-
-
         image = self.parent.data.preprocessImage(image)
         image = image[np.newaxis, ...]
         
@@ -103,7 +101,6 @@ class PixelBasedPrediction(ABC):
         pred = self.parent.Model.predict(tf.convert_to_tensor(self.parent.augmentation.checkModelSizeCompatibility(image),np.float32))
         pred = self.convert2Image(pred)
 
-        pred = pred[0:pred.shape[0]-pad[0],0:pred.shape[1]-pad[1],...]
         pred = pred.astype('uint8')
         return pred
 
@@ -119,16 +116,23 @@ class PixelBasedPrediction(ABC):
         self.architecture = architecture
 
     def getBackbones(self):
-        return Backbones.models_names()
+        if self.architecture == 'Deeplabv3+':
+            return deeplab_backbones()
+        else:
+            return Backbones.models_names()
 
     def getArchitectures(self):
-        return ['UNet','FPN', 'Linknet', 'PSPNet']
+        return ['UNet','FPN', 'Linknet', 'PSPNet', 'Deeplabv3+']
 
     def getPixelModel(self, nclasses, channels, activation):
         addextraInputLayer = False
         if self.pretrained:
-            weights = 'imagenet'
-            self.preprocessingfnc = get_preprocessing(self.backbone)
+            if self.architecture == 'Deeplabv3+':
+                weights = 'pascal_voc'
+                self.preprocessingfnc = deeplab_preprocess
+            else:
+                weights = 'imagenet'
+                self.preprocessingfnc = get_preprocessing(self.backbone)
             inputsize = (None, None, 3)
             if channels != 3:
                 addextraInputLayer = True 
@@ -139,11 +143,11 @@ class PixelBasedPrediction(ABC):
 
 
         if self.architecture == 'UNet':
-            model = Unet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+            model = Unet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights, activation=activation)
         elif self.architecture == 'FPN':
-            model = FPN(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+            model = FPN(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights, activation=activation)
         elif self.architecture == 'Linknet':
-            model = Linknet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+            model = Linknet(backbone_name=self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights, activation=activation)
         elif self.architecture == 'PSPNet':
             # must be divisible by 48
             width = self.parent.augmentation.outputwidth - self.parent.augmentation.outputwidth % 48
@@ -154,7 +158,16 @@ class PixelBasedPrediction(ABC):
                 inputsize = (width, height, 3)
             else:
                 inputsize = (width, height, channels)
-            model = PSPNet(backbone_name = self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights)
+            model = PSPNet(backbone_name = self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights, activation=activation)
+        elif self.architecture == 'Deeplabv3+':
+            if self.pretrained:
+                self.parent.augmentation.outputwidth = 512
+                self.parent.augmentation.outputheight = 512
+                inputsize = (512, 512, 3)
+            else:
+                inputsize = (self.parent.augmentation.outputwidth, self.parent.augmentation.outputheight, channels)
+            model = Deeplabv3(weights=weights, input_shape=inputsize, classes=nclasses, backbone=self.backbone, OS=16, alpha=1., activation=activation)
+
         else:
             raise ValueError("not a supported network architecture")
 

@@ -260,10 +260,10 @@ class TrainingWindow(QMainWindow, Window):
         self.CBBackbone.clear()
         for arch in self.parent.dl.Mode.getArchitectures():
             self.CBArchitecture.addItem(arch)   
+        self.CBArchitecture.setCurrentIndex(self.CBArchitecture.findText(defaultarchitecture))
         for bb in self.parent.dl.Mode.getBackbones():
             self.CBBackbone.addItem(bb) 
-        
-        self.CBArchitecture.setCurrentIndex(self.CBArchitecture.findText(defaultarchitecture))
+
         self.CBBackbone.setCurrentIndex(self.CBBackbone.findText(defaultbackbone))
         
     def ModelType(self):
