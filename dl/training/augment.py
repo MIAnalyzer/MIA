@@ -17,8 +17,8 @@ class ImageAugment():
     def __init__(self, parent):
         # this is the model input size
         self.parent = parent
-        self.outputwidth = 224  
-        self.outputheight = 224
+        self.modelinputwidth = 224  
+        self.modelinputheight = 224
         
         self.enableAll = True
         self.flip_horz = True
@@ -49,6 +49,36 @@ class ImageAugment():
         self.augmentation_sequence = None
         
         self.currentTile = 0
+
+
+    @property
+    def outputwidth(self):
+        # it is called outputwidth because it is the output of the augmentation and the input to the model
+        try:
+            if self.parent.InputSize[1] is not None:
+                return self.parent.InputSize[1]
+        except:
+            pass
+        return self.modelinputwidth
+
+    @outputwidth.setter
+    def outputwidth(self, val):
+        self.modelinputwidth = val
+
+
+    @property
+    def outputheight(self):
+        # it is called outputwidth because it is the output of the augmentation and the input to the model
+        try:
+            if self.parent.InputSize[0] is not None:
+                return self.parent.InputSize[0]
+        except:
+            pass
+        return self.modelinputheight
+
+    @outputheight.setter
+    def outputheight(self, val):
+        self.modelinputheight = val
         
     @property
     def ignoreBackground(self):
@@ -174,7 +204,7 @@ class ImageAugment():
         currsize = image.shape[1:3]
         if (targetsize[0] is not None or targetsize[1] is not None) and (targetsize != currsize):
             image = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_CUBIC) for x in image], axis=0)
-            if label:
+            if label is not None:
                 label = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_NEAREST) for x in label], axis=0)
         if label is not None:
             return image, label

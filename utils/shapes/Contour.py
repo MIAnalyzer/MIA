@@ -273,14 +273,15 @@ def drawcontour(image, contour, ignoreclasslabel=False):
             cv2.drawContours(image, contour.innercontours, -1, (BACKGROUNDCLASS), 1)
 
 
-def drawContoursToLabel(label, contours):
+def drawContoursToLabel(label, contours, drawbackground = True):
     # split contours
     bg_contours, target_contours = [], []
     for c in contours:
        target = bg_contours if c.classlabel == 0 else target_contours
        target.append(c)
        
-    label = drawbackgroundToLabel(label, bg_contours)
+    if drawbackground:
+        label = drawbackgroundToLabel(label, bg_contours)
       
     for c in target_contours:
         drawcontour(label, c)
@@ -327,7 +328,7 @@ def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
 
 def drawContoursToImage(image, contours): 
     for c in contours:
-        drawcontour(image, c, 1)
+        drawcontour(image, c, True)
 
 def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
     image = np.squeeze(image).astype(np.uint8)

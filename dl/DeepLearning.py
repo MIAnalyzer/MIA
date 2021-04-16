@@ -146,6 +146,8 @@ class DeepLearning(dlObservable):
           
     def initModel(self, numClasses, MonoChrome):
         try:
+            if numClasses == 2:
+                numClasses = 1
             self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
             return self.initialized
         except:

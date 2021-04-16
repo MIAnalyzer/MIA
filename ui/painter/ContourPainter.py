@@ -98,15 +98,11 @@ class ContourPainter(Painter):
         width = self.canvas.image().width()
         height = self.canvas.image().height()
         self.contoursketch = np.zeros((height, width), np.uint8) 
-        Contour.drawContoursToImage(self.contoursketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))  
+        Contour.drawContoursToLabel(self.contoursketch, self.contours.shapes, drawbackground=False)
         fov = self.canvas.getFieldOfViewRect()
-        self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())] = 0
-        
-        contours = Contour.extractContoursFromImage(self.contoursketch, not self.canvas.parent.allowInnerContours)
-        self.contours.deleteShapes(self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
-        for c in contours:
-            c.setClassLabel(self.canvas.parent.activeClass())
-            
+        self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())] = 0    
+        contours = Contour.extractContoursFromLabel(self.contoursketch, not self.canvas.parent.allowInnerContours)
+        self.contours.clear()
         self.contours.addShapes(contours)
         self.canvas.redrawImage()
         
