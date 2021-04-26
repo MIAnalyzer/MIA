@@ -134,13 +134,13 @@ class MainWindow(object):
         self.Bautoseg = DCDButton(self.centralWidget)
         self.Bautoseg.setToolTip('press to perform auto segmentation')
         self.Bautoseg.setText('Autoseg')
-        self.Bautoseg.setIcon(QIcon('icons/predict.png'))
+        self.Bautoseg.setIcon(QIcon('icons/magicwand.png'))
         
         self.Bassist = DCDButton(self.centralWidget)
         self.Bassist.setText('Dextr')
         self.Bassist.setObjectName('assist')
-        self.Bassist.setToolTip('Select assisted extreme point segmentation')
-        self.Bassist.setIcon(QIcon('icons/poly.png'))
+        self.Bassist.setToolTip('Select assisted extreme point segmentation. Mark extreme points (top, left, right, bottom) of target object.')
+        self.Bassist.setIcon(QIcon('icons/dextr.png'))
         layout0.addWidget(self.Bautoseg)
         layout0.addWidget(self.Bassist)
 
@@ -169,7 +169,7 @@ class MainWindow(object):
         self.Bautodect = DCDButton(self.centralWidget)
         self.Bautodect.setToolTip('press to perform auto detection')
         self.Bautodect.setText('Auto Detection')
-        self.Bautodect.setIcon(QIcon('icons/predict.png'))
+        self.Bautodect.setIcon(QIcon('icons/magicwand.png'))
         
         self.DetectionSettingslayout.addWidget(self.Bautodect)
         self.DetectionSettings = QFrame()
@@ -269,7 +269,7 @@ class MainWindow(object):
         self.BsetObject.setVisible(False)
         self.BsetObject.setMaximumSize(bwidth, bheight)
         self.BsetObject.setToolTip('Select set object position tool')
-        self.BsetObject.setIcon(QIcon('icons/addobject.png'))       
+        self.BsetObject.setIcon(QIcon('icons/neu/addobject.png'))       
         # shift object tool
         self.BshiftObject = DCDButton(self.centralWidget)
         self.BshiftObject.setMaximumSize(bwidth, bheight)
@@ -337,6 +337,7 @@ class MainWindow(object):
 
         self.BTrack = DCDButton(self.centralWidget, 'Calculate Tracking')
         self.BTrack.setToolTip('Press to calculate tracking')
+        self.BTrack.setIcon(QIcon('icons/tracking.png'))
 
         self.trcolorlayout = QHBoxLayout(self.centralWidget)
         self.CBtrackcolor = QCheckBox("color coding",self.centralWidget)
@@ -355,7 +356,7 @@ class MainWindow(object):
         self.BSetObjectNumber = DCDButton(self.centralWidget)
         self.BSetObjectNumber.setMaximumSize(bwidth, bheight)
         self.BSetObjectNumber.setObjectName('objectnumber')
-        self.BSetObjectNumber.setIcon(QIcon('icons/poly.png'))
+        self.BSetObjectNumber.setIcon(QIcon('icons/objectnumber.png'))
         self.BSetObjectNumber.setToolTip('Select set object number tool')
 
         self.BDeleteObject = DCDButton(self.centralWidget)
@@ -367,7 +368,7 @@ class MainWindow(object):
         self.BChangeObjectColor = DCDButton(self.centralWidget)
         self.BChangeObjectColor.setMaximumSize(bwidth, bheight)
         self.BChangeObjectColor.setObjectName('objectcolor')
-        self.BChangeObjectColor.setIcon(QIcon('icons/poly.png'))
+        self.BChangeObjectColor.setIcon(QIcon('icons/objectcolor.png'))
         self.BChangeObjectColor.setToolTip('Select change color tool')
 
         self.objNumLayout.addWidget(self.BSetObjectNumber)
@@ -391,7 +392,7 @@ class MainWindow(object):
         
         self.ralayout = QHBoxLayout(self.centralWidget)
         self.Bundo = DCDButton(self.centralWidget, "Undo")
-        self.Bundo.setIcon(QIcon('icons/clear.png'))
+        self.Bundo.setIcon(QIcon('icons/reset.png'))
         self.Bundo.setToolTip('Undo drawing') 
         self.Bclear = DCDButton(self.centralWidget, "Clear Image")
         self.Bclear.setIcon(QIcon('icons/clear.png'))
@@ -413,7 +414,7 @@ class MainWindow(object):
 
                 
         self.Bresetmodel = DCDButton(self.centralWidget, "Reset Model")
-        self.Bresetmodel.setIcon(QIcon('icons/reset.png'))
+        self.Bresetmodel.setIcon(QIcon('icons/clear.png'))
         self.Bresetmodel.setToolTip('reset trained model')
 
         self.trlayout.addWidget(self.Btrain)    
@@ -424,7 +425,7 @@ class MainWindow(object):
         
         self.predictlayout = QHBoxLayout(self.centralWidget)
         self.Bpredictall = DCDButton(self.centralWidget, "Predict All")
-        self.Bpredictall.setIcon(QIcon('icons/predict.png'))
+        self.Bpredictall.setIcon(QIcon('icons/predictall.png'))
         self.Bpredictall.setToolTip('Predict all images in prediction folder')
         self.Bpredict = DCDButton(self.centralWidget, "Predict Current")
         self.Bpredict.setIcon(QIcon('icons/predict.png'))
