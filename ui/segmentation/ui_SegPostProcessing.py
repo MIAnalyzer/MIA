@@ -15,7 +15,7 @@ from dl.method.mode import dlMode
 class Window(object):
     def setupUi(self, Form):
         width = 180
-        height= 100
+        height= 120
         Form.setWindowTitle('Post Processing') 
         styleForm(Form)
 

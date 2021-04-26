@@ -633,7 +633,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.training_form.settings_form.changeClassWeightSettings()
 
     def copyStackLabels(self):
-        if self.hasStack() and os.path.exists(self.files.CurrentLabelPath()):
+        if self.files.CurrentLabelPath() and os.path.exists(self.files.CurrentLabelPath()) and self.hasStack():
             if self.ConfirmPopup('Are you sure? All labels of the current stack are replaced.'):
                 self.files.copyStackLabels(self.files.CurrentLabelPath(), self.currentImageFile.numOfImagesInStack())
 

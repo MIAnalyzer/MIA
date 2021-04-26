@@ -105,6 +105,7 @@ class Painter(ABC):
     def enableDrawBackgroundMode(self):
         self.tools.clear()
         self.tools.append(canvasTool.drag)
+        self.tools.append(canvasTool.scale)
         self.tools.append(canvasTool.draw)
         self.tools.append(canvasTool.extend)
         self.tools.append(canvasTool.poly)
@@ -112,6 +113,8 @@ class Painter(ABC):
 
     def disableDrawBackgroundMode(self):
         self.tools.clear()
+        self.tools.append(canvasTool.drag)
+        self.tools.append(canvasTool.scale)
         
     def getPainter(self, color = None):
         if color is None:

@@ -72,28 +72,28 @@ class Window(object):
         
         self.BExportSettings = DCDButton(self.centralWidget, 'Settings')
         self.BExportSettings.setToolTip('Open export settings')
-        self.BExportSettings.setIcon(QIcon('icons/savemodel.png'))
+        self.BExportSettings.setIcon(QIcon('icons/settings.png'))
         self.vlayout.addWidget(self.BExportSettings)
         
         hlayout = QHBoxLayout(self.centralWidget)
         self.BExportMasks = DCDButton(self.centralWidget, 'Export all Masks')
         self.BExportMasks.setToolTip('Export contour masks of all images in prediction folder')
-        self.BExportMasks.setIcon(QIcon('icons/savemodel.png'))
+        self.BExportMasks.setIcon(QIcon('icons/exportallmasks.png'))
         self.BExportMask = DCDButton(self.centralWidget, 'Export Mask')
         self.BExportMask.setToolTip('Export contour mask of current image')
-        self.BExportMask.setIcon(QIcon('icons/savemodel.png'))
+        self.BExportMask.setIcon(QIcon('icons/exportmask.png'))
         hlayout.addWidget(self.BExportMask)
         hlayout.addWidget(self.BExportMasks)
         self.vlayout.addLayout(hlayout)
         
         hlayout2 = QHBoxLayout(self.centralWidget)
-        self.BExport = DCDButton(self.centralWidget, 'Export')
-        self.BExport.setToolTip('Export data from current image')
+        self.BExport = DCDButton(self.centralWidget, 'Save')
+        self.BExport.setToolTip('save data from current image')
         self.BExport.setIcon(QIcon('icons/savemodel.png'))
         self.BExport.setFlat(True)
-        self.BExportAll = DCDButton(self.centralWidget, 'Export all')
-        self.BExportAll.setToolTip('Export data from all images in prediction folder')
-        self.BExportAll.setIcon(QIcon('icons/savemodel.png'))
+        self.BExportAll = DCDButton(self.centralWidget, 'Save all')
+        self.BExportAll.setToolTip('Save data from all images in prediction folder')
+        self.BExportAll.setIcon(QIcon('icons/saveall.png'))
         self.BExportAll.setFlat(True)
 
         hlayout2.addWidget(self.BExport)
@@ -144,6 +144,8 @@ class ResultsWindow(QMainWindow, Window):
 
         
     def exportMask(self):
+        if not os.path.exists(self.parent.files.CurrentLabelPath()) or self.parent.getCurrentImage() is None:
+            return
         # currently unused
         image = self.parent.getCurrentImage()
         label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
