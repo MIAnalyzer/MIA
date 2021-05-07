@@ -163,6 +163,22 @@ class Canvas(QGraphicsView):
                 self.zoomstep = 0
                 self.parent.updateCursor()
 
+    def zoomIn(self):
+        factor = 1.25
+        self.zoomstep += 1
+        if self.zoomstep > 0:
+            self.scale(factor, factor)
+
+    def zoomOut(self):
+        factor = 0.8
+        self.zoomstep -= 1
+        if self.zoomstep > 0:
+            self.scale(factor, factor)
+        elif self.zoomstep == 0:
+            self.resetView()
+        else:
+            self.zoomstep = 0
+
     def zoomfactor(self):
         if not self.hasImage():
             return None

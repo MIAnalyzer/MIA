@@ -19,7 +19,7 @@ class MainWindow(object):
         height = screen_resolution.height() - 150
         width = height * 4/3
 
-        Form.setWindowTitle('DeepCellDetector') 
+        Form.setWindowTitle('Microscopic Image Analyzer') 
         Form.setWindowIcon(QIcon('icons/logo.png'))
         Form.resize(width, height)
         Form.setStyleSheet("background: " + getBackgroundColor(asString = True))

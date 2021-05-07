@@ -143,6 +143,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.CBLearningMode.setCurrentIndex (self.LearningMode().value)
         self.setWorkers(multiprocessing.cpu_count() // 2)
         
+        qApp.installEventFilter(self)
+
         ### windows - should this be moved to UI ?
         self.segpostprocessing_form = SegmentationPostProcessingWindow(self)
         self.results_form = ResultsWindow(self)
@@ -455,9 +457,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
         self.ToolButtons.setVisible(True)
         show = False
+        count = 0
         for index in range(self.ToolButtonslayout.count()):
             if self.ToolButtonslayout.itemAt(index).widget().isVisible():
-                show = True
+                count += 1
+                if count >= 2:
+                    show = True
         self.ToolButtons.setVisible(show)
 
         if self.canvas.tool.type not in self.canvas.painter.tools:
@@ -490,7 +495,6 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     def setNumberOfClasses(self, numclasses):
         self.classList.setNumberOfClasses(numclasses)
 
-    
     def setCanvasFocus(self):
         self.canvas.setFocus()
     
@@ -649,8 +653,14 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         
     def setCanvasTool(self, tool):
         self.canvas.setnewTool(tool)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress:
+            if source == self.canvas or source == self:
+                self.keyPress(event)
+        return super(DeepCellDetectorUI, self).eventFilter(source, event)
             
-    def keyPressEvent(self, e):
+    def keyPress(self, e):
         if e.key() == 32: # space bar
             self.canvas.toggleDrag()
         if 48 <= e.key() <= 57: # numbers from 0-9
@@ -658,6 +668,36 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.classList.setClass(e.key()-48)
         if int(e.modifiers()) == Qt.CTRL and e.key() == 90: # strg + z
             self.undo()
+        if e.key() == Qt.Key_Plus:
+            self.canvas.zoomIn()
+        if e.key() == Qt.Key_Minus:
+            self.canvas.zoomOut()
+        if e.key() == Qt.Key_F1:
+            self.canvas
+        if e.key() == Qt.Key_F1:
+            self.selectToolButtonX(1)
+        if e.key() == Qt.Key_F2:
+            self.selectToolButtonX(2)
+        if e.key() == Qt.Key_F3:
+            self.selectToolButtonX(3)
+        if e.key() == Qt.Key_F4:
+            self.selectToolButtonX(4)
+        if e.key() == Qt.Key_F5:
+            self.selectToolButtonX(5)
+        if e.key() == Qt.Key_F6:
+            self.selectToolButtonX(6)
+
+    def selectToolButtonX(self,x):
+        i = 0
+        for b in canvasToolButton:
+            widget = self.findChild(DCDButton, b.name)
+            if not widget:
+                continue
+            if widget.isVisible():
+                i += 1
+            if i == x:
+                self.setCanvasTool(widget.objectName())
+                return
 
     def readCurrentImageAsBGR(self): 
         with self.wait_cursor():

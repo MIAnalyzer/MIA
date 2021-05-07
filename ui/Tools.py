@@ -39,14 +39,15 @@ class canvasToolButton(Enum):
     # Buttons are set visible or invisible depending on mode
     drag = canvasTool.drag
     draw = canvasTool.draw
-    assign = canvasTool.assign
-    delete = canvasTool.delete
-    extend = canvasTool.extend
     poly =  canvasTool.poly
-    shift = canvasTool.shift
     point = canvasTool.point
-    setimageclass = canvasTool.setimageclass
+    shift = canvasTool.shift
+    assign = canvasTool.assign
+    extend = canvasTool.extend
+    delete = canvasTool.delete
     assignimageclass = canvasTool.assignimageclass
+    setimageclass = canvasTool.setimageclass
+    
     
 
 def validTool(f):
@@ -127,23 +128,16 @@ class DragTool(AbstractTool):
             self.canvas.setCursor(Qt.OpenHandCursor)
             
     def mousePressEvent(self, e):
+        print('drag')
         if self.canvas.hasImage():
             self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
                         
 
     def wheelEvent(self,e):
         if e.angleDelta().y() > 0:
-            factor = 1.25
-            self.canvas.zoomstep += 1
+            self.canvas.zoomIn()
         else:
-            factor = 0.8
-            self.canvas.zoomstep -= 1
-        if self.canvas.zoomstep > 0:
-            self.canvas.scale(factor, factor)
-        elif self.canvas.zoomstep == 0:
-            self.canvas.resetView()
-        else:
-            self.canvas.zoomstep = 0
+            self.canvas.zoomOut()
                 
     def Cursor(self):
         return Qt.OpenHandCursor
