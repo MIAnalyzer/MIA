@@ -236,7 +236,7 @@ class Contour(Shape):
         # contour based length measurement
         contours, _ = findContours(skel)
 
-        self.skeleton = [cv2.approxPolyDP(c + ([l,t]), 3, True) for c in contours if len(c)>0]
+        self.skeleton = [cv2.approxPolyDP(c + ([l,t]), 1, True) for c in contours if len(c)>0]
         return self.skeleton
     
         ## pixel based length measurement
@@ -286,6 +286,8 @@ def drawContoursToLabel(label, contours, drawbackground = True):
     for c in target_contours:
         drawcontour(label, c)
 
+    if not drawbackground:
+        label[label==BACKGROUNDCLASS] = 0
 
     return label
 

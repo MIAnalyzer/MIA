@@ -78,6 +78,8 @@ class ObjectTracking():
                 self.setObjectNumber(o,tp)
 
     def labelGenerator(self):
+        if not self.files.files:
+            return
         for tp in range(len(self.files.files)):
             imagefile = self.sequence[tp]
             t = self.files.ImagePath2LabelPath(imagefile, True, self.stackMode)

@@ -128,7 +128,6 @@ class DragTool(AbstractTool):
             self.canvas.setCursor(Qt.OpenHandCursor)
             
     def mousePressEvent(self, e):
-        print('drag')
         if self.canvas.hasImage():
             self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
                         

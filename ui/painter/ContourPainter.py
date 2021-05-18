@@ -94,13 +94,18 @@ class ContourPainter(Painter):
         self.shapes.addShapes(contours)
         self.canvas.parent.checkIfUndoPossible()
             
-    def clearFOV(self):
+    def clearFOV(self, currentclass = False):
         width = self.canvas.image().width()
         height = self.canvas.image().height()
         self.contoursketch = np.zeros((height, width), np.uint8) 
         Contour.drawContoursToLabel(self.contoursketch, self.contours.shapes, drawbackground=False)
         fov = self.canvas.getFieldOfViewRect()
-        self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())] = 0    
+        if currentclass:
+            rect = self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())]
+            rect[rect == self.canvas.parent.activeClass()] = 0
+            self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())] = rect
+        else:
+            self.contoursketch[int(fov.y()):int(fov.y()+fov.height()),int(fov.x()):int(fov.x()+fov.width())] = 0    
         contours = Contour.extractContoursFromLabel(self.contoursketch, not self.canvas.parent.allowInnerContours)
         self.contours.clear()
         self.contours.addShapes(contours)
@@ -123,14 +128,15 @@ class ContourPainter(Painter):
             return
         
         if self.smartmode:
-            self.clearFOV()
+            self.clearFOV(currentclass = True)
             image = self.canvas.getFieldOfViewImage()
             fov = self.canvas.getFieldOfViewRect()
             mask = self.canvas.getFieldOfViewImage(self.mask)
             prediction = self.canvas.parent.dl.SemiAutoSegment(image, mask)
             self.contours.deleteShapes(self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
             smartcontours = Contour.extractContoursFromImage(prediction, not self.canvas.parent.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
-            Contour.drawContoursToImage(self.contoursketch, smartcontours)    
+            Contour.drawContoursToImage(self.contoursketch, smartcontours)  
+
         super(ContourPainter, self).getFinalContours()
 
     def assistedSegmentation(self, extremepoints):
@@ -148,7 +154,7 @@ class ContourPainter(Painter):
         
     def autosegment(self):
         if self.canvas.hasImage():
-            self.clearFOV()
+            self.clearFOV(currentclass = True)
             image = self.canvas.getFieldOfViewImage()
             fov = self.canvas.getFieldOfViewRect()
             # not using self.dl.dataloader.readImage() here as a 8-bit rgb image is required and no extra preprocessing
