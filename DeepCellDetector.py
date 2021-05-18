@@ -82,7 +82,9 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         self.setCallbacks()
         self.show()
 
-        
+        self.keyinsensitivity = 0.05
+        self.lastkey = 0
+
         self.progresstick = 10
         self.progress = 0
         self.progresslock = threading.Lock()
@@ -336,7 +338,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
 
         
     def PopupWarning(self, message):
-        msg = QMessageBox()
+        msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Warning)
         msg.setText(message)
         msg.setWindowTitle("Warning")
@@ -344,7 +346,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         msg.exec_()  
         
     def ConfirmPopup(self, message):
-        msg = QMessageBox()
+        msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Warning)
         msg.setText(message)
         msg.setWindowTitle("Confirmation")
@@ -661,6 +663,10 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         return super(DeepCellDetectorUI, self).eventFilter(source, event)
             
     def keyPress(self, e):
+        # ignore double calls
+        if time.time()-self.lastkey < self.keyinsensitivity:
+            return
+        self.lastkey = time.time()
         if e.key() == 32: # space bar
             self.canvas.toggleDrag()
         if 48 <= e.key() <= 57: # numbers from 0-9
@@ -1085,7 +1091,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         except IOError:
             pass
         
-        msg = QMessageBox()
+        msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Critical)
         msg.setText('An error occured, a logfile was created with further information. \nPlease forward logfile. \n')
         msg.setWindowTitle("Error")
