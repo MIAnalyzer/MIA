@@ -14,14 +14,10 @@ from ui.ui_utils import LabelledSpinBox
 
 class Window(object):
     def setupUi(self, Form):
-        width = 250
-        height= 140
         Form.setWindowTitle('Object Counting Settings') 
         styleForm(Form)
         
-        Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
          
         vlayout = QVBoxLayout(self.centralWidget)
         vlayout.setContentsMargins(3, 3, 3, 3)
@@ -73,8 +69,11 @@ class Window(object):
         vlayout.addWidget(self.SBMinPixels)
 
 
-
         self.centralWidget.setLayout(vlayout)
+        self.centralWidget.setFixedSize(vlayout.sizeHint())
+        Form.setFixedSize(vlayout.sizeHint())
+                
+
 
 class ObjectDetectionSettingsWindow(QMainWindow, Window):
     def __init__(self, parent ):

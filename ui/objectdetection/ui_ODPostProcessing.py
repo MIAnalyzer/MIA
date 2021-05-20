@@ -15,14 +15,10 @@ from dl.method.mode import dlMode
 
 class Window(object):
     def setupUi(self, Form):
-        width = 180
-        height= 65
         Form.setWindowTitle('Post Processing') 
         styleForm(Form)
 
-        Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
         
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 10, 3, 3)
@@ -38,6 +34,9 @@ class Window(object):
 
         self.vlayout.addWidget(self.CBTrackingMode)
         self.vlayout.addWidget(self.BCopyStackLabels)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
 
 
 class ObjectDetectionPostProcessingWindow(QMainWindow, Window):

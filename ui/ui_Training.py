@@ -20,13 +20,9 @@ from dl.method.mode import dlMode
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Training Settings') 
-        width = 350
-        height= 350
 
-        Form.setFixedSize(width, height)
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
     
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 10, 3, 3)
@@ -61,6 +57,10 @@ class Window(object):
         self.BTrain.setIcon(QIcon('icons/train.png'))
         self.BTrain.setToolTip('Start training with selected parameters')
         self.vlayout.addWidget(self.BTrain)  
+
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
 
 
     def ModelGroup(self):

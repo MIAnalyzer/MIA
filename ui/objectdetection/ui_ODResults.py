@@ -26,20 +26,18 @@ import cv2
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Object Detection Settings') 
-        width = 250
-        height= 120
-        Form.setFixedSize(width, height)
+
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
-                
-        
 
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
+                
 
 class ObjectDetectionResultsWindow(QMainWindow, Window):
     def __init__(self, parent,parentwindow):

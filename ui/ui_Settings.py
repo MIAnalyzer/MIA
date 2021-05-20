@@ -17,14 +17,10 @@ from ui.style import styleForm
 
 class Window(object):
     def setupUi(self, Form):
-        width = 250
-        height= 375
         Form.setWindowTitle('Settings') 
         styleForm(Form)
 
-        Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
         
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 10, 3, 3)
@@ -36,6 +32,10 @@ class Window(object):
         
         self.dispParams = self.DispGroup()
         self.vlayout.addWidget(self.dispParams)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
+
         
     def DLGroup(self):
         groupBox = QGroupBox("Deep Learning Settings")

@@ -26,12 +26,9 @@ import cv2
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Segmentation Settings') 
-        width = 250
-        height= 120
-        Form.setFixedSize(width, height)
+
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(0, 0, 0, 0)
@@ -69,6 +66,10 @@ class Window(object):
         self.vlayout.addWidget(self.CBMin)
         self.vlayout.addWidget(self.CBMean)
         self.vlayout.addWidget(self.CBMax)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
+                
         
 
 

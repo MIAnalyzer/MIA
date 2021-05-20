@@ -31,12 +31,9 @@ import sys
 class Window(object):
     def setupUi(self, Form):
         Form.setWindowTitle('Results') 
-        width = 250
-        height= 130
-        Form.setFixedSize(width, height)
+
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(0, 0, 0, 0)
@@ -99,6 +96,9 @@ class Window(object):
         hlayout2.addWidget(self.BExport)
         hlayout2.addWidget(self.BExportAll)
         self.vlayout.addLayout(hlayout2)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
         
 
 
