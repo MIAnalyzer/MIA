@@ -16,19 +16,15 @@ import threading
 
 class Window(object):
     def setupUi(self, Form):
-        width = 650
-        height= 650
         Form.setWindowTitle('Training Data') 
-        Form.setFixedSize(width, height)
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self.centralWidget)
         self.centralWidget.setLayout(layout)
 
         self.figure = Figure(constrained_layout = True, dpi= 100)
         self.canvas = FigureCanvas(self.figure)
-        self.figure.set_size_inches(10, 10)
+        self.figure.set_size_inches(6, 6)
 
         self.BStop = DCDButton(self.centralWidget,'Stop Training')
         
@@ -46,7 +42,8 @@ class Window(object):
         layout.addWidget(self.canvas)        
         layout.addWidget(self.BStop)
 
-
+        self.centralWidget.setFixedSize(layout.sizeHint())
+        Form.setFixedSize(layout.sizeHint())
 
 class TrainPlotWindow(QMainWindow, Window):
     def __init__(self,parent):

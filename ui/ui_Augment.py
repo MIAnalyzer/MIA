@@ -16,14 +16,12 @@ from ui.style import styleForm
 
 class Window(object):
     def setupUi(self, Form):
-        width = 400
-        height= 500
+
         Form.setWindowTitle('Augmentation') 
-        styleForm(Form)
-        
-        Form.setFixedSize(width, height)
+        styleForm(Form)     
+
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
+
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 3, 3, 3)
@@ -34,6 +32,9 @@ class Window(object):
         self.augmentations.setCheckable(True)
         self.augmentations.setObjectName('nn_Augmentations')
         self.vlayout.addWidget(self.augmentations)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
 
 
     def AugmentationGroup(self):

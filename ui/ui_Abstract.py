@@ -14,14 +14,19 @@ from ui.style import styleForm
 
 class Window(object):
     def setupUi(self, Form):
-        width = 250
-        height= 80
+
         Form.setWindowTitle('Title') 
         styleForm(Form)
         
-        Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
+
+        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout.setContentsMargins(0, 0, 0, 0)
+        self.vlayout.setSpacing(2)
+        self.centralWidget.setLayout(self.vlayout)
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
 
 class TitleWindow(QMainWindow, Window):
     def __init__(self, parent ):

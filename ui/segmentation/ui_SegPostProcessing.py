@@ -14,14 +14,10 @@ from dl.method.mode import dlMode
 
 class Window(object):
     def setupUi(self, Form):
-        width = 180
-        height= 120
         Form.setWindowTitle('Post Processing') 
         styleForm(Form)
 
-        Form.setFixedSize(width, height)
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
         
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 10, 3, 3)
@@ -63,7 +59,10 @@ class Window(object):
         self.BCopyStackLabels.setToolTip('Press to reuse current label for all frames in the current stack')
 
         self.vlayout.addWidget(self.BCopyStackLabels)
-        
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
+                
 
         
 

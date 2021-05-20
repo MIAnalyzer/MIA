@@ -1085,13 +1085,13 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
         print(msg)
         
         try:
-            f = open(LOG_FILENAME, "w")
+            f = open(LOG_FILENAME, "a")
             f.write(msg)
             f.close()
         except IOError:
             pass
         
-        msg = QMessageBox(self)
+        msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
         msg.setText('An error occured, a logfile was created with further information. \nPlease forward logfile. \n')
         msg.setWindowTitle("Error")

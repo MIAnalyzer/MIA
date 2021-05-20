@@ -20,14 +20,11 @@ from dl.method.mode import dlPreprocess
 
 class Window(object):
     def setupUi(self, Form):
-        width = 400
-        height= 500
+
         Form.setWindowTitle('Training Settings') 
         styleForm(Form)
-        
-        Form.setFixedSize(width, height)
+
         self.centralWidget = QWidget(Form)
-        self.centralWidget.setFixedSize(width, height)
 
         self.vlayout = QVBoxLayout(self.centralWidget)
         self.vlayout.setContentsMargins(3, 3, 3, 3)
@@ -59,6 +56,9 @@ class Window(object):
         self.vlayout.addWidget(self.LossGroup())
         self.vlayout.addWidget(self.TrainValGroup())
         self.vlayout.addWidget(self.LRScheduleGroup())
+
+        self.centralWidget.setFixedSize(self.vlayout.sizeHint())
+        Form.setFixedSize(self.vlayout.sizeHint())
 
     def LossGroup(self):
         groupBox = QGroupBox("Loss, Metric, Optimizer")
