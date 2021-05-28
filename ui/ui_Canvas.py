@@ -150,6 +150,8 @@ class Canvas(QGraphicsView):
         self.painter.checkForChanges()
         
     def resetView(self, scale=True):
+        if not self.hasImage():
+            return
         rect = QRectF(self.image().rect())
         if not rect.isNull():
             self.setSceneRect(rect)
