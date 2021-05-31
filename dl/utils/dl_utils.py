@@ -6,18 +6,15 @@ import cv2
 
 
 def createWeightedBorderMapFromLabel(batch, weighting = None, w0 = 10, sigma = 5):
+    #adopted from https://stackoverflow.com/questions/50255438/pixel-wise-loss-weight-for-image-segmentation-in-keras
+    #input: batch of size (bs,h,w,1)
+    #e.g. weighting = {
+    #    0: 1,   # background
+    #    1: 4,   # class 1
+    #    2: 1    # class 2
+    #}
 
-    """
-    adopted from https://stackoverflow.com/questions/50255438/pixel-wise-loss-weight-for-image-segmentation-in-keras
-    input: batch of size (bs,h,w,1)
-    weighting: class weights as ints
-    e.g. weighting = {
-        0: 1,   # background
-        1: 4,   # class 1
-        2: 1    # class 2
-    }
 
-    """
 
     out = np.zeros(batch[...,0].shape)
     for i_num in range(batch.shape[0]):
