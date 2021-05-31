@@ -644,6 +644,8 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
                 self.files.copyStackLabels(self.files.CurrentLabelPath(), self.currentImageFile.numOfImagesInStack())
 
     def hasStack(self):
+        if self.currentImageFile is None:
+            return False
         return self.currentImageFile.isStack()
             
     def hasImage(self):

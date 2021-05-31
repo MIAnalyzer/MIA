@@ -133,11 +133,11 @@ class MainWindow(object):
         layout0 = QVBoxLayout(self.centralWidget)
         self.Bautoseg = DCDButton(self.centralWidget)
         self.Bautoseg.setToolTip('press to perform auto segmentation')
-        self.Bautoseg.setText('Autoseg')
+        self.Bautoseg.setText('Auto Seg')
         self.Bautoseg.setIcon(QIcon('icons/magicwand.png'))
         
         self.Bassist = DCDButton(self.centralWidget)
-        self.Bassist.setText('Dextr')
+        self.Bassist.setText('DEXTR')
         self.Bassist.setObjectName('assist')
         self.Bassist.setToolTip('Select assisted extreme point segmentation. Mark extreme points (top, left, right, bottom) of target object.')
         self.Bassist.setIcon(QIcon('icons/dextr.png'))
@@ -145,7 +145,7 @@ class MainWindow(object):
         layout0.addWidget(self.Bassist)
 
         layout = QVBoxLayout(self.centralWidget)
-        self.CBSmartMode = QCheckBox("Smartmode",self.centralWidget)
+        self.CBSmartMode = QCheckBox("Smart Mode",self.centralWidget)
         self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
         self.CBSmartMode.setObjectName('SmartMode')
         self.CBInner = QCheckBox("Inner Contours",self.centralWidget)
