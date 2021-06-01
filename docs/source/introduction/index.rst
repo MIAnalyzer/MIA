@@ -8,4 +8,4 @@ Introduction
   intro
   installation
   cite
-  functions
+  acknowledge

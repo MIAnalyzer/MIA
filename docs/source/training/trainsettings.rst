@@ -1,3 +1,3 @@
 *****************
-List of Functions
+Training Settings
 *****************
