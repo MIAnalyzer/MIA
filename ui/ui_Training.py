@@ -19,7 +19,7 @@ from dl.method.mode import dlMode
 
 class Window(object):
     def setupUi(self, Form):
-        Form.setWindowTitle('Training Settings') 
+        Form.setWindowTitle('Neural Network Training') 
 
         styleForm(Form)
         self.centralWidget = QWidget(Form)
@@ -179,8 +179,8 @@ class TrainingWindow(QMainWindow, Window):
         self.SBEpochs.SpinBox.valueChanged.connect(self.EpochsChanged)
         self.SBLearningRate.SpinBox.valueChanged.connect(self.LRChanged)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
-        self.CBArchitecture.currentIndexChanged.connect(self.ModelType)
-        self.CBBackbone.currentIndexChanged.connect(self.ModelType)
+        self.CBArchitecture.currentIndexChanged.connect(self.ArchitectureChanged)
+        self.CBBackbone.currentIndexChanged.connect(self.BackBoneChanged)
         self.CBPretrained.setChecked(self.parent.dl.Mode.pretrained)
         self.CBPretrained.stateChanged.connect(self.UsePretrained)
 
@@ -246,6 +246,7 @@ class TrainingWindow(QMainWindow, Window):
         self.settings_form.updateLossesAndMetrics()
         self.closeWindows()
         self.setModelOptions()
+        self.UsePretrained()
         if self.parent.LearningMode() == dlMode.Segmentation:
             self.BModeSettings.setToolTip('Open segmentation settings')
             self.BModeSettings.setText('Segmentation')
@@ -254,18 +255,32 @@ class TrainingWindow(QMainWindow, Window):
             self.BModeSettings.setText('Detection')
 
     def setModelOptions(self):
+        self.setArchitectureOptions()
+        self.setBackBoneOptions()
+        
+    def setArchitectureOptions(self):
         defaultarchitecture= self.parent.dl.Mode.architecture
-        defaultbackbone = self.parent.dl.Mode.backbone
         self.CBArchitecture.clear()
-        self.CBBackbone.clear()
         for arch in self.parent.dl.Mode.getArchitectures():
             self.CBArchitecture.addItem(arch)   
         self.CBArchitecture.setCurrentIndex(self.CBArchitecture.findText(defaultarchitecture))
+
+    def setBackBoneOptions(self):
+        defaultbackbone = self.parent.dl.Mode.backbone
+        self.CBBackbone.clear()
         for bb in self.parent.dl.Mode.getBackbones():
             self.CBBackbone.addItem(bb) 
-
         self.CBBackbone.setCurrentIndex(self.CBBackbone.findText(defaultbackbone))
-        
+
+    def ArchitectureChanged(self):
+        if self.CBArchitecture.currentText() != '':
+            self.parent.dl.Mode.setArchitecture(self.CBArchitecture.currentText())
+        self.setBackBoneOptions()
+
+    def BackBoneChanged(self):
+        if self.CBBackbone.currentText() != '':
+            self.parent.dl.Mode.setBackbone(self.CBBackbone.currentText())
+
     def ModelType(self):
         if self.CBArchitecture.currentText() != '':
             self.parent.dl.Mode.setArchitecture(self.CBArchitecture.currentText())

@@ -176,7 +176,7 @@ class PixelBasedPrediction(ABC):
             layer0 = tf.keras.layers.Conv2D(3, (1, 1))(input) 
             out = model(layer0)
             model = tf.keras.models.Model(input, out, name=model.name)
-        
+        print(model.summary())
         return model
     
     @abstractmethod
