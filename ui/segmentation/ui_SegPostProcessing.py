@@ -27,6 +27,8 @@ class Window(object):
         self.CBTrackingMode = QCheckBox("Tracking Mode",self.centralWidget)
         self.CBTrackingMode.setToolTip('Check to enable tracking mode')
         self.CBTrackingMode.setObjectName('TrackingMode_seg')
+
+        self.vlayout.addWidget(self.CBTrackingMode)
         
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.SBminContourSize = QSpinBox(self.centralWidget)

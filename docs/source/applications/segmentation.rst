@@ -111,13 +111,13 @@ Segmentation Settings
 To open the segmenation settings, press: 
 |train| *Train Model* |rarr| |settings| *Segmentation*.
 
-.. figure:: images/segmentation_tools.png
+.. figure:: images/segmentation_settings.png
   :class: shadow-image
   :align: center
   
   Segmentation training settings
   
-Checking **Separate Contours** will weight pixels in the proximity of 2 contours higher, increasing the likelyhood that contours that are close to each other will be separated [#unet]_. Recommended for a dataset high density of objects of the same class in close distance.
+Checking **Separate Contours** will weight pixels in the proximity of 2 contours higher, increasing the likelyhood that contours that are close to each other will be separated [#unet]_. Recommended for a dataset with an high density of objects of the same class or with clustered objects.
 This option might decrease training speed as the pixels weights need to be calculated for each image.
 
 Checking **Prefer labelled parts** will **Discard up to x background tiles** in which are less than **Minimum required labelled pixels**, which can be set in the corresponding fields. For largely unbalanced datasets with a lot of background and fewer objects this option is recommended.
@@ -161,21 +161,24 @@ Xception               xception                                                 
   Not all model backbones are available for all model architectures.
  
 .. tip::
+  * The U-Net is a very popular choice for segmentation, it might be a good starting point as network architecture.
   * Generally the numbers behind the backbone architecture gives either the number of convolutional layers (e.g. resnet18) or the model version (e.g. inceptionv3). 
   * When you have limited computing recources use a small network architecture or a network optimized for efficiency (e.g. mobilenetv2).
   * From the supported network-backbones the senet154 shows the highest performance on imagenet classification and the slowest processing time.
   * From the supported network-backbones the mobilenet has the fastest processing time and fewest parameters.
 
 
-Losses
-------
+Losses and Metrics
+------------------
 
-For semantic segmentation several objective function have been tested for neural network optimization. The loss function can be set in  |train| *Train Model* |rarr| |settings| *Settings*.
+For semantic segmentation several objective function have been tested for neural network optimization and directly impact the model training.
+Metrics are used to measure the performance of the trained model, but are independent of the optimization and the training process.
+The loss and metric functions can be set in  |train| *Train Model* |rarr| |settings| *Settings*.
 
 Cross Entropy
 ~~~~~~~~~~~~~
 
-The cross entropy loss is a widely used objective function used for classification. It is defined as:
+The cross entropy loss is a widely used objective function used for classification and segmentation (which is per pixel classification). It is defined as:
 
 .. math::
   L_{CE} = -\sum_{i=1}^{n}{p_i log(q_i)},
@@ -190,7 +193,7 @@ The focal loss is an extension of the cross entropy, which improves performance 
 .. math::
   L_{FL} = -\sum_{i=1}^{n}{(1-q_i)^\gamma p_i log(q_i)},
 
-with :math:`\gamma` as the focussing parameter.
+with :math:`\gamma` as the focussing parameter. Default is set :math:`\gamma = 2`.
   
 Kullback-Leibler Divergence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,15 +212,68 @@ The dice loss, which can be used for segmentation of highly imbalanced data [#vn
 .. math::
   L_{Dice} = -\frac{2 \sum_{i=1}^{n}{p_i q_i}}{\sum_{i=1}^{n}{p_i} + \sum_{i=1}^{n}{q_i}}.
 
+Intersection over Union
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Metrics
--------
+The intersection over union is very similar to the dice coefficient and a measure for the overlap of the prediction and the ground truth. It is a widely used measure for segmentation model performance and is defined as follows:
+
+.. math::
+  L_{iou} = \frac{\sum_{i=1}^{n}{p_i q_i}}{\sum_{i=1}^{n}{p_i} + \sum_{i=1}^{n}{q_i} - \sum_{i=1}^{n}{p_i q_i}}.
+  
+Pixel Accuracy
+~~~~~~~~~~~~~~
+
+The pixel accuracy measures all pixels that are classified correctly:
+
+.. math::
+  L_{acc} = \frac{t_p + t_n}{t_p + t_n + f_p + f_n},
+  
+with :math:`t_p` the true positives (:math:`p_i=1` and :math:`q_i=1`), :math:`t_n` the true negatives (:math:`p_i=0` and :math:`q_i=0`), :math:`f_p` the false positives (:math:`p_i=0` and :math:`q_i=1`) and :math:`f_n` the false negatives (:math:`p_i=1` and :math:`q_i=0`). 
+The pixel accuracy is a misleading measure for imbalanced data.
+
+
+.. tip::
+  A good starting point for choosing a **loss function** is usually the cross entropy loss. When you have imbalanced data, you can switch to focal loss. Dice loss should be used for special cases only, as gradients (and with that the general training) are more unstable.
+  As **metric function** the intersection over union is for most cases a valid choice.
+
 
 Postprocessing
 ==============
 
+To open the postprocessing window press |postprocessing| *Postprocessing*.
+
+.. figure:: images/segmentation_pp.png
+  :class: shadow-image
+  :align: center
+  
+  Postprocessing options for segmentation
+  
+See :doc:`../postprocessing/tracking` for a description of the tracking mode. 
+
+The **min Contour Size** option can be used to dismiss all contours that have a smaller size than the given pixels.
+
+By checking **Show Skeleton** the skeleton of each contour is calculated. The slider can be used to set contour smoothing before skeleton calculation. 
+
+.. note::
+  The skeleton is dynamically calculated. To avoid unecessary waiting, turn off skeleton calculation when working with many or complex contours or making changes to contours.
+
+Press the **Use as Stack label** button to use the currently shown contours for all frames in the currently active stack. Only applicable when using a multi-frame image stack.
+
+
 Results
 =======
+
+See :doc:`../results/index` for more information.
+
+To open the result settings for segmentation press |settings| *Settings* in the results window.
+
+.. figure:: images/segmentation_ressettings.png
+  :class: shadow-image
+  :align: center
+	
+  Export options for segmentation
+  
+You can select the export options for segmentation. You have the option to export **Skeleton** size, the **Perimeter** for each contour, the **Min Intensity** minimum intensity value inside each contour, the **Mean Intensity** mean intensity value inside each contour and the **Max Intensity** maximum intensity value inside each contour. 
 
 
 ----------

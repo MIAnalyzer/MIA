@@ -1,6 +1,6 @@
-**************
-PostProcessing
-**************
+***************
+Post Processing
+***************
 
 .. toctree::
   :maxdepth: 2
