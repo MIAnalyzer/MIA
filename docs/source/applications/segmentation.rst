@@ -32,7 +32,7 @@ Different tools and functions in MIA exist to label images for semantic segmenta
 Tools
 -----
 
-By selecting the |drag| tool you can always switch to the drag tool to zoom and change the field of view.
+By selecting the |drag| tool you can always switch to the drag tool to zoom and change the field of view. Press the :kbd:`Spacebar` to toggle between drag tool and the last selected tool.
 
 Use the |draw| tool to label objects with freehand labelling. While pressing the :kbd:`left_mouse` you can label target objects in the image. 
 
@@ -103,7 +103,7 @@ The order of the points is irrelevant.
 Training
 ========
 
-For details about neural network training see :doc:`../training/index`. However, some settings, the network architectures, the loss functions, metrics are different for segmentation.
+For details about neural network training see :doc:`../training/index`. However, some settings, the network architectures, the loss functions, metrics are specific for segmentation.
 
 Segmentation Settings
 ---------------------
@@ -123,6 +123,7 @@ This option might decrease training speed as the pixels weights need to be calcu
 Checking **Prefer labelled parts** will **Discard up to x background tiles** in which are less than **Minimum required labelled pixels**, which can be set in the corresponding fields. For largely unbalanced datasets with a lot of background and fewer objects this option is recommended.
 For unbalanced datasets see also class weighting in :doc:`../training/trainsettings`.
 
+.. _segarchitectures:
 
 Neural Network architectures
 ----------------------------
