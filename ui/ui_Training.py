@@ -247,12 +247,18 @@ class TrainingWindow(QMainWindow, Window):
         self.closeWindows()
         self.setModelOptions()
         self.UsePretrained()
+        self.BModeSettings.setEnabled(True)
         if self.parent.LearningMode() == dlMode.Segmentation:
             self.BModeSettings.setToolTip('Open segmentation settings')
             self.BModeSettings.setText('Segmentation')
         elif self.parent.LearningMode() == dlMode.Object_Counting:
             self.BModeSettings.setToolTip('Open object detection settings')
             self.BModeSettings.setText('Detection')
+        elif self.parent.LearningMode() == dlMode.Classification:
+            self.BModeSettings.setToolTip('Open classification settings')
+            self.BModeSettings.setText('Classification')
+            self.BModeSettings.setEnabled(False)
+
 
     def setModelOptions(self):
         self.setArchitectureOptions()
