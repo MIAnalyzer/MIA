@@ -34,9 +34,9 @@ Tools
 
 By selecting the |drag| tool or pressing :kbd:`F1` you can always switch to the drag tool to zoom and change the field of view. Press the :kbd:`Spacebar` to toggle between drag tool and the last selected tool.
 
-Use the |draw| tool (press :kbd:`F2`) to label objects with freehand labelling. While pressing the :kbd:`left_mouse` you can label target objects in the image. 
+Use the |draw| tool (or press :kbd:`F2`) to label objects with freehand labelling. While pressing the :kbd:`left_mouse` you can label target objects in the image. 
 
-With the |poly| tool (press :kbd:`F3`) to label objects with polygones. Press the :kbd:`left_mouse` to add add polygone point. When pressing the :kbd:`right_mouse`, the first and the last set polygone points are connected resulting in the finished contour.
+With the |poly| tool (or press :kbd:`F3`) to label objects with polygones. Press the :kbd:`left_mouse` to add add polygone point. When pressing the :kbd:`right_mouse`, the first and the last set polygone points are connected resulting in the finished contour.
 
 .. tip::
   |draw| tool and |poly| tool have different options, press the :kbd:`right_mouse` to toggle between them:
@@ -45,9 +45,9 @@ With the |poly| tool (press :kbd:`F3`) to label objects with polygones. Press th
   * **Delete** removes the created contour from existing contours.
   * **Slice** creates a line that is removed from existing contours, can be used to split contours.
 
-The |assign| tool (press :kbd:`F4`) can be used to asssign a new class to an existing contour. Select the target class and press the :kbd:`left_mouse` inside an existing contour.
+The |assign| tool (or press :kbd:`F4`) can be used to asssign a new class to an existing contour. Select the target class and press the :kbd:`left_mouse` inside an existing contour.
 
-The |expand| tool (press :kbd:`F5`) can be used to correct existing contours. Press and hold the :kbd:`left_mouse` to correct existing contours.
+The |expand| tool (or press :kbd:`F5`) can be used to correct existing contours. Press and hold the :kbd:`left_mouse` to correct existing contours.
 
 .. tip::
   |expand| tool has different options, press the :kbd:`right_mouse` to toggle between them and use the :kbd:`mouse_wheel` to change the size slider:
@@ -56,7 +56,7 @@ The |expand| tool (press :kbd:`F5`) can be used to correct existing contours. Pr
   * **Erase** removes parts from existing contours.
   * **Size** slider changes the size of the tool.
   
-The |delete| tool (press :kbd:`F6`) can be used to remove contours. Press the :kbd:`left_mouse` inside a contour to remove that contour.
+The |delete| tool (or press :kbd:`F6`) can be used to remove contours. Press the :kbd:`left_mouse` inside a contour to remove that contour.
 
 By checking **Inner contours**, contours may have holes. When unchecking **Internal contours** all holes inside of contours are removed, immediately.
 

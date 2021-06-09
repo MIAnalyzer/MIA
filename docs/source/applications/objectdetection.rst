@@ -32,13 +32,13 @@ Tools
 
 By selecting the |drag| tool or pressing :kbd:`F1` you can always switch to the drag tool to zoom and change the field of view. Press the :kbd:`Spacebar` to toggle between drag tool and the last selected tool.
 
-Use |addobject| (press :kbd:`F2`) to add objects. Press :kbd:`left_mouse` on the target object to label its position with the current active class.
+Use |addobject| (or press :kbd:`F2`) to add objects. Press :kbd:`left_mouse` on the target object to label its position with the current active class.
 
-With |shift| (press :kbd:`F3`) you can shift objects. Press and hold the :kbd:`left_mouse` near a labelled object and drag to move its position.
+With |shift| (or press :kbd:`F3`) you can shift objects. Press and hold the :kbd:`left_mouse` near a labelled object and drag to move its position.
 
-The |assign| tool (press :kbd:`F4`) can be used to asssign a new class to an existing object. Select the target class and press the :kbd:`left_mouse` close to an existing object.
+The |assign| tool (or press :kbd:`F4`) can be used to asssign a new class to an existing object. Select the target class and press the :kbd:`left_mouse` close to an existing object.
 
-The |delete| tool (press :kbd:`F5`) can be used to remove objects. Press the :kbd:`left_mouse` close to a contour to remove that contour.
+The |delete| tool (or press :kbd:`F5`) can be used to remove objects. Press the :kbd:`left_mouse` close to a contour to remove that contour.
 
 
 Auto Detection
