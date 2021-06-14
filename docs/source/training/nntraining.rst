@@ -56,7 +56,7 @@ You can choose between **Color** and **Mono**, for color or monochromatic input 
 The **Batch Size** specifies the number of images per batch that are processed during a single training step of stochastic gradient decent. 
 
 .. tip::
-  Reduce batch size if memory is insufficient
+  Reduce batch size if (gpu-)memory is insufficient
   
 The **Learning Rate** is one of the most important hyperparameters during neural network training and defines the step size during loss function optimization. In :doc:`./trainsettings` the learning rate can be customized during training.
 
