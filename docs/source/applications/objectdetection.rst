@@ -44,7 +44,7 @@ The |delete| tool (or press :kbd:`F5`) can be used to remove objects. Press the 
 Auto Detection
 --------------
 
-Press the **Auto Detection** Button to perform deep learning edge detection based on Holistically-nested edge detection [#hed]_.
+Press the |magicwand| **Auto Detection** Button to perform deep learning edge detection based on Holistically-nested edge detection [#hed]_.
 
 .. note::
   The Auto Detection is experimental and might only work well for closed objects with a clear boundary (e.g. isolated fluorescent cells).

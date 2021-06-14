@@ -8,3 +8,4 @@ Training
   nntraining
   trainsettings
   augmentation
+  trainplot

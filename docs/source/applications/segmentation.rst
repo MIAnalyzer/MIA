@@ -84,7 +84,7 @@ Perform smartmode segmentation as follows:
 Auto-Segmentation
 ~~~~~~~~~~~~~~~~~
 
-The **Auto Seg** function performs deep learning based edge detection based on Holistically-nested edge detection [#hed]_.
+The |magicwand| **Auto Seg** function performs deep learning based edge detection based on Holistically-nested edge detection [#hed]_.
 
 .. tip::
   * Auto-Segmentation is based on edge detection, to get proper labels you might uncheck the **Inner Contours** property.
@@ -94,7 +94,7 @@ The **Auto Seg** function performs deep learning based edge detection based on H
 DEXTR
 ~~~~~
 
-**DEXTR** is deep learning based method that uses the objects extreme points to label the target object [#dextr]_.
+|dextr| **DEXTR** is deep learning based method that uses the objects extreme points to label the target object [#dextr]_.
 
 Press the :kbd:`left_mouse` on the 4 extreme points (top, left, right, bottom) of the target object and that object is segmented and assigned the active class. 
 The order of the points is irrelevant.
