@@ -43,7 +43,7 @@ The Control Panel is the main access point to the tools and functions of MIA. In
 
 Settings
 --------
-By pressing |settings| the settings window is opened to adjust the global settings of MIA (see :doc:`./settings`)
+By pressing |settings| **Settings** the settings window is opened to adjust the global settings of MIA (see :doc:`./settings`)
 
 Applications
 ------------
@@ -101,9 +101,9 @@ Image Buttons
   
   Image Buttons
   
-Press the |reset| button or :kbd:`ctrl+z` to undo the last drawing action. 
+Press the |reset| **Undo** button or :kbd:`ctrl+z` to undo the last drawing action. 
 
-Press the |clear| button to reset the current image and delete all labels.
+Press the |clear| **Clear Image** button to reset the current image and delete all labels.
 
 Model Buttons
 -------------
@@ -116,18 +116,21 @@ Model Buttons
   
 The model buttons offer the interaction for training, prediction, saving, loading a deep learning model.
 
-Press the |train| button to open the training dialog for training a deep learning model (see :doc:`../training/index`).
+Press the |train| **Train Model** button to open the training dialog for training a deep learning model (see :doc:`../training/index`).
 
-Press the |clear| button to delete the currently trained/loaded model. Be sure to save the model if you want reuse the model before resetting.
+Press the |clear| **Reset Model** button to delete the currently trained/loaded model. Be sure to save the model if you want reuse the model before resetting.
 
-Press the |predictall| button to predict all images in the test folder or the |predict| button to predict the current image (see :doc:`../prediction/index` for details) with the current model.
+Press the |predictall| **Predict All** button to predict all images in the test folder or the |predict| button to predict the current image (see :doc:`../prediction/index` for details) with the current model.
 
-Press the |loadmodel| button to load a saved deep learning model.
+Press the |loadmodel| **Load Model** button to load a saved deep learning model.
 
-Press the |savemodel| button to save the currently trained model.
+Press the |savemodel| **Save Model** button to save the currently trained model.
 
 .. note::
 	The model training parameter are saved and loaded with the model. Be careful when loading a model and changing model training parameter (such as preprocessing), as the model will likely fail without retraining to predict as training and prediction parameter are no longer matching.
+
+
+.. _classes:
 
 Classes
 -------
@@ -150,9 +153,9 @@ Results and Posprocessing
   
   Results and Postprocessing
   
-By pressing the |postprocessing| button the postprocessing window is opened (see :doc:`../postprocessing/index`).
+By pressing the |postprocessing| **Postprocessing** button the postprocessing window is opened (see :doc:`../postprocessing/index`).
 
-Press the |results| button to open the results window (see :doc:`../results/index`).
+Press the |results| **Results** button to open the results window (see :doc:`../results/index`).
 
 Brightness and Contrast
 -----------------------
