@@ -35,7 +35,7 @@ The Training Window can be openend by pressing |train| Train Model.
   :class: shadow-image
   :align: center
   
-  the Training Window
+  The Training Window
 
 
 The Deep Learning Model
@@ -43,7 +43,7 @@ The Deep Learning Model
 
 The **Deep Learning Architecture** and the **Model Backbone** are important choices that highly define training time and capacity. Each application uses individual models, so please refer to :doc:`../applications/index` for details.
 
-By checking **Pretrained Net**, weights from a neural network trained on imagenet data set are used. Using pretrained weights might decrease the training time and data needed for convergence. Some paramters are fixed (e.g. input channels) when using a pretrained network.
+By checking **Pretrained Net**, weights from a neural network trained on imagenet data set are used. Using pretrained weights might decrease the training time and data needed for convergence. Some paramters are fixed (e.g. input channels or preprocessing) when using a pretrained network.
 
 
 Training Parameter
@@ -58,9 +58,11 @@ The **Batch Size** specifies the number of images per batch that are processed d
 .. tip::
   Reduce batch size if (gpu-)memory is insufficient
   
+The **Epochs** sets how often all training images are used to train the network.
+ 
 The **Learning Rate** is one of the most important hyperparameters during neural network training and defines the step size during loss function optimization. In :doc:`./trainsettings` the learning rate can be customized during training.
 
-The **Downscaling** can be set to a value between 0 and 1, resulting in each input image being reduced by this factor before being fed into the neural network during training and inference.
+The **Down Scaling** can be set to a value between 0 and 1, resulting in each input image being reduced by this factor before being fed into the neural network during training and inference.
 
 Press |settings| **Application_Name** to open the settings specific for that application.
 
