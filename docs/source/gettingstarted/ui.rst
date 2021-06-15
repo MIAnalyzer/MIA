@@ -58,6 +58,8 @@ The first step on every project should be to select the target application. Curr
 Every applications has different tools, features and training options.
  
 
+.. _folders:
+
 Train and Test Folder 
 ---------------------
 MIA uses 2 different image sets: a training folder and a prediction folder. The training folder is used to label data as input fo the training of the neural network. In the test folder should be the data that you want to predict with the trained model. 
