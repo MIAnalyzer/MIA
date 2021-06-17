@@ -64,5 +64,4 @@ def styleForm(form):
 #    palette.setColor(QPalette.ToolTipBase, Qt.white)
 #    palette.setColor(QPalette.ToolTipText, Qt.white)
 #    form.setPalette(palette)
-    
     pass 

@@ -27,7 +27,7 @@ In the **GPU settings**, the engine for deep learning training and prediction ca
 Display Settings
 ================
 
-Check **Show shape numbers** to display the object number of each displayed shape.
+Check **Show Object Numbers** to display the object number of each displayed shape.
 
 **Fast drawing** enhances drawing speed of objects on the image. Usually it is not necessary to check the Fast drawing option, however if you have huge amounts of object or notice software delay during image labelling, Fast drawing might improve experience. 
 

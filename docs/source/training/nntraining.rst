@@ -29,7 +29,7 @@ The image labels (=ground truth) for the network training are different for each
 The Training WIndow
 ===================
 
-The Training Window can be openend by pressing |train| Train Model.
+The Training Window can be openend by pressing |train| **Train Model**.
 
 .. figure:: images/training.png
   :class: shadow-image

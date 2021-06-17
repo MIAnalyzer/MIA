@@ -56,8 +56,6 @@ class Window(object):
         self.LEScale = QLineEdit(self.centralWidget) 
         self.LEScale.setMaximumSize(100, 28)
         self.LEScale.setObjectName('Scale')
-        self.LEScale.setStyleSheet("border: None")
-        self.LEScale.setStyleSheet('font:bold')
         self.LEScale.setToolTip('Scale in pixel per mm')
         self.LEScale.setAlignment(Qt.AlignRight)
         self.LEScale.setValidator(QIntValidator(1,999999999))
@@ -244,7 +242,7 @@ class ResultsWindow(QMainWindow, Window):
                 elif self.parent.LearningMode() == dlMode.Object_Counting:
                     self.odResults.saveObjects(csvWriter, images, labels)
                 else:
-                    self.parent.emitPopup('Not supported detection mode')
+                    self.parent.emitPopup('Detection mode not supported')
 
                 self.parent.emitProgressFinished()
                 self.parent.emitStatus('results saved')

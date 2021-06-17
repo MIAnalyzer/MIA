@@ -340,7 +340,7 @@ class MainWindow(object):
         self.BTrack.setIcon(QIcon('icons/tracking.png'))
 
         self.trcolorlayout = QHBoxLayout(self.centralWidget)
-        self.CBtrackcolor = QCheckBox("color coding",self.centralWidget)
+        self.CBtrackcolor = QCheckBox("Color Coding",self.centralWidget)
         self.CBtrackcolor.setToolTip("Check to change coloring by objects, uncheck to color by classes")
         self.CBtrackcolor.setObjectName('TrackColor')
         self.CBtrackcolor.setChecked(True)
