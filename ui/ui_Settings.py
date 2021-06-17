@@ -94,7 +94,7 @@ class Window(object):
         vlayout.setSpacing(1)        
         
                 
-        self.CBShapeNumbers = QCheckBox("Show Shape Numbers",self.centralWidget)
+        self.CBShapeNumbers = QCheckBox("Show Object Numbers",self.centralWidget)
         self.CBShapeNumbers.setToolTip('Select to show number below each shape')
         self.CBShapeNumbers.setObjectName('ShowShapeNumbers')
         vlayout.addWidget(self.CBShapeNumbers)

@@ -15,11 +15,11 @@ To open the Training Settings press |augmentation| **Augmentations** in the :doc
   
 Check the **Augmentations** option to enable augmentaions. 
 
-The **Input width** and **Input height** not necessarily relates to augmentation but defines the input size of the neural network in pixel. For some of the :doc:`applications <../applications/index>`, the input images are split into patches that are fed into the network, so a larger network input would not necessarily benefit in better results.
+The **Input width** and **Input height** not necessarily relates to augmentation but defines the input size of the neural network in pixel. For some of the :doc:`applications <../applications/index>`, the input images are split into patches that are fed into the network, so a larger network input would not necessarily lead to better results.
 
-Check **Flip horizontal** to mirror an image with 50 percent probability horizontally.
+Check **Flip horizontal** to mirror an image horizontally with 50% probability.
 
-Check **Flip vertical** to mirror an image with 50 percent probability vertically.
+Check **Flip vertical** to mirror an image vertically with 50% probability.
 
 Set the percentage to apply gaussian **Blur** to an imput image.
 

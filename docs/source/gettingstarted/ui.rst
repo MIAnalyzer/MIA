@@ -122,7 +122,7 @@ Press the |train| **Train Model** button to open the training dialog for trainin
 
 Press the |clear| **Reset Model** button to delete the currently trained/loaded model. Be sure to save the model if you want reuse the model before resetting.
 
-Press the |predictall| **Predict All** button to predict all images in the test folder or the |predict| button to predict the current image (see :doc:`../prediction/index` for details) with the current model.
+Press the |predictall| **Predict All** button to predict all images in the test folder or the |predict| **Predict** button to predict the current image (see :doc:`../prediction/index` for details) with the current model.
 
 Press the |loadmodel| **Load Model** button to load a saved deep learning model.
 
