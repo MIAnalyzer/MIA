@@ -399,11 +399,22 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             # could be done in an observer
             self.results_form.ModeChanged()
             self.training_form.ModeChanged()
+            if not self.TrackingSupported():
+                self.enableTrackingMode(False)
 
             self.segpostprocessing_form.enableTrackingMode()
             self.odpostprocessing_form.enableTrackingMode()
+            
 
         self.setWorkingFolder()
+
+    def TrackingSupported(self):
+        if self.LearningMode() == dlMode.Segmentation:
+            return True
+        if self.LearningMode() == dlMode.Object_Counting:
+            return True
+        else:
+            return False
 
     def loadTrack(self):
         self.Tracking.setEnabled(False)
@@ -422,9 +433,12 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
             self.canvas.ReloadImage()
 
     def enableTrackingMode(self, enable):
-        self.Tracking.setVisible(enable)
-        self.loadTrack()
-        self.canvas.ReloadLabels()
+        if self.TrackingSupported():
+            self.Tracking.setVisible(enable)
+            self.loadTrack()
+            self.canvas.ReloadLabels()
+        else:
+            self.Tracking.setVisible(False)
         
     def drawObjectTrack(self):
         return self.TrackingModeEnabled and self.CBshowtrack.isChecked()
@@ -434,7 +448,7 @@ class DeepCellDetectorUI(QMainWindow, MainWindow):
     
     @property
     def TrackingModeEnabled(self):
-        if not self.files.train_test_dir:
+        if not self.files.train_test_dir and self.TrackingSupported():
             return self.Tracking.isVisible()
         return False
 

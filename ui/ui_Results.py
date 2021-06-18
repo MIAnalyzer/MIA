@@ -15,6 +15,7 @@ import glob
 import concurrent.futures
 from ui.segmentation.ui_SegResults import SegmentationResultsWindow
 from ui.objectdetection.ui_ODResults import ObjectDetectionResultsWindow
+from ui.classification.ui_ClassResults import ClassificationResultsWindow
 from dl.data.labels import getMatchingImageLabelPairPaths, getMatchingImageLabelPairsRecursive
 from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
@@ -117,6 +118,7 @@ class ResultsWindow(QMainWindow, Window):
         
         self.odResults = ObjectDetectionResultsWindow(self.parent,self)
         self.segResults = SegmentationResultsWindow(self.parent,self)
+        self.classResults = ClassificationResultsWindow(self.parent,self)
         
     def showExportSettings(self):
         if self.parent.LearningMode() == dlMode.Segmentation:
@@ -139,7 +141,7 @@ class ResultsWindow(QMainWindow, Window):
     def closeWindows(self):
         self.segResults.hide()
         self.odResults.hide()
-
+        self.classResults.hide()
         
     def exportMask(self):
         if not os.path.exists(self.parent.files.CurrentLabelPath()) or self.parent.getCurrentImage() is None:
@@ -241,6 +243,8 @@ class ResultsWindow(QMainWindow, Window):
                     self.segResults.saveContourData(csvWriter, images, labels)
                 elif self.parent.LearningMode() == dlMode.Object_Counting:
                     self.odResults.saveObjects(csvWriter, images, labels)
+                elif self.parent.LearningMode() == dlMode.Classification:
+                    self.classResults.saveClasses(csvWriter, images, labels)
                 else:
                     self.parent.emitPopup('Detection mode not supported')
 
