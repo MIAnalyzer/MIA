@@ -28,7 +28,7 @@ class ClassificationLosses(Losses):
 
     def categorical_cross_entropy_loss_function(self, binary, class_weights):
         # side note: in retina-net paper alpha = 0.75 gives best result for cce
-        if not class_weights:
+        if class_weights is None:
             class_weights = 0.5
         if binary:
             return focal_loss_binary(usedistmap=False, class_weights=class_weights, gamma=0)
