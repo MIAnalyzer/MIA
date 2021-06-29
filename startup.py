@@ -3,13 +3,11 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from ui.style import setStyle
 
 
-def main():
+
+def start():
 
     app = QCoreApplication.instance()
     # app = QApplication.instance()
@@ -17,7 +15,7 @@ def main():
         app = QApplication(sys.argv)
 
     setStyle(app)
-    splash_pix = QPixmap('loading.jpg')
+    splash_pix = QPixmap('icons/loading.jpg')
     load_screen = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
     load_screen.setMask(splash_pix.mask())
     load_screen.show()
@@ -34,7 +32,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    start()
 
 
 
