@@ -173,9 +173,11 @@ class SegmentationResultsWindow(QMainWindow, Window):
         frame = self.getFrameNumber(im_labels[1])
         x = 0
         rows = []
-        for c in contours:
+        for i,c in enumerate(contours):
             x += 1
-            row = [name] + [frame] + [c.objectNumber] + [c.classlabel]
+            row = [name] + [frame] 
+            row += [c.objectNumber] if c.objectNumber >= 0 else [i+1]
+            row += [c.classlabel]
             image = self.LoadImageIfNecessary(im_labels[0],frame-1)
             row += [f(c,image) for f in self.funcs]
             rows.append(row)
@@ -192,11 +194,11 @@ class SegmentationResultsWindow(QMainWindow, Window):
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
-        trackres = self.getTRackResults(images, labels)
+        trackres = self.getTrackResults(images, labels)
         for r in trackres:
             writer.writerow(r) 
         
-    def getTRackResults(self, images,labels):
+    def getTRackresults(self, images,labels):
         contours = []
         contours = [{} for x in range(self.parent.tracking.timepoints)]
 
