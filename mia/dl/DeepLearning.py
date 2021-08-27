@@ -185,14 +185,14 @@ class DeepLearning(dlObservable):
             if not self.data.initialized() or self.interrupted:
                 self.notifyTrainingFinished()
                 return
-
             self.train_generator = datagenerator.TrainingDataGenerator(self)
             if self.data.validationData():
                 self.val_generator = datagenerator.TrainingDataGenerator(self, validation = True)
             else: 
-                self.val_generator = None    
+                self.val_generator = None 
             self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
             self.resumeEpoch = 0
+
             self.Training()
         except:
             self.notifyTrainingFinished()
@@ -203,7 +203,7 @@ class DeepLearning(dlObservable):
             if not self.train_generator:
                 self.notifyTrainingFinished()
                 return
-            self.Model.fit(self.train_generator,validation_data=self.val_generator, initial_epoch = self.resumeEpoch, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs-self.resumeEpoch, workers = self.worker)
+            self.Model.fit(self.train_generator,validation_data=self.val_generator, initial_epoch = self.resumeEpoch, verbose=1, callbacks=self._getTrainingCallbacks(), epochs=self.epochs, workers = self.worker)
         except:
             self.notifyTrainingFinished()
             self.notifyError()
@@ -283,7 +283,7 @@ class DeepLearning(dlObservable):
         self.Model = None
     
     def LoadModel(self, modelpath):
-        self.Model = load_model(modelpath)
+        self.Model = self.Mode.loadmodel(modelpath)
         self.record.reset()
     
     def SaveModel(self, modelpath):

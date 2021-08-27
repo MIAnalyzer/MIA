@@ -24,6 +24,7 @@ def getMatchingImageLabelPairsRecursive(imagepath, labelfoldername):
             if img and lab:
                 images.extend(img)
                 labels.extend(lab)
+                
     return images, labels
 
 def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):

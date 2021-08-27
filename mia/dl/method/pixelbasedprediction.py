@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 from abc import ABC, abstractmethod
 import dl.training.datagenerator as datagenerator
+from tensorflow.keras.models import load_model
 import os
 from dl.models.segmentation_models import Unet, FPN, Linknet, PSPNet, get_preprocessing
 from dl.models.deeplab.deeplab import Deeplabv3, deeplab_preprocess, deeplab_backbones
@@ -178,8 +179,17 @@ class PixelBasedPrediction(ABC):
             layer0 = tf.keras.layers.Conv2D(3, (1, 1))(input) 
             out = model(layer0)
             model = tf.keras.models.Model(input, out, name=model.name)
-        print(model.summary())
         return model
+    
+    def loadmodel(self, path):
+        if self.pretrained:
+            if self.architecture == 'Deeplabv3+':
+                self.preprocessingfnc = deeplab_preprocess
+            else:
+                self.preprocessingfnc = get_preprocessing(self.backbone)
+        else:
+            self.preprocessingfnc = None
+        return load_model(path)
     
     @abstractmethod
     def convert2Image(self,prediction):

@@ -203,20 +203,16 @@ class ImageData():
     def loadTrainingDataSet(self, validation = False):
         if not self.initialized():
             return None, None
-        
         images = self.getImagePaths(validation)
         numImages = len(images)
-
         if not validation:
             self.initclassValues()
 
         im_channels = 1 if self.parent.MonoChrome is True else 3
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
-        
         if not validation:
             self.calcClassWeights()
-
         img = []
         mask = []
 

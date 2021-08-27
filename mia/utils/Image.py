@@ -70,11 +70,11 @@ class ImageFile():
         # atm always converts 8-bit
         if self._image is None:
             return
+
         min_ = np.min(self._image)
         max_ = np.max(self._image)
         self._image = (self._image - min_)/(max_-min_) * 255
         self._image = self._image.astype('uint8')
-
             
     def width(self):
         ch = 2 if self._stack else 1

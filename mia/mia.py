@@ -51,6 +51,8 @@ from dl.data.labels import getMatchingImageLabelPairPaths
 from utils.workerthread import WorkerThread
 from ui.ui_utils import DCDButton, openFolder, saveFile, loadFile
 
+import pickle
+
 import numpy as np
 
 PREDICT_WORMS = False
@@ -288,7 +290,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.ASetTestFolder.triggered.connect(self.setTestFolder)
         self.ASaveSettings.triggered.connect(self.SaveSettings)
         self.ALoadSettings.triggered.connect(self.LoadSettings)
-        
+        self.ASaveDeepLearning.triggered.connect(self.saveDLClass)
         
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
@@ -1044,6 +1046,12 @@ class MIA_UI(QMainWindow, MainWindow):
     def autoPointDetection(self):
         with self.wait_cursor():
             self.canvas.painter.autodetection()
+        
+    def saveDLClass(self):
+        filehandler = open('saveDLObject.pkl', 'wb') 
+        self.dl.detachObserver(self.dlobserver)
+        pickle.dump(self.dl, filehandler)
+        self.dl.attachObserver(self.dlobserver)
         
     # deep learning observer functions
     def dlStarted(self):
