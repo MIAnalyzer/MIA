@@ -266,10 +266,12 @@ class TrainingWindow(QMainWindow, Window):
         
     def setArchitectureOptions(self):
         defaultarchitecture= self.parent.dl.Mode.architecture
+        defaultbackbone = self.parent.dl.Mode.backbone
         self.CBArchitecture.clear()
         for arch in self.parent.dl.Mode.getArchitectures():
             self.CBArchitecture.addItem(arch)   
         self.CBArchitecture.setCurrentIndex(self.CBArchitecture.findText(defaultarchitecture))
+        self.CBBackbone.setCurrentIndex(self.CBBackbone.findText(defaultbackbone))
 
     def setBackBoneOptions(self):
         defaultbackbone = self.parent.dl.Mode.backbone
