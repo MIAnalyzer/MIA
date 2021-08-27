@@ -48,6 +48,9 @@ class MainWindow(object):
         self.ALoadSettings = QAction("Load Settings", self.centralWidget)
         self.FileMenu.addAction(self.ALoadSettings)
         
+        self.ASaveDeepLearning = QAction("Save DL Object", self.centralWidget)
+        #self.FileMenu.addAction(self.ASaveDeepLearning)
+        
         
         self.FileMenu.addSeparator()
         self.AExit = QAction("Quit", self)

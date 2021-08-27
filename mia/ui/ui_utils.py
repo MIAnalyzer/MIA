@@ -282,6 +282,7 @@ class ClassWidget(QWidget):
 # open dialogs
 def openFolder(header):
     dialog = QFileDialog()
+    dialog.setWindowTitle(header)
     dialog.setFileMode(QFileDialog.DirectoryOnly)
     dialog.setOption(QFileDialog.DontUseNativeDialog, True)
     dialog.setOption(QFileDialog.ShowDirsOnly, False)

@@ -88,6 +88,10 @@ class LearningMode(ABC):
         pass
     
     @abstractmethod
+    def loadmodel(self, path):
+        return None
+    
+    @abstractmethod
     def extractShapesFromPrediction(self, prediction, optArg1, optArg2):
         pass
     

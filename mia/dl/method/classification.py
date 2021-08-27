@@ -11,6 +11,7 @@ from dl.metric.classification_metrics import ClassificationMetrics
 from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel, drawImageLabel, extractImageLabel
 from tensorflow.keras.utils import to_categorical
 from dl.models.classification_models.tfkeras import Classifiers
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -94,6 +95,14 @@ class Classification(LearningMode):
         output = tf.keras.layers.Dense(n_classes, activation=out_activation)(x)
 
         return tf.keras.models.Model(inputs=[basemodel.input], outputs=[output])
+
+    def loadmodel(self, path):
+        if self.pretrained:
+            _, self.preprocessingfnc = Classifiers.get(self.backbone)
+        else:
+            self.preprocessingfnc = None
+        return load_model(path)
+
 
     def extractShapesFromPrediction(self, prediction, unused1, unused2):
         return extractImageLabel(prediction)
