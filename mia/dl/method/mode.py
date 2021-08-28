@@ -7,6 +7,7 @@ Created on Wed Jul 22 13:49:54 2020
 
 from abc import ABC, abstractmethod
 from enum import Enum
+import numpy as np
 
 class dlMode(Enum):
     Undefined = -1
@@ -38,6 +39,8 @@ class LearningMode(ABC):
     def preprocessImage(self, image):
         # should be set in case of using a pretrained model
         if self.preprocessingfnc:
+            if image.dtype == np.uint16:
+                image = image.astype('float')/255
             return self.preprocessingfnc(image)
 
         if self.parent.preprocess == dlPreprocess.imagenet_mean:
@@ -48,10 +51,16 @@ class LearningMode(ABC):
             image[...,1] -= mean[1]
             image[...,2] -= mean[2]
             return image
+
+        if image.dtype == np.uint16:
+            scale_f = 65536
+        else:
+            scale_f = 255
+
         if self.parent.preprocess == dlPreprocess.scale:
-            return image.astype('float')/255
+            return image.astype('float')/scale_f
         if self.parent.preprocess == dlPreprocess.scale_shift:
-            return image.astype('float')/127.5 -1
+            return image.astype('float')/(scale_f/2) -1
         
     @abstractmethod
     def LoadLabel(self, filename, height, width):
