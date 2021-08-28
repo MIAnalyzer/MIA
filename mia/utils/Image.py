@@ -15,7 +15,7 @@ class ImageFile():
         self.brightness = 0
         self.contrast = 1
         if asBGR:
-            self.normalizeImage()
+            self.normalizeImage(force8bit = True)
             self.convertToBGR()
 
     def readImage(self, path):
@@ -66,15 +66,18 @@ class ImageFile():
             if self._image.shape[2] == 4:
                 self._image = cv2.cvtColor(self._image, cv2.COLOR_BGRA2BGR )
  
-    def normalizeImage(self):
-        # atm always converts 8-bit
+    def normalizeImage(self, force8bit = False):
         if self._image is None:
             return
 
         min_ = np.min(self._image)
         max_ = np.max(self._image)
-        self._image = (self._image - min_)/(max_-min_) * 255
-        self._image = self._image.astype('uint8')
+        if self._image.dtype == np.uint16 and not force8bit:
+            self._image = (self._image - min_)/(max_-min_) * 65536
+            self._image = self._image.astype('uint16')
+        else:
+            self._image = (self._image - min_)/(max_-min_) * 255
+            self._image = self._image.astype('uint8')
             
     def width(self):
         ch = 2 if self._stack else 1
