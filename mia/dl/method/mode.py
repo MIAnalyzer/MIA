@@ -41,6 +41,7 @@ class LearningMode(ABC):
         if self.preprocessingfnc:
             if image.dtype == np.uint16:
                 image = image.astype('float')/255
+            # float in range [0, 255] required
             return self.preprocessingfnc(image)
 
         if self.parent.preprocess == dlPreprocess.imagenet_mean:
