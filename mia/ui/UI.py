@@ -272,7 +272,7 @@ class MainWindow(object):
         self.BsetObject.setVisible(False)
         self.BsetObject.setMaximumSize(bwidth, bheight)
         self.BsetObject.setToolTip('Select set object position tool')
-        self.BsetObject.setIcon(QIcon('icons/neu/addobject.png'))       
+        self.BsetObject.setIcon(QIcon('icons/addobject.png'))       
         # shift object tool
         self.BshiftObject = DCDButton(self.centralWidget)
         self.BshiftObject.setMaximumSize(bwidth, bheight)
