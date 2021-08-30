@@ -9,7 +9,7 @@ Created on Wed Feb 19 13:43:00 2020
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox
+from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox, DCDButton, openFolder
 from ui.style import styleForm
 from dl.optimizer.optimizer import dlOptim
 from dl.training.lrschedule import lrMode
@@ -139,7 +139,29 @@ class Window(object):
     def TrainValGroup(self):
         groupBox = QGroupBox("Train/Validation Split")
         
-        hlayout = QHBoxLayout(self.centralWidget)
+        vlayout = QVBoxLayout(self.centralWidget)
+        h1layout = QHBoxLayout(self.centralWidget)
+        h2layout = QHBoxLayout(self.centralWidget)
+        
+        self.RBUseDir = QRadioButton(self.centralWidget)
+        self.RBUseDir.setObjectName('ValidationDir')
+        self.RBUseDir.setToolTip('Toggle to use a validation directory')
+        
+        self.BLoadValidationImages = DCDButton(self.centralWidget)
+        self.BLoadValidationImages.setToolTip('Select folder with validation images')
+        self.BLoadValidationImages.setIcon(QIcon('icons/load.png'))
+        
+        self.LVal = QLabel(self.centralWidget)
+        self.LVal.setText('Validation Folder')
+        
+        h1layout.addWidget(self.RBUseDir ,stretch=1)
+        h1layout.addWidget(self.BLoadValidationImages, stretch=1)
+        h1layout.addWidget(self.LVal, stretch=99)
+        
+        
+        self.RBUseSplit = QRadioButton(self.centralWidget)
+        self.RBUseSplit.setObjectName('ValidationSplit')
+        self.RBUseSplit.setToolTip('Toggle to use a validation split')
         self.STrainVal = QSlider(Qt.Horizontal, self.centralWidget)
         self.STrainVal.setObjectName('nn_TrainValSplit')
         self.STrainVal.setMinimum(20)
@@ -148,10 +170,16 @@ class Window(object):
         self.STrainVal.setToolTip('Split training data into a train and validation set.')
         self.LTrainVal = QLabel(self.centralWidget)
         self.LTrainVal.setText('100 % Train 0 % Val')
-        hlayout.addWidget(self.STrainVal)
-        hlayout.addWidget(self.LTrainVal)
+        
 
-        groupBox.setLayout(hlayout)
+        
+        h2layout.addWidget(self.RBUseSplit)
+        h2layout.addWidget(self.STrainVal)
+        h2layout.addWidget(self.LTrainVal)
+
+        vlayout.addLayout(h1layout)
+        vlayout.addLayout(h2layout)
+        groupBox.setLayout(vlayout)
 
         return groupBox
 
@@ -240,6 +268,12 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.RBConstant.toggled.connect(self.LROption)
         self.RBRlroP.toggled.connect(self.LROption)
         self.RBLRschedule.toggled.connect(self.LROption)
+        
+        self.RBUseDir.toggled.connect(self.valsetChanged)
+        self.RBUseSplit.toggled.connect(self.valsetChanged)
+        self.BLoadValidationImages.clicked.connect(self.selectValDir)
+        self.RBUseDir.setChecked(self.parent.parent.dl.data.UseValidationDir)
+        
         
         self.SBlr.SpinBox.valueChanged.connect(self.changeLR)
         self.SBReduction.SpinBox.valueChanged.connect(self.changeReductionFactor)
@@ -355,5 +389,17 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.parent.parent.setClassWeights()
 
             
+    def valsetChanged(self):
+        self.parent.parent.dl.data.UseValidationDir = self.RBUseDir.isChecked()
+        self.STrainVal.setEnabled(self.RBUseSplit.isChecked())
+        self.BLoadValidationImages.setEnabled(self.RBUseDir.isChecked())
+        
+        
 
-
+    def selectValDir(self):
+        folder = openFolder("Select Validation Image Folder") 
+        if folder:
+            self.parent.parent.files.validationpath = folder
+            self.LVal.setText(folder)
+        
+        

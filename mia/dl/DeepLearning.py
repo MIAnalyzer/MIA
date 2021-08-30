@@ -159,12 +159,12 @@ class DeepLearning(dlObservable):
         gc.collect()
         tf.keras.backend.clear_session()
        
-    def startTraining(self, trainingimages_path):
+    def startTraining(self, trainingimages_path, validation_path):
         if not self.initialized or trainingimages_path is None:
             return False
         self.cleanMemory()
 
-        thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path,))
+        thread = threading.Thread(target=self.initData_StartTraining, args=(trainingimages_path,validation_path))
         thread.daemon = True
         thread.start()
 
@@ -177,11 +177,11 @@ class DeepLearning(dlObservable):
         thread.start()
 
     
-    def initData_StartTraining(self, trainingimages_path):
+    def initData_StartTraining(self, trainingimages_path, validation_path):
         try:
             self.record.reset()
             self.interrupted = False
-            self.data.initTrainingDataset(trainingimages_path)
+            self.data.initTrainingDataset(trainingimages_path, validation_path)
             if not self.data.initialized() or self.interrupted:
                 self.notifyTrainingFinished()
                 return

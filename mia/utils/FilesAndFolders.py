@@ -18,6 +18,7 @@ class FilesAndFolders():
         self.parent = parent
         
         self.trainImagespath = None
+        self.validationpath = None
         self.testImagespath = None
         self.subFolder = None
 

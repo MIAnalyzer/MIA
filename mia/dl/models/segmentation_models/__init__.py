@@ -106,8 +106,6 @@ except ImportError:
     other = _TF_KERAS_FRAMEWORK_NAME if _framework == _KERAS_FRAMEWORK_NAME else _KERAS_FRAMEWORK_NAME
     set_framework(other)
 
-print('Segmentation Models: using `{}` framework.'.format(_KERAS_FRAMEWORK))
-
 # import helper modules
 #from . import losses
 #from . import metrics
