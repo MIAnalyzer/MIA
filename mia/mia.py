@@ -884,7 +884,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.plotting_form.show()
         self.plotting_form.initialize()
         self.toggleTrainStatus(True)
-        self.dl.startTraining(self.files.trainImagespath)
+        self.dl.startTraining(self.files.trainImagespath, self.files.validationpath)
 
     def resumeTraining(self):
         self.toggleTrainStatus(True)
