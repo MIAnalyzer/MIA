@@ -55,15 +55,9 @@ import pickle
 
 import numpy as np
 
-PREDICT_WORMS = False
-PREDICT_SPINES = False
-OBJECT_COUNTING = False
-PRELOAD = False
-PRELOAD_MODEL = 'models/full_phenix_v3.h5'
-SCALE = 0.4
 LOG_FILENAME = 'log/logfile.log'
 SETTINGS_FILENAME = 'settings/user_settings.json'
-CPU_ONLY = False
+
 
 
 class MIA_UI(QMainWindow, MainWindow):
@@ -167,50 +161,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.settings = Settings(self)
         self.settings.loadSettings(SETTINGS_FILENAME)
         
-
-
-        if CPU_ONLY:
-            self.settings_form.CBgpu.setCurrentIndex(1)
-            self.settings_form.CBgpu.setEnabled(False)
-
-        if PRELOAD:            
-            try:
-                self.dl.LoadModel(PRELOAD_MODEL)
-                self.settings_form.SBScaleFactor.SpinBox.setValue(SCALE)
-            except:
-                pass
-        if PREDICT_WORMS:
-            self.Btrain.setEnabled(False)
-            self.BLoadTrainImages.setEnabled(False)
-            self.Bsavemodel.setEnabled(False)
-            self.Baddclass.setEnabled(False)
-            self.Bdelclass.setEnabled(False)
-            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm')
-            self.CBLearningMode.setEnabled(False)
-            self.ASetTrainingFolder.setEnabled(False)
-            
-        if OBJECT_COUNTING:
-            self.Btrain.setEnabled(False)
-            self.BLoadTestImages.setEnabled(False)
-            self.Bsavemodel.setEnabled(False)
-            self.classList.itemWidget(self.classList.item(1)).edit_name.setText('worm egg')
-            self.CBLearningMode.setCurrentIndex(1)
-            self.CBLearningMode.setEnabled(False)
-            self.Btrain.setEnabled(False)
-            self.Bpredictall.setEnabled(False)
-            self.Bpredict.setEnabled(False)
-            self.Bloadmodel.setEnabled(False)
-            self.Bsavemodel.setEnabled(False)
-            self.Bautoseg.setEnabled(False)
-            self.Bresetmodel.setEnabled(False)
-
-
-        if PREDICT_SPINES:
-            self.segpostprocessing_form.SBminContourSize.setValue(10)
-            self.settings_form.SBFontSize.SpinBox.setValue(10)
-            self.settings_form.CBShapeNumbers.setChecked(False)
-            self.settings_form.SBPenSize.SpinBox.setValue(1)
-            self.settings_form.CBSeparateLabels.setChecked(True)
 
 
     def setCallbacks(self):
@@ -879,14 +829,19 @@ class MIA_UI(QMainWindow, MainWindow):
         return self.dl.WorkingMode
 
     def loadModel(self):
-        #filename = QFileDialog.getOpenFileName(self, "Select Model File", '',"Model (*.h5)")[0]
-        filename = loadFile("Select Model File", "Model (*.h5)")
+        # load h5
+        # filename = loadFile("Select Model File", "Model (*.h5)")
+
+        filename = openFolder('Select a Model Directory')
         if filename:
             with self.wait_cursor():
                 self.dl.LoadModel(filename)
                 self.writeStatus('model loaded')
                 try:
-                    self.settings.loadSettings(filename.replace("h5", "json"))
+                    settings_file = os.path.join(filename, 'settings.json')
+                    self.settings.loadSettings(settings_file)
+                    # load h5
+                    # self.settings.loadSettings(filename.replace("h5", "json"))
                 except:
                     pass
 
@@ -895,12 +850,18 @@ class MIA_UI(QMainWindow, MainWindow):
         if not self.dl.initialized:
             self.PopupWarning('No model trained/loaded')
             return
-        #filename = QFileDialog.getSaveFileName(self, "Save Model To File", '', "Model File (*.h5)")[0]
-        filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
+            
+        # save as h5
+        # filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
+        filename = openFolder('Select a Folder as Model Directory')
+        
         if filename:
             with self.wait_cursor():
                 self.dl.SaveModel(filename)
-                self.settings.saveSettings(filename.replace("h5", "json"), networksettingsonly=True)
+                settings_file = os.path.join(filename, 'settings.json')
+                self.settings.saveSettings(settings_file, networksettingsonly=True)
+                # save as h5
+                # self.settings.saveSettings(filename.replace("h5", "json"), networksettingsonly=True)
                 self.writeStatus('model saved')
 
     def resetModel(self):
