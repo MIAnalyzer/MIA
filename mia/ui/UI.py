@@ -513,8 +513,8 @@ class MainWindow(object):
         
         contrastlayout = QHBoxLayout(self.centralWidget)
         self.SContrast = QSlider(Qt.Horizontal, self.centralWidget)
-        self.SContrast.setMinimum(-9)
-        self.SContrast.setMaximum(10)
+        self.SContrast.setMinimum(-50)
+        self.SContrast.setMaximum(50)
         self.SContrast.setValue(0)
         self.SContrast.setToolTip('Change Image Contrast')
         self.LContrast = QLabel(self.centralWidget)

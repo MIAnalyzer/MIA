@@ -710,7 +710,7 @@ class MIA_UI(QMainWindow, MainWindow):
         if c > 1:
             self.currentImageFile.contrast = 1 + c/10 
         else:
-            self.currentImageFile.contrast = 1 + c/10
+            self.currentImageFile.contrast = 1 + c/51
         self.canvas.ReloadImage(resetView = False)
         
     def resetBrightnessContrast(self):
