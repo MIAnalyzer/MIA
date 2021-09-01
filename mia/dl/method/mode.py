@@ -48,9 +48,12 @@ class LearningMode(ABC):
             image = image.astype('float')
             # bgr mean of imagenet dataset
             mean = [103.939, 116.779, 123.68]
-            image[...,0] -= mean[0]
-            image[...,1] -= mean[1]
-            image[...,2] -= mean[2]
+            if image.shape[-1] == 3:
+                image[...,0] -= mean[0]
+                image[...,1] -= mean[1]
+                image[...,2] -= mean[2]
+            elif image.shape[-1] == 1:
+                image -= 127.5
             return image
 
         if image.dtype == np.uint16:

@@ -172,6 +172,7 @@ class ImageData():
         train_img = train_img.reshape(height, width, channels)
 
         train_mask = self.parent.Mode.prepreprocessLabel(train_mask)
+
         return train_img, train_mask  
     
     def getTileIndices(self, validation = False, equalTilesperImage = False):
