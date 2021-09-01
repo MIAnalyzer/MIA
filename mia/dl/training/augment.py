@@ -197,15 +197,26 @@ class ImageAugment():
         
     def fitFullSizeImage2OutputSize(self, images):
         # add random crop?
-        return [cv2.resize(x, (self.outputwidth, self.outputheight), interpolation = cv2.INTER_CUBIC) for x in images]
+        dims = images[0].shape
+        ret = [cv2.resize(x, (self.outputwidth, self.outputheight), interpolation = cv2.INTER_CUBIC) for x in images]
+        # in case of monochromatic
+        if dims > ret[0].shape:
+            ret = [x[...,np.newaxis] for x in ret]
+        return ret
 
     def checkModelSizeCompatibility(self, image, label  = None):
         targetsize = self.parent.InputSize
         currsize = image.shape[1:3]
+        idims = len(image.shape)
         if (targetsize[0] is not None or targetsize[1] is not None) and (targetsize != currsize):
             image = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_CUBIC) for x in image], axis=0)
+            if len(image.shape) < idims:
+                image = image[...,np.newaxis]
             if label is not None:
+                ldims = len(label.shape)
                 label = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_NEAREST) for x in label], axis=0)
+                if len(label.shape) < ldims:
+                    label = label[...,np.newaxis]
         if label is not None:
             return image, label
         return image

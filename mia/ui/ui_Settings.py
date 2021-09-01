@@ -65,6 +65,11 @@ class Window(object):
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
         self.CBSeparateLabels.setEnabled(False)
         vlayout.addWidget(self.CBSeparateLabels)
+        
+        self.CBTTA = QCheckBox("Test Time Augmentation",self.centralWidget)
+        self.CBTTA.setObjectName('TestTimeAugmentation')
+        self.CBTTA.setToolTip('Select to use test time augmentation')
+        vlayout.addWidget(self.CBTTA)
 
 
         self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
@@ -147,6 +152,7 @@ class SettingsWindow(QMainWindow, Window):
         self.STransparency.setValue(self.parent.canvas.ContourTransparency)
         self.SBThreads.SpinBox.setValue(self.parent.maxworker)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
+        self.CBTTA.setChecked(self.parent.dl.tta)
         
         
         self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
@@ -158,6 +164,7 @@ class SettingsWindow(QMainWindow, Window):
         self.CBgpu.currentIndexChanged.connect(self.setGPU)
         self.SBThreads.SpinBox.valueChanged.connect(self.setNumThreads)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
+        self.CBTTA.stateChanged.connect(self.ttaChanged)
         
         
         self.CBgpu.setCurrentIndex(0)
@@ -193,6 +200,9 @@ class SettingsWindow(QMainWindow, Window):
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
               
+    def ttaChanged(self):
+        self.parent.dl.tta = self.CBTTA.isChecked()
+        
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())
         

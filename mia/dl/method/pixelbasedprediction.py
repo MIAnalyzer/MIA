@@ -33,14 +33,41 @@ class PixelBasedPrediction(ABC):
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
 
-        pred = self.PredictFromGenerator(image)
+
+        pred = self.PredictFullImage(image)
         pred = self.resizeLabel(pred, (width, height))
 
         return pred
 
-    def PredictFromGenerator(self, image):
+    def PredictFullImage(self, image):
         if image.shape[0] * image.shape[1] < self.parent.augmentation.outputwidth * self.parent.augmentation.outputheight:
             return self.Predict(image)
+        
+        results = []
+        origImage = image
+        
+        res = self.PredictFromGenerator(origImage)
+
+        results.append(res)
+        
+        if self.parent.tta:
+            for i in range(5):               
+                if i < 2:
+                    flip = i
+                    res = self.PredictFromGenerator(np.flip(origImage.copy(),flip))
+                    results.append(np.flip(res,flip))
+                else:
+                    axes = (0,1)
+                    iaxes = (1,0)
+                    res = self.PredictFromGenerator(np.rot90(origImage.copy(), k = i-1, axes=axes))
+                    results.append(np.rot90(res, k = i-1, axes=iaxes))
+
+
+        results = np.stack(results, axis = 0)
+        result = np.mean(results, axis = 0)
+        return self.convert2Image(result).astype('uint8')
+
+    def PredictFromGenerator(self, image):
         generator = datagenerator.PredictionDataGenerator(self.parent, image)
         pred = self.parent.Model.predict(generator, workers=self.parent.worker)
         result = np.zeros(image.shape[0:2] + (self.parent.NumClasses,))
@@ -59,39 +86,40 @@ class PixelBasedPrediction(ABC):
                 patch = pred[i]
                 result[h_0:h_end, w_0:w_end] = patch[border:border+p_height,border:border+p_width,...]
                 i += 1
-        return self.convert2Image(result).astype('uint8')
+
+        return result
 
     
-    #def predictTiled(self, image):
-    #    # deprecated, will be removed eventually
-    #    pred = np.zeros(image.shape[0:2],dtype='uint8')
-    #    p_width = self.parent.augmentation.outputwidth
-    #    p_height = self.parent.augmentation.outputheight
-    #    i = 0
+    # def predictTiled(self, image):
+    #     # deprecated, will be removed eventually
+    #     pred = np.zeros(image.shape[0:2],dtype='uint8')
+    #     p_width = self.parent.augmentation.outputwidth
+    #     p_height = self.parent.augmentation.outputheight
+    #     i = 0
         
-    #    for h in range (0,image.shape[0],p_height):
-    #        for w in range (0,image.shape[1],p_width):
-    #            w_0 = max(w -self.parent.split_factor//2, 0)
-    #            h_0 = max(h -self.parent.split_factor//2, 0)
+    #     for h in range (0,image.shape[0],p_height):
+    #         for w in range (0,image.shape[1],p_width):
+    #             w_0 = max(w -self.parent.split_factor//2, 0)
+    #             h_0 = max(h -self.parent.split_factor//2, 0)
                     
-    #            # split factor need to be reworked and reasonable, get it from network
-    #            h_til = min(h+p_height+self.parent.split_factor//2, image.shape[0])
-    #            w_til = min(w+p_width+self.parent.split_factor//2,  image.shape[1])
+    #             # split factor need to be reworked and reasonable, get it from network
+    #             h_til = min(h+p_height+self.parent.split_factor//2, image.shape[0])
+    #             w_til = min(w+p_width+self.parent.split_factor//2,  image.shape[1])
                 
-    #            # a full tile at the borders results in better segmentations
-    #            if h_til == image.shape[0]:
-    #                h_0 = max(image.shape[0] - (p_height + self.parent.split_factor//2), 0)
-    #            if w_til == image.shape[1]:
-    #                w_0 = max(image.shape[1] - (p_width + self.parent.split_factor//2), 0)
+    #             # a full tile at the borders results in better segmentations
+    #             if h_til == image.shape[0]:
+    #                 h_0 = max(image.shape[0] - (p_height + self.parent.split_factor//2), 0)
+    #             if w_til == image.shape[1]:
+    #                 w_0 = max(image.shape[1] - (p_width + self.parent.split_factor//2), 0)
                 
-    #            patch = image[h_0:h_til, w_0:w_til]
-    #            pred_patch = self.Predict(patch)
-    #            h_end = min(h+p_height,image.shape[0])
-    #            w_end = min(w+p_width,image.shape[1])
+    #             patch = image[h_0:h_til, w_0:w_til]
+    #             pred_patch = self.Predict(patch)
+    #             h_end = min(h+p_height,image.shape[0])
+    #             w_end = min(w+p_width,image.shape[1])
                 
-    #            pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end),...]
-    #            i += 1
-    #    return pred
+    #             pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end),...]
+    #             i += 1
+    #     return pred
     
     def Predict(self, image):
         if len(image.shape) == 2:

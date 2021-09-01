@@ -116,11 +116,42 @@ class Classification(LearningMode):
 
         width, height = self.getImageSize4ModelInput(None,None)
         image = cv2.resize(image, (width, height))
+        
+        results = []
+        origImage = image
+        
+        pred = self.Predict(image)
+        results.append(pred)
+        
+        if self.parent.tta:
+            for i in range(5):               
+                if i < 2:
+                    flip = i
+                    image = np.flip(origImage.copy(),flip)
+                    res = self.Predict(image)
+                    results.append(res)
+                else:
+                    axes = (0,1)
+                    iaxes = (1,0)
+                    image = np.rot90(origImage.copy(), k = i-1, axes=axes)
+                    res = self.Predict(image)
+                    results.append(res)
 
+        results = np.stack(results, axis = 0)
+        result = np.mean(results, axis = 0)
+
+        if self.parent.NumClasses > 2:
+            result = np.argmax(result)
+        else:
+            result[result>0.5] = 1
+            result[result<=0.5] = 0  
+        return result
+    
+    def Predict(self,image):
         image = self.parent.data.preprocessImage(image)
         image = image[np.newaxis, ...]
-        pred = self.parent.Model.predict(self.parent.augmentation.checkModelSizeCompatibility(image))
-        return np.argmax(pred)
+        return self.parent.Model.predict(self.parent.augmentation.checkModelSizeCompatibility(image))
+        
     
     def resizeLabel(self, label, shape):
         return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)

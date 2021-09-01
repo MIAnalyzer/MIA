@@ -71,6 +71,8 @@ class DeepLearning(dlObservable):
         
         self.observer = None
         
+        self.tta = True
+        
         # Training settings
         self.batch_size = 4
         self.epochs = 100
@@ -79,7 +81,7 @@ class DeepLearning(dlObservable):
         self.lrschedule = schedule.LearningRateSchedule(self)
         self.optimizer = Optimizer(self)
         
-        # segmenatation settings
+        # segmentation settings
         self.seg_useWeightedDistanceMap = False
         
         # object detection settings
@@ -281,10 +283,11 @@ class DeepLearning(dlObservable):
             
     def Reset(self):
         self.Model = None
-    
+        
     def LoadModel(self, modelpath):
         self.Model = self.Mode.loadmodel(modelpath)
         self.record.reset()
+    
     
     def SaveModel(self, modelpath):
         if self.initialized:
