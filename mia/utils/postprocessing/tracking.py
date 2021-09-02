@@ -10,12 +10,14 @@ import numpy as np
 import math
 from utils.Image import readNumOfImageFrames
 
+
+
 class ObjectTracking():
     def __init__(self,dl,files):
         self.dl = dl
         self.files = files
         self.tracking_list = []
-        self.thresh = 100
+        self.thresh = 35
         self.fadeawayperiod = 1
         self.newobjectperiod = 2
         self.objects = None
@@ -161,7 +163,7 @@ class ObjectTracking():
 
     
     #def saveTrack(self, filename):
-    # could be saved for perdormance reasons instead of reloaded from individual contour files
+    # could be saved for performance reasons instead of reloaded from individual contour files
     #    pass
 
     def addTrackPosition(self, tp, obj):
@@ -170,6 +172,7 @@ class ObjectTracking():
             self.tracks = np.append(self.tracks,np.zeros((objnum - self.tracks.shape[0],self.tracks.shape[1],2))-1,axis = 0)
         pos = obj.getPosition()
         self.tracks[objnum-1,tp,:] = np.asarray(pos)
+
 
     def fillBlanksForMissingObjects(self, tp):      
         [x.append((-1,-1)) for x in self.tracks if len(x) < tp+1]
@@ -195,12 +198,13 @@ class ObjectTracking():
             self.tracking_list = [(x,i) for (x,i) in zip(detections,range(1,len(detections)+1))]
         else:
             self.calculateMatches(detections, t)
+            
 
     def calculateMatches(self,  t, tp):
         t_minus_one = [x for (x,i) in self.tracking_list]
         corr_mat = [self.dl.Mode.LabelDistance(x,y) for x in t_minus_one for y in t]
-        mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))
-                
+        mat = np.asarray(corr_mat).reshape(len(t_minus_one),len(t))          
+         
         # improves performance because it avoid (or equalizes to be more precisely) matches larger self.thresh
         mat[mat>self.thresh] = 100000
         row,col = linear_sum_assignment(mat)
@@ -209,6 +213,8 @@ class ObjectTracking():
         for r,c in zip(row,col):
             if mat[r,c] < self.thresh and t_minus_one[r].classlabel == t[c].classlabel: 
                 pos = self.tracking_list[r][1]-1
+                # update contour
+                self.tracking_list[r] = (t[c], self.tracking_list[r][1])
                 self.objects[pos,tp] = c+1
             else:
                 newobject = np.zeros((1,self.timepoints),dtype=int)
@@ -223,6 +229,7 @@ class ObjectTracking():
                 newobject[0,tp] = track+1
                 self.objects = np.append(self.objects,newobject, axis=0)
                 self.tracking_list.append((t[track], self.objects.shape[0]))
+
            
         # remove continuously undetected 
         gone = []
@@ -235,5 +242,5 @@ class ObjectTracking():
             for obj in gone:
                 self.tracking_list.remove(obj)
 
-                
+        
 
