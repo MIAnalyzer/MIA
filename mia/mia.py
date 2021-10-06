@@ -101,6 +101,7 @@ class MIA_UI(QMainWindow, MainWindow):
         
         
         self.predictionRate = 0
+        self.saveload_modelweights_only = False
         
         self.dl = DeepLearning.DeepLearning()
         self.tracking = ObjectTracking(self.dl, self.files)
@@ -524,7 +525,7 @@ class MIA_UI(QMainWindow, MainWindow):
         if self.files.currentImage == -1:
             text = 'No Image Displayed'
         else:
-            if not self.files.CurrentImageName():
+            if not self.files.CurrentImageName() or not self.currentImageFile:
                 return
             text = "%d of %i: " % (self.files.currentImage+1,self.files.numofImages) + self.files.CurrentImageName(True) 
             if self.currentImageFile.isStack():
@@ -536,6 +537,7 @@ class MIA_UI(QMainWindow, MainWindow):
         folder = openFolder("Select Training Image Folder")
         if not folder:
             return
+        
         self.files.setTrainFolder(folder)
         self.setWorkingFolder()
         
@@ -557,7 +559,7 @@ class MIA_UI(QMainWindow, MainWindow):
             
     def setWorkingFolder(self):
         self.files.getFiles()
-
+        
         if self.files.currentimagesrootpath:
             self.loadTrack()
             model = QFileSystemModel()
@@ -567,6 +569,7 @@ class MIA_UI(QMainWindow, MainWindow):
             self.TVFiles.setVisible(True)
         else:
             self.TVFiles.setVisible(False)
+            
         self.changeImage()
         self.setFolderLabels()
         
@@ -673,7 +676,7 @@ class MIA_UI(QMainWindow, MainWindow):
                 self.setCanvasTool(widget.objectName())
                 return
 
-    def readCurrentImageAsBGR(self): 
+    def readCurrentImageAsBGR(self):
         with self.wait_cursor():
             self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
             self.resetBrightnessContrast()
@@ -829,21 +832,31 @@ class MIA_UI(QMainWindow, MainWindow):
         return self.dl.WorkingMode
 
     def loadModel(self):
-        # load h5
-        # filename = loadFile("Select Model File", "Model (*.h5)")
-
-        filename = openFolder('Select a Model Directory')
-        if filename:
-            with self.wait_cursor():
-                self.dl.LoadModel(filename)
-                self.writeStatus('model loaded')
-                try:
-                    settings_file = os.path.join(filename, 'settings.json')
-                    self.settings.loadSettings(settings_file)
-                    # load h5
-                    # self.settings.loadSettings(filename.replace("h5", "json"))
-                except:
-                    pass
+        if self.saveload_modelweights_only:
+            filename = loadFile("Select Model File", "Model (*.h5)")
+            if filename:
+                with self.wait_cursor():
+                    try:
+                        self.settings.loadSettings(filename.replace("h5", "json"))
+                    except:
+                        pass
+                    self.dl.initModel(self.NumOfClasses(), self.training_form.CBMono.isChecked())
+                    self.dl.LoadModelWeights(filename)
+                    self.writeStatus('model loaded')
+                    
+        else:
+            filename = openFolder('Select a Model Directory')
+            if filename:
+                with self.wait_cursor():
+                    self.dl.LoadModel(filename)
+                    self.writeStatus('model loaded')
+                    try:
+                        settings_file = os.path.join(filename, 'settings.json')
+                        self.settings.loadSettings(settings_file)
+                        # load h5
+                        # self.settings.loadSettings(filename.replace("h5", "json"))
+                    except:
+                        pass
 
 
     def saveModel(self):

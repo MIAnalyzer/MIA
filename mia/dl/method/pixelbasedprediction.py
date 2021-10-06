@@ -67,7 +67,7 @@ class PixelBasedPrediction(ABC):
         result = np.mean(results, axis = 0)
         return self.convert2Image(result).astype('uint8')
 
-    def PredictFromGenerator(self, image):
+    def PredictFromGenerator(self, image):       
         generator = datagenerator.PredictionDataGenerator(self.parent, image)
         pred = self.parent.Model.predict(generator, workers=self.parent.worker)
         result = np.zeros(image.shape[0:2] + (self.parent.NumClasses,))
@@ -183,8 +183,8 @@ class PixelBasedPrediction(ABC):
             # must be divisible by 48
             width = self.parent.augmentation.outputwidth - self.parent.augmentation.outputwidth % 48
             height = self.parent.augmentation.outputheight - self.parent.augmentation.outputheight % 48
-            self.parent.augmentation.outputwidth = width
-            self.parent.augmentation.outputheight = height
+            # self.parent.augmentation.outputwidth = width
+            # self.parent.augmentation.outputheight = height
             if self.pretrained:
                 inputsize = (width, height, 3)
             else:
@@ -192,8 +192,8 @@ class PixelBasedPrediction(ABC):
             model = PSPNet(backbone_name = self.backbone, input_shape=inputsize, classes = nclasses, encoder_weights=weights, activation=activation)
         elif self.architecture == 'Deeplabv3+':
             if self.pretrained:
-                self.parent.augmentation.outputwidth = 512
-                self.parent.augmentation.outputheight = 512
+                # self.parent.augmentation.outputwidth = 512
+                # self.parent.augmentation.outputheight = 512
                 inputsize = (512, 512, 3)
             else:
                 inputsize = (self.parent.augmentation.outputwidth, self.parent.augmentation.outputheight, channels)
@@ -203,11 +203,26 @@ class PixelBasedPrediction(ABC):
             raise ValueError("not a supported network architecture")
 
         if addextraInputLayer:
-            input = tf.keras.layers.Input(shape=(None, None, channels))
-            layer0 = tf.keras.layers.Conv2D(3, (1, 1))(input) 
+            input_layer = tf.keras.layers.Input(shape=(None, None, channels))
+            layer0 = tf.keras.layers.Conv2D(3, (1, 1))(input_layer) 
             out = model(layer0)
-            model = tf.keras.models.Model(input, out, name=model.name)
+            model = tf.keras.models.Model(input_layer, out, name=model.name)
+            
+        self.setModelInputSize()
         return model
+    
+    def setModelInputSize(self):
+        if self.architecture == 'Deeplabv3+':
+            if self.pretrained:
+                self.parent.augmentation.outputwidth = 512
+                self.parent.augmentation.outputheight = 512
+                
+        elif self.architecture == 'PSPNet':
+            # must be divisible by 48
+            self.parent.augmentation.outputwidth = self.parent.augmentation.outputwidth - self.parent.augmentation.outputwidth % 48
+            self.parent.augmentation.outputheight = self.parent.augmentation.outputheight - self.parent.augmentation.outputheight % 48
+                
+                
     
     def loadmodel(self, path):
         if self.pretrained:
@@ -217,6 +232,7 @@ class PixelBasedPrediction(ABC):
                 self.preprocessingfnc = get_preprocessing(self.backbone)
         else:
             self.preprocessingfnc = None
+        self.setModelInputSize()
         return load_model(path)
     
     @abstractmethod

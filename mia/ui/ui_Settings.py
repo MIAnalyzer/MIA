@@ -72,6 +72,11 @@ class Window(object):
         vlayout.addWidget(self.CBTTA)
 
 
+        self.CBWeightsonly = QCheckBox("Load/Save only model weights",self.centralWidget)
+        self.CBWeightsonly.setObjectName('Weightsonly')
+        self.CBWeightsonly.setToolTip('Select to save/load only model weights instead of complete model setup')
+        vlayout.addWidget(self.CBWeightsonly)
+
         self.SBThreads = LabelledSpinBox('Worker threads',self.centralWidget)
         self.SBThreads.setObjectName('NumThreads')
         self.SBThreads.setToolTip('Set number of worker threads')
@@ -153,6 +158,7 @@ class SettingsWindow(QMainWindow, Window):
         self.SBThreads.SpinBox.setValue(self.parent.maxworker)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         self.CBTTA.setChecked(self.parent.dl.tta)
+        self.CBWeightsonly.setChecked(self.parent.saveload_modelweights_only)
         
         
         self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
@@ -165,7 +171,7 @@ class SettingsWindow(QMainWindow, Window):
         self.SBThreads.SpinBox.valueChanged.connect(self.setNumThreads)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
         self.CBTTA.stateChanged.connect(self.ttaChanged)
-        
+        self.CBWeightsonly.stateChanged.connect(self.weightsonlyChanged)
         
         self.CBgpu.setCurrentIndex(0)
         
@@ -202,6 +208,9 @@ class SettingsWindow(QMainWindow, Window):
               
     def ttaChanged(self):
         self.parent.dl.tta = self.CBTTA.isChecked()
+        
+    def weightsonlyChanged(self):
+        self.parent.saveload_modelweights_only = self.CBWeightsonly.isChecked()
         
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())

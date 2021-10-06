@@ -71,7 +71,7 @@ class DeepLearning(dlObservable):
         
         self.observer = None
         
-        self.tta = True
+        self.tta = False
         
         # Training settings
         self.batch_size = 4
@@ -288,10 +288,18 @@ class DeepLearning(dlObservable):
         self.Model = self.Mode.loadmodel(modelpath)
         self.record.reset()
     
-    
     def SaveModel(self, modelpath):
         if self.initialized:
             self.Model.save(modelpath)
+            
+    def LoadModelWeights(self, weightspath):
+        if self.initialized:
+            self.Model.load_weights(weightspath)
+            self.record.reset()
+        
+    def SaveModelWeights(self, weightspath):
+        if self.initialized:
+            self.Model.save_weights(weightspath)
             
     def _getTrainingCallbacks(self):
         callbacks = [self.record]
