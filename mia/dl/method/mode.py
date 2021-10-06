@@ -128,3 +128,6 @@ class LearningMode(ABC):
     def getImageSize4ModelInput(self, inputWidth, inputHeight):
         pass
     
+    @abstractmethod
+    def setModelInputSize(self):
+        pass

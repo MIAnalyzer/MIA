@@ -72,8 +72,8 @@ class Classification(LearningMode):
         if 'nasnet' in self.backbone:
             if self.pretrained:
                 size = (224, 224,3)
-                self.parent.augmentation.outputwidth = 224
-                self.parent.augmentation.outputheight = 224
+                # self.parent.augmentation.outputwidth = 224
+                # self.parent.augmentation.outputheight = 224
             else:
                 size = (self.parent.augmentation.outputwidth, self.parent.augmentation.outputheight,channels)
 
@@ -93,14 +93,21 @@ class Classification(LearningMode):
         # we cut here and pool, to rebuild models like vgg exactly, fc layers (a 4096, 4096 and 1000 units in case of vgg) should be added
         x = tf.keras.layers.GlobalAveragePooling2D()(basemodel.output)
         output = tf.keras.layers.Dense(n_classes, activation=out_activation)(x)
-
+        self.setModelInputSize()
         return tf.keras.models.Model(inputs=[basemodel.input], outputs=[output])
+    
+    def setModelInputSize(self):
+        if 'nasnet' in self.backbone:
+            if self.pretrained:
+                self.parent.augmentation.outputwidth = 224
+                self.parent.augmentation.outputheight = 224
 
     def loadmodel(self, path):
         if self.pretrained:
             _, self.preprocessingfnc = Classifiers.get(self.backbone)
         else:
             self.preprocessingfnc = None
+        self.setModelInputSize()
         return load_model(path)
 
 

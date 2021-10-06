@@ -49,7 +49,7 @@ class MainWindow(object):
         self.FileMenu.addAction(self.ALoadSettings)
         
         self.ASaveDeepLearning = QAction("Save DL Object", self.centralWidget)
-        #self.FileMenu.addAction(self.ASaveDeepLearning)
+        # self.FileMenu.addAction(self.ASaveDeepLearning)
         
         
         self.FileMenu.addSeparator()

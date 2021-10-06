@@ -286,6 +286,7 @@ def openFolder(header):
     dialog.setFileMode(QFileDialog.DirectoryOnly)
     dialog.setOption(QFileDialog.DontUseNativeDialog, True)
     dialog.setOption(QFileDialog.ShowDirsOnly, False)
+    
     if dialog.exec() == QDialog.Accepted:
         return dialog.selectedFiles()[0]
     else:
