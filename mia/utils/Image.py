@@ -22,7 +22,13 @@ class ImageFile():
         try: # open stack
             image = Image.open(path)
             image.seek(0)
-
+            
+            supportedmodes = ['1', 'L', 'P', 'RGB', 'RGBA', 'CMYK', 'YCbCr', 'LAB', 'HSV', 'I', 'F']
+            
+            # mostly 16 bit images
+            if image.mode not in supportedmodes:    
+                raise
+            
             frames = image.n_frames
             images = []
             for i in range(frames):
@@ -33,12 +39,13 @@ class ImageFile():
             # convert to bgr if color
             if len(self._image.shape)>=4: 
                 self._image = self._image[:, :, :, [2, 1, 0],...].copy()
-                
+            
             if frames == 1:
                 self._stack = False
                 self._image = np.squeeze(self._image)
             elif frames > 1:
-                self._stack = True            
+                self._stack = True  
+                
         except:
             self._image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             self._stack = False
