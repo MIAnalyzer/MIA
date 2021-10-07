@@ -23,10 +23,14 @@ class ImageFile():
             image = Image.open(path)
             image.seek(0)
             
-            supportedmodes = ['1', 'L', 'P', 'RGB', 'RGBA', 'CMYK', 'YCbCr', 'LAB', 'HSV', 'I', 'F']
             
-            # mostly 16 bit images
-            if image.mode not in supportedmodes:    
+            ### conversion to array hangs up for some images
+            ### see https://github.com/python-pillow/Pillow/issues/5749
+            # supportedmodes = ['1', 'L', 'P', 'RGB', 'RGBA', 'CMYK', 'YCbCr', 'LAB', 'HSV', 'I', 'F']
+
+            # mostly 16 bit images and lzw compressed files
+            # if image.mode not in supportedmodes or image.info["compression"] == 'tiff_lzw': 
+            if image.info["compression"] == 'tiff_lzw': 
                 raise
             
             frames = image.n_frames

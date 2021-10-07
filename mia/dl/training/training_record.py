@@ -1,5 +1,5 @@
 from tensorflow.keras.callbacks import Callback
-
+import csv
 
 class TrainingRecording( Callback):
     def __init__(self, parent ):
@@ -16,6 +16,24 @@ class TrainingRecording( Callback):
         self.currentbatch = 0
         self.currentepoch = 0
         # to do: implement validation loss and metric
+        
+    def save(self,path):
+        header = ['epoch', 'train_loss', 'train_metric', 'val_loss', 'val_metric'] 
+
+        with open (path, 'w') as f:
+            write = csv.writer(f)
+            write.writerow(header)
+            for i in range(len(self.loss_per_epoch)):
+                row = []
+                row.append(i)
+                row.append(self.loss_per_epoch[i])
+                row.append(self.metric_per_epoch[i])
+                if len(self.val_loss) > i:
+                    row.append(self.val_loss[i])
+                if len(self.val_loss) > i:
+                    row.append(self.val_metric[i])
+                write.writerow(row)
+                
 
     def on_train_begin(self, logs=None):
         self.parent.notifyTrainingStarted()
