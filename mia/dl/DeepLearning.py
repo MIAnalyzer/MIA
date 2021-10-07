@@ -21,6 +21,7 @@ import threading
 import traceback
 import sys
 
+
 import dl.training.datagenerator as datagenerator
 import dl.training.training_record as training_record
 import dl.training.augment as augment
@@ -300,6 +301,9 @@ class DeepLearning(dlObservable):
     def SaveModelWeights(self, weightspath):
         if self.initialized:
             self.Model.save_weights(weightspath)
+            
+    def saveTrainingRecord(self, path):
+        self.record.save(path)
             
     def _getTrainingCallbacks(self):
         callbacks = [self.record]
