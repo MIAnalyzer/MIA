@@ -204,10 +204,15 @@ class ImageAugment():
             ret = [x[...,np.newaxis] for x in ret]
         return ret
 
-    def checkModelSizeCompatibility(self, image, label  = None):
+    def checkModelSizeCompatibility(self, image, label  = None):       
         targetsize = self.parent.InputSize
         currsize = image.shape[1:3]
         idims = len(image.shape)
+        
+        if targetsize[0] is None and targetsize[1] is None:
+            targetsize = (self.outputheight, self.outputwidth)
+        
+        
         if (targetsize[0] is not None or targetsize[1] is not None) and (targetsize != currsize):
             image = np.stack([cv2.resize(x, (targetsize[1], targetsize[0]), interpolation = cv2.INTER_CUBIC) for x in image], axis=0)
             if len(image.shape) < idims:
