@@ -84,6 +84,8 @@ class DeepLearning(dlObservable):
         
         # segmentation settings
         self.seg_useWeightedDistanceMap = False
+        self.seg_border_weight = 10
+        self.seg_border_dist = 5
         
         # object detection settings
         self.od_kernel_stdev = 3
