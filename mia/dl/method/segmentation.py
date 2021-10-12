@@ -33,7 +33,7 @@ class Segmentation(PixelBasedPrediction, LearningMode):
     
     def addWeightMap(self, label):
         if self.parent.seg_useWeightedDistanceMap:
-            weights = dl_utils.createWeightedBorderMapFromLabel(label[np.newaxis,...], w0 = self.border_weight, sigma = self.border_dist)
+            weights = dl_utils.createWeightedBorderMapFromLabel(label[np.newaxis,...], w0 = self.parent.seg_border_weight, sigma = self.parent.seg_border_dist)
             label = np.concatenate((label, weights[0,...]), axis = 2)
         return label
     
