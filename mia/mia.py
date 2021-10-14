@@ -78,9 +78,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.setCallbacks()
         self.show()
 
-        self.keyinsensitivity = 0.05
-        self.lastkey = 0
-
         self.progresstick = 10
         self.progress = 0
         self.progresslock = threading.Lock()
@@ -141,8 +138,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.changeLearningMode(self.LearningMode().value)
         self.CBLearningMode.setCurrentIndex (self.LearningMode().value)
         self.setWorkers(multiprocessing.cpu_count() // 2)
-        
-        qApp.installEventFilter(self)
 
         ### windows - should this be moved to UI ?
         self.segpostprocessing_form = SegmentationPostProcessingWindow(self)
@@ -161,6 +156,8 @@ class MIA_UI(QMainWindow, MainWindow):
         self.initialized = True
         self.settings = Settings(self)
         self.settings.loadSettings(SETTINGS_FILENAME)
+        
+        self.defineShortcuts()
         
 
 
@@ -193,8 +190,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.BDeleteObject.clicked.connect(self.setCanvasMode)
         self.BChangeObjectColor.clicked.connect(self.setCanvasMode)
 
-
-        
         
         self.Btrain.clicked.connect(self.showTrainingWindow)
         self.Bpredictall.clicked.connect(self.predictAllImages)
@@ -221,8 +216,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.CBtrackcolor.stateChanged.connect(self.updateImage)
         
 
-       
-
         self.CBLearningMode.currentIndexChanged.connect(self.changeLearningMode)
         self.CBExtend.clicked.connect(self.updateCursor)
         self.CBErase.clicked.connect(self.updateCursor)
@@ -246,6 +239,98 @@ class MIA_UI(QMainWindow, MainWindow):
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
         
+        
+        
+    def defineShortcuts(self):
+        self.sc_toggle = QShortcut(QKeySequence(Qt.Key_Space), self)
+        self.sc_toggle.activated.connect(self.canvas.toggleDrag) 
+        
+        self.sc_prev = QShortcut(QKeySequence(Qt.Key_A), self)
+        self.sc_prev.activated.connect(self.previousImage) 
+        
+        self.sc_next = QShortcut(QKeySequence(Qt.Key_D), self)
+        self.sc_next.activated.connect(self.nextImage) 
+        
+        self.sc_class0 = QShortcut(48, self)
+        self.sc_class0.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class1 = QShortcut(49, self)
+        self.sc_class1.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class2 = QShortcut(50, self)
+        self.sc_class2.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class3 = QShortcut(51, self)
+        self.sc_class3.activated.connect(self.setClassShortcut)
+        
+        self.sc_class4 = QShortcut(52, self)
+        self.sc_class4.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class5 = QShortcut(53, self)
+        self.sc_class5.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class6 = QShortcut(54, self)
+        self.sc_class6.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class7 = QShortcut(55, self)
+        self.sc_class7.activated.connect(self.setClassShortcut)
+        
+        self.sc_class8 = QShortcut(56, self)
+        self.sc_class8.activated.connect(self.setClassShortcut) 
+        
+        self.sc_class9 = QShortcut(57, self)
+        self.sc_class9.activated.connect(self.setClassShortcut) 
+        
+        self.sc_undo = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Z), self)
+        self.sc_undo.activated.connect(self.undo) 
+
+        self.sc_zoom_in = QShortcut(QKeySequence(Qt.Key_Plus), self)
+        self.sc_zoom_in.activated.connect(self.canvas.zoomIn) 
+        
+        self.sc_zoom_out = QShortcut(QKeySequence(Qt.Key_Minus), self)
+        self.sc_zoom_out.activated.connect(self.canvas.zoomOut) 
+        
+        self.sc_tool1 = QShortcut(QKeySequence(Qt.Key_F1), self)
+        self.sc_tool1.activated.connect(self.setToolShortcut)
+        
+        self.sc_tool2 = QShortcut(QKeySequence(Qt.Key_F2), self)
+        self.sc_tool2.activated.connect(self.setToolShortcut)
+        
+        self.sc_tool3 = QShortcut(QKeySequence(Qt.Key_F3), self)
+        self.sc_tool3.activated.connect(self.setToolShortcut)
+        
+        self.sc_tool4 = QShortcut(QKeySequence(Qt.Key_F4), self)
+        self.sc_tool4.activated.connect(self.setToolShortcut)
+        
+        self.sc_tool5 = QShortcut(QKeySequence(Qt.Key_F5), self)
+        self.sc_tool5.activated.connect(self.setToolShortcut)
+        
+        self.sc_tool6 = QShortcut(QKeySequence(Qt.Key_F6), self)
+        self.sc_tool6.activated.connect(self.setToolShortcut)
+
+            
+    def setClassShortcut(self):
+        for i in range(10):
+            val = i+48    
+            if self.sender().key() == val:
+                self.classList.setClass(i)
+                break
+
+    def setToolShortcut(self):
+        if self.sender().key() == QKeySequence(Qt.Key_F1):
+            self.selectToolButtonX(1)
+        if self.sender().key() == QKeySequence(Qt.Key_F2):
+            self.selectToolButtonX(2)
+        if self.sender().key() == QKeySequence(Qt.Key_F3):
+            self.selectToolButtonX(3)
+        if self.sender().key() == QKeySequence(Qt.Key_F4):
+            self.selectToolButtonX(4)
+        if self.sender().key() == QKeySequence(Qt.Key_F5):
+            self.selectToolButtonX(5)
+        if self.sender().key() == QKeySequence(Qt.Key_F6):
+            self.selectToolButtonX(6)
+
+
     def showSettingsWindow(self):
         self.settings_form.show()
         
@@ -627,43 +712,6 @@ class MIA_UI(QMainWindow, MainWindow):
     def setCanvasTool(self, tool):
         self.canvas.setnewTool(tool)
 
-    def eventFilter(self, source, event):
-        if event.type() == QEvent.KeyPress:
-            if source == self.canvas or source == self:
-                self.keyPress(event)
-        return super(MIA_UI, self).eventFilter(source, event)
-            
-    def keyPress(self, e):
-        # ignore double calls
-        if time.time()-self.lastkey < self.keyinsensitivity:
-            return
-        self.lastkey = time.time()
-        if e.key() == 32: # space bar
-            self.canvas.toggleDrag()
-        if 48 <= e.key() <= 57: # numbers from 0-9
-            classnum = e.key()-48
-            self.classList.setClass(e.key()-48)
-        if int(e.modifiers()) == Qt.CTRL and e.key() == 90: # strg + z
-            self.undo()
-        if e.key() == Qt.Key_Plus:
-            self.canvas.zoomIn()
-        if e.key() == Qt.Key_Minus:
-            self.canvas.zoomOut()
-        if e.key() == Qt.Key_F1:
-            self.canvas
-        if e.key() == Qt.Key_F1:
-            self.selectToolButtonX(1)
-        if e.key() == Qt.Key_F2:
-            self.selectToolButtonX(2)
-        if e.key() == Qt.Key_F3:
-            self.selectToolButtonX(3)
-        if e.key() == Qt.Key_F4:
-            self.selectToolButtonX(4)
-        if e.key() == Qt.Key_F5:
-            self.selectToolButtonX(5)
-        if e.key() == Qt.Key_F6:
-            self.selectToolButtonX(6)
-
     def selectToolButtonX(self,x):
         i = 0
         for b in canvasToolButton:
@@ -678,6 +726,8 @@ class MIA_UI(QMainWindow, MainWindow):
 
     def readCurrentImageAsBGR(self):
         with self.wait_cursor():
+
+            
             self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
             self.resetBrightnessContrast()
             if self.currentImageFile.isStack():
@@ -685,7 +735,10 @@ class MIA_UI(QMainWindow, MainWindow):
                 self.initFrameSlider()
             else:
                 self.SFrame.hide()
+
             self.canvas.ReloadImage()
+            
+            
             
 
     def initFrameSlider(self):
@@ -853,8 +906,6 @@ class MIA_UI(QMainWindow, MainWindow):
                     try:
                         settings_file = os.path.join(filename, 'settings.json')
                         self.settings.loadSettings(settings_file)
-                        # load h5
-                        # self.settings.loadSettings(filename.replace("h5", "json"))
                     except:
                         pass
 
@@ -864,18 +915,23 @@ class MIA_UI(QMainWindow, MainWindow):
             self.PopupWarning('No model trained/loaded')
             return
             
-        # save as h5
-        # filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
-        filename = openFolder('Select a Folder as Model Directory')
-        
-        if filename:
-            with self.wait_cursor():
-                self.dl.SaveModel(filename)
-                settings_file = os.path.join(filename, 'settings.json')
-                self.settings.saveSettings(settings_file, networksettingsonly=True)
-                # save as h5
-                # self.settings.saveSettings(filename.replace("h5", "json"), networksettingsonly=True)
-                self.writeStatus('model saved')
+
+        if self.saveload_modelweights_only:
+            filename = saveFile("Save Model To File","Model File (*.h5)", 'h5')
+            if filename:
+                with self.wait_cursor():
+                    self.dl.SaveModelWeights(filename)
+                    self.settings.saveSettings(filename.replace("h5", "json"), networksettingsonly=True)
+                    self.writeStatus('model saved')
+        else: 
+            filename = openFolder('Select a Folder as Model Directory')
+            
+            if filename:
+                with self.wait_cursor():
+                    self.dl.SaveModel(filename)
+                    settings_file = os.path.join(filename, 'settings.json')
+                    self.settings.saveSettings(settings_file, networksettingsonly=True)
+                    self.writeStatus('model saved')
 
     def resetModel(self):
         self.dl.Reset()
@@ -1024,7 +1080,10 @@ class MIA_UI(QMainWindow, MainWindow):
     def saveDLClass(self):
         filehandler = open('saveDLObject.pkl', 'wb') 
         self.dl.detachObserver(self.dlobserver)
+        hed = self.dl.hed
+        self.dl.hed = None
         pickle.dump(self.dl, filehandler)
+        self.dl.hed = hed
         self.dl.attachObserver(self.dlobserver)
         
     # deep learning observer functions
