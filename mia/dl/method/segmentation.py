@@ -68,6 +68,10 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         
     def convert2Image(self,prediction):
         prediction = np.squeeze(prediction)
+        
+        if self.parent.seg_wt_separation:
+            return dl_utils.separatePredictions(prediction, self.parent.seg_wt_mindist, self.parent.seg_wt_thresh)
+        
         if self.parent.NumClasses > 2:
             prediction = np.squeeze(np.argmax(prediction, axis = 2))
         else:

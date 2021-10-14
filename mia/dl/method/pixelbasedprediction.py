@@ -65,6 +65,7 @@ class PixelBasedPrediction(ABC):
 
         results = np.stack(results, axis = 0)
         result = np.mean(results, axis = 0)
+        
         return self.convert2Image(result).astype('uint8')
 
     def PredictFromGenerator(self, image):       

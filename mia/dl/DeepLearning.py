@@ -86,6 +86,10 @@ class DeepLearning(dlObservable):
         self.seg_useWeightedDistanceMap = False
         self.seg_border_weight = 10
         self.seg_border_dist = 5
+        self.seg_wt_separation = False
+        self.seg_wt_thresh = 0.5
+        self.seg_wt_mindist = 20
+        
         
         # object detection settings
         self.od_kernel_stdev = 3
