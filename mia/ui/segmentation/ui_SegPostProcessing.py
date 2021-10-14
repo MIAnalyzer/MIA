@@ -9,7 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.style import styleForm
-from ui.ui_utils import DCDButton
+from ui.ui_utils import DCDButton, LabelledDoubleSpinBox, LabelledSpinBox
 from dl.method.mode import dlMode
 
 class Window(object):
@@ -29,6 +29,26 @@ class Window(object):
         self.CBTrackingMode.setObjectName('TrackingMode_seg')
 
         self.vlayout.addWidget(self.CBTrackingMode)
+        
+        
+        self.CBWatershed = QCheckBox("Contour separation on prediction",self.centralWidget)
+        self.CBWatershed.setObjectName('WT_Separation')
+        self.CBWatershed.setToolTip('Check to perform watershed separation on predictions')
+        
+        self.CBWTThresh = LabelledDoubleSpinBox ('Detection threshold ', self.centralWidget)
+        self.CBWTThresh.setObjectName('WT_Threshold')
+        self.CBWTThresh.SpinBox.setRange(0.1,0.9)
+        self.CBWTThresh.SpinBox.setSingleStep(0.1)
+        self.CBWTThresh.SpinBox.setDecimals(1)
+
+        self.SBWTDist = LabelledSpinBox ('Min Contour Distance', self.centralWidget)
+        self.SBWTDist.setObjectName('WT_Distance')
+        self.SBWTDist.SpinBox.setRange(1,500)
+        
+        self.vlayout.addWidget(self.CBWatershed)
+        self.vlayout.addWidget(self.CBWTThresh)
+        self.vlayout.addWidget(self.SBWTDist)
+        
         
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.SBminContourSize = QSpinBox(self.centralWidget)
@@ -83,6 +103,24 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
         self.SBminContourSize.valueChanged.connect(self.setminContourSize)     
         self.BCopyStackLabels.clicked.connect(self.shareStackLabels)
         
+        
+        
+        self.CBWatershed.setChecked(self.parent.dl.seg_wt_separation)
+        self.SBWTDist.SpinBox.setValue(self.parent.dl.seg_wt_mindist)
+        self.CBWTThresh.SpinBox.setValue(self.parent.dl.seg_wt_thresh)
+        # self.SBWTDist.setEnabled(self.parent.dl.seg_wt_separation)
+        # self.CBWTThresh.setEnabled(self.parent.dl.seg_wt_separation)
+        
+        
+        self.CBWatershed.stateChanged.connect(self.WatershedChanged)
+        self.SBWTDist.SpinBox.valueChanged.connect(self.WTDistanceChanged)
+        self.CBWTThresh.SpinBox.valueChanged.connect(self.WTThreshChanged)
+        
+    def show(self):
+        self.WatershedChanged()
+        super(SegmentationPostProcessingWindow, self).show()
+        
+        
     def showSkeleton(self):
         self.parent.canvas.drawSkeleton = self.CBCalculateSkeleton.isChecked()
 
@@ -103,3 +141,16 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
 
     def shareStackLabels(self):
         self.parent.copyStackLabels()
+        
+    def WatershedChanged(self):
+        self.parent.dl.seg_wt_separation = self.CBWatershed.isChecked()
+        self.SBWTDist.setEnabled(self.parent.dl.seg_wt_separation)
+        self.CBWTThresh.setEnabled(self.parent.dl.seg_wt_separation)
+        
+        
+    def WTDistanceChanged(self):
+        self.parent.dl.seg_wt_mindist = self.SBWTDist.SpinBox.value()
+        
+    def WTThreshChanged(self):
+        self.parent.dl.seg_wt_thresh = self.CBWTThresh.SpinBox.value()
+        

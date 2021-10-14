@@ -3,6 +3,11 @@ import numpy as np
 from skimage.measure import label
 import numpy as np
 import cv2
+from scipy.ndimage.morphology import distance_transform_edt
+from skimage.feature import peak_local_max
+from skimage.segmentation import watershed
+from scipy import ndimage
+import utils.shapes.Contour as Contour
 
 
 def createWeightedBorderMapFromLabel(batch, weighting = None, w0 = 10, sigma = 5):
@@ -46,4 +51,56 @@ def createWeightedBorderMapFromLabel(batch, weighting = None, w0 = 10, sigma = 5
         else:
             class_weights = np.ones_like(y)
         out[i_num,...] = out[i_num,...] + class_weights
+
     return out[...,np.newaxis].astype(np.uint8)
+
+
+def separatePredictions(prediction, min_distance = 20, threshold = 0.5):  
+    # binary
+    if len(prediction.shape) == 2 or prediction.shape[2] == 1:
+        prediction_prob = prediction.copy()
+        prediction[prediction>threshold] = 1
+        prediction[prediction<=threshold] = 0  
+        
+        _, thresh = cv2.threshold(prediction.astype(np.uint8),0,255,cv2.THRESH_BINARY)
+        dist_transform = distance_transform_edt(thresh)
+        
+        coords = peak_local_max(dist_transform, min_distance=min_distance,  labels=thresh)
+        mask = np.zeros_like(thresh, dtype=bool)
+        mask[tuple(coords.T)] = True
+    
+        markers = ndimage.label(mask)[0]
+        
+        labels = watershed(-prediction_prob, markers, watershed_line=True, mask=prediction)
+        
+        cnt = Contour.extractContoursFromLabel(labels)
+        label = np.zeros(thresh.shape, dtype=np.uint8)
+        Contour.drawContoursToImage(label, cnt, separate=True)
+        
+        label[label>1] = 1
+    # multiclass 
+    else:
+        prediction_prob = prediction.copy()
+        prediction = np.squeeze(np.argmax(prediction, axis = 2))
+        label = np.zeros_like(prediction, dtype=np.uint8)
+        for i in range(1,np.max(prediction)+1):
+            pred = prediction == i
+            _, thresh = cv2.threshold(pred.astype(np.uint8),0,255,cv2.THRESH_BINARY)
+            dist_transform = distance_transform_edt(thresh)
+            
+            coords = peak_local_max(dist_transform, min_distance=min_distance,  labels=thresh)
+            mask = np.zeros_like(thresh, dtype=bool)
+            mask[tuple(coords.T)] = True
+        
+            markers = ndimage.label(mask)[0]
+            
+            labels = watershed(-prediction_prob[...,i], markers, watershed_line=True, mask=pred)
+            
+            cnt = Contour.extractContoursFromLabel(labels)
+            label_i = np.zeros(thresh.shape, dtype=np.uint8)
+            Contour.drawContoursToImage(label_i, cnt, separate=True)
+            
+            label[label_i>=1] = i
+
+    return label
+    
