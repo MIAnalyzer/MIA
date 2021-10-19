@@ -53,6 +53,14 @@ class Window(object):
 
         self.vlayout.addLayout(layout)
         self.vlayout.addWidget(self.SBPredictEvery)
+        
+        self.SBBorder = LabelledSpinBox('Ignore border of training images',self.centralWidget)
+        self.SBBorder.setObjectName('nn_IgnoreBorder')
+        self.SBBorder.setToolTip('Set to remove a border in pixel around each training image')
+        self.SBBorder.SpinBox.setRange(0,100)
+        self.vlayout.addWidget(self.SBBorder) 
+        
+        
         self.vlayout.addWidget(self.LossGroup())
         self.vlayout.addWidget(self.TrainValGroup())
         self.vlayout.addWidget(self.LRScheduleGroup())
@@ -264,6 +272,9 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.CBLoss.currentIndexChanged.connect(self.changeLoss)
         self.CBPreprocess.setCurrentIndex(self.CBOptimizer.findText(self.parent.parent.dl.preprocess.name))
         self.CBPreprocess.currentIndexChanged.connect(self.changePreprocessing)
+        
+        self.SBBorder.SpinBox.setValue(self.parent.parent.dl.data.IgnoreBorder)
+        self.SBBorder.SpinBox.valueChanged.connect(self.changeBorder)
 
         self.RBConstant.toggled.connect(self.LROption)
         self.RBRlroP.toggled.connect(self.LROption)
@@ -402,4 +413,6 @@ class TrainSettingsWindow(QMainWindow, Window):
             self.parent.parent.files.validationpath = folder
             self.LVal.setText(folder)
         
-        
+    def changeBorder(self):
+        self.parent.parent.dl.data.IgnoreBorder = self.SBBorder.SpinBox.value()
+        print(self.parent.parent.dl.data.IgnoreBorder)
