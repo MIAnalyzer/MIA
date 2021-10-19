@@ -415,4 +415,3 @@ class TrainSettingsWindow(QMainWindow, Window):
         
     def changeBorder(self):
         self.parent.parent.dl.data.IgnoreBorder = self.SBBorder.SpinBox.value()
-        print(self.parent.parent.dl.data.IgnoreBorder)
