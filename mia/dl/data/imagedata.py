@@ -32,6 +32,8 @@ class ImageData():
         self.TrainTestSplit = 0.85
         self.UseValidationDir = False
         
+        self.IgnoreBorder = 0
+        
         self.autocalcClassWeights = False
         self.class_weights = None 
         self.classValues = None
@@ -170,9 +172,13 @@ class ImageData():
 
         train_mask = train_mask.reshape(height, width, 1)
         train_img = train_img.reshape(height, width, channels)
+        
+        if self.IgnoreBorder > 0 and 3*self.IgnoreBorder < height and 3*self.IgnoreBorder < width:
+            train_mask = train_mask[self.IgnoreBorder:height-2*self.IgnoreBorder,self.IgnoreBorder:width-2*self.IgnoreBorder,:].copy()
+            train_img = train_img[self.IgnoreBorder:height-2*self.IgnoreBorder,self.IgnoreBorder:width-2*self.IgnoreBorder,:].copy()
+        
 
         train_mask = self.parent.Mode.prepreprocessLabel(train_mask)
-
         return train_img, train_mask  
     
     def getTileIndices(self, validation = False, equalTilesperImage = False):
@@ -251,6 +257,7 @@ class ImageData():
             numImages = len(self.getImagePaths(False))
             for i in range(min(1000,numImages)):
                 self.createImageLabelPair(i)
+                
         self.calcClassWeights()
         
     def setClassWeights(self, weights):

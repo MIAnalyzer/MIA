@@ -33,7 +33,6 @@ class PixelBasedPrediction(ABC):
         height = image.shape[0]
         image = cv2.resize(image, (int(width*self.parent.ImageScaleFactor), int(height*self.parent.ImageScaleFactor)))
 
-
         pred = self.PredictFullImage(image)
         pred = self.resizeLabel(pred, (width, height))
 

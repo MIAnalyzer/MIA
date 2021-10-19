@@ -46,6 +46,9 @@ class LearningMode(ABC):
 
         if self.parent.preprocess == dlPreprocess.imagenet_mean:
             image = image.astype('float')
+            if image.dtype == np.uint16:
+                image = image.astype('float')/255
+            
             # bgr mean of imagenet dataset
             mean = [103.939, 116.779, 123.68]
             if image.shape[-1] == 3:
