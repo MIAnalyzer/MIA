@@ -378,6 +378,7 @@ class TrainSettingsWindow(QMainWindow, Window):
             for c in range(self.parent.parent.NumOfClasses()):
                 self.CBClassWeights.addItem(self.parent.parent.classList.getClassName(c))
         else:
+            self.CBClassWeights.addItem(self.parent.parent.classList.getClassName(0))
             self.CBClassWeights.addItem(self.parent.parent.classList.getClassName(1))
         self.CBClassWeights.setCurrentIndex(1) 
         if self.RBManuClassWeight.isChecked():
@@ -397,6 +398,9 @@ class TrainSettingsWindow(QMainWindow, Window):
             
     def changeClassWeights(self):
         self.parent.parent.classList.setClassWeight(self.CBClassWeights.currentIndex(),self.SBWeight.SpinBox.value())
+        if self.parent.parent.NumOfClasses() == 2:
+            idx = 1 - self.CBClassWeights.currentIndex()
+            self.parent.parent.classList.setClassWeight(idx,1-self.SBWeight.SpinBox.value())
         self.parent.parent.setClassWeights()
 
             
