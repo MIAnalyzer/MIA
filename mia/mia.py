@@ -90,6 +90,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.files.ensureFolder('settings/')
         
         self.currentImageFile = None
+        self.keepImageSettings = False
 
         self.separateStackLabels = True
         self.setFocusPolicy(Qt.NoFocus)
@@ -225,6 +226,7 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.SBrightness.sliderReleased.connect(self.setBrightness)
         self.SContrast.sliderReleased.connect(self.setContrast)
+        self.CBKeep.stateChanged.connect(self.keepImageSettingsChanged)
 
         self.TVFiles.clicked.connect(self.FileExplorerItemSelected)
       
@@ -596,9 +598,9 @@ class MIA_UI(QMainWindow, MainWindow):
         self.files.previousImage()
         self.changeImage()
             
-    def changeImage(self):
+    def changeImage(self, forcereset=False):
         if self.files.numofImages > 0:
-            self.readCurrentImageAsBGR()
+            self.readCurrentImageAsBGR(forcereset)
         else:
             # width = self.canvas.geometry().width()
             # height = self.canvas.geometry().height()
@@ -655,7 +657,7 @@ class MIA_UI(QMainWindow, MainWindow):
         else:
             self.TVFiles.setVisible(False)
             
-        self.changeImage()
+        self.changeImage(forcereset = True)
         self.setFolderLabels()
         
     def FileExplorerItemSelected(self, index):
@@ -724,9 +726,14 @@ class MIA_UI(QMainWindow, MainWindow):
                 self.setCanvasTool(widget.objectName())
                 return
 
-    def readCurrentImageAsBGR(self):
+    def readCurrentImageAsBGR(self, forcereset=False):
         with self.wait_cursor():
             
+            keep = False
+            if not forcereset and self.currentImageFile and self.keepImageSettings:
+                br = self.currentImageFile.brightness
+                c = self.currentImageFile.contrast
+                keep = True
             
             self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
             self.resetBrightnessContrast()
@@ -735,12 +742,13 @@ class MIA_UI(QMainWindow, MainWindow):
                 self.initFrameSlider()
             else:
                 self.SFrame.hide()
+            
+            if keep:
+                self.currentImageFile.brightness = br
+                self.currentImageFile.contrast = c
+           
+            self.canvas.ReloadImage(not keep)
 
-            
-            self.canvas.ReloadImage()
-            
-            
-            
 
     def initFrameSlider(self):
         maxval = self.currentImageFile.numOfImagesInStack()
@@ -769,6 +777,9 @@ class MIA_UI(QMainWindow, MainWindow):
         else:
             self.currentImageFile.contrast = 1 + c/51
         self.canvas.ReloadImage(resetView = False)
+        
+    def keepImageSettingsChanged(self):
+        self.keepImageSettings = self.CBKeep.isChecked()
         
     def resetBrightnessContrast(self):
         self.SContrast.setValue(1)

@@ -49,7 +49,7 @@ class MainWindow(object):
         self.FileMenu.addAction(self.ALoadSettings)
         
         self.ASaveDeepLearning = QAction("Save DL Object", self.centralWidget)
-        # self.FileMenu.addAction(self.ASaveDeepLearning)
+        self.FileMenu.addAction(self.ASaveDeepLearning)
         
         
         self.FileMenu.addSeparator()
@@ -499,6 +499,12 @@ class MainWindow(object):
         
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.vlayout.addItem(verticalSpacer)
+        
+        self.CBKeep = QCheckBox("Keep Settings",self.centralWidget)
+        self.CBKeep.setToolTip("Check to keep brightness/contrast and fov settings (recommended for time series)")
+        self.CBKeep.setObjectName('KeepImageSettings')
+        self.CBKeep.setChecked(False)
+        self.vlayout.addWidget(self.CBKeep)
 
         brightnesslayout = QHBoxLayout(self.centralWidget)
         self.SBrightness = QSlider(Qt.Horizontal, self.centralWidget)
@@ -514,7 +520,7 @@ class MainWindow(object):
         contrastlayout = QHBoxLayout(self.centralWidget)
         self.SContrast = QSlider(Qt.Horizontal, self.centralWidget)
         self.SContrast.setMinimum(-50)
-        self.SContrast.setMaximum(50)
+        self.SContrast.setMaximum(250)
         self.SContrast.setValue(0)
         self.SContrast.setToolTip('Change Image Contrast')
         self.LContrast = QLabel(self.centralWidget)
