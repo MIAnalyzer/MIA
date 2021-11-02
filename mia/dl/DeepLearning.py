@@ -97,6 +97,16 @@ class DeepLearning(dlObservable):
         
 
     @property
+    def ModelOverlap(self):
+        if self.initialized:
+            if self.InputSize[0] is None and self.InputSize[1] is None:
+                inputsize = (self.augmentation.outputheight, self.augmentation.outputwidth)
+            else:
+                inputsize = self.InputSize
+            return min(self.borderremoval, int(2/3*min(inputsize)))
+        return self.borderremoval
+
+    @property
     def NumClasses(self):
         # returns model output
         if not self.initialized:
@@ -204,6 +214,7 @@ class DeepLearning(dlObservable):
 
             self.Training()
         except:
+
             self.notifyTrainingFinished()
             self.notifyError()
 

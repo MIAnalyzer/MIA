@@ -292,12 +292,14 @@ def openFolder(header):
     else:
         return False
 
-def saveFile(header, filter, suffix):
+def saveFile(header, filter, suffix, defaultname = None):
     dialog = QFileDialog()
     dialog.setWindowTitle(header)
     dialog.setOption(QFileDialog.DontUseNativeDialog, True)
     dialog.setDefaultSuffix(suffix)
     dialog.setAcceptMode(QFileDialog.AcceptSave)
+    if defaultname:
+        dialog.selectFile(defaultname)
     dialog.setNameFilters([filter])
     if dialog.exec_() == QDialog.Accepted:
         return dialog.selectedFiles()[0]

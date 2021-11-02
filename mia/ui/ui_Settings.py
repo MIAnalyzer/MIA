@@ -65,12 +65,19 @@ class Window(object):
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
         self.CBSeparateLabels.setEnabled(False)
         vlayout.addWidget(self.CBSeparateLabels)
+                
         
         self.CBTTA = QCheckBox("Test Time Augmentation",self.centralWidget)
         self.CBTTA.setObjectName('TestTimeAugmentation')
         self.CBTTA.setToolTip('Select to use test time augmentation')
         vlayout.addWidget(self.CBTTA)
-
+        
+        self.SBBorderOverlap = LabelledSpinBox('Model Overlap',self.centralWidget)
+        self.SBBorderOverlap.setObjectName('ModelOverlap')
+        self.SBBorderOverlap.SpinBox.setRange(0,1024)
+        self.SBBorderOverlap.setToolTip('Set tile overlap during prediction')
+        vlayout.addWidget(self.SBBorderOverlap)
+        
 
         self.CBWeightsonly = QCheckBox("Load/Save only model weights",self.centralWidget)
         self.CBWeightsonly.setObjectName('Weightsonly')
@@ -158,6 +165,7 @@ class SettingsWindow(QMainWindow, Window):
         self.SBThreads.SpinBox.setValue(self.parent.maxworker)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         self.CBTTA.setChecked(self.parent.dl.tta)
+        self.SBBorderOverlap.SpinBox.setValue(self.parent.dl.borderremoval)
         self.CBWeightsonly.setChecked(self.parent.saveload_modelweights_only)
         
         
@@ -171,6 +179,7 @@ class SettingsWindow(QMainWindow, Window):
         self.SBThreads.SpinBox.valueChanged.connect(self.setNumThreads)
         self.SBScaleFactor.SpinBox.valueChanged.connect(self.ScaleFactorChanged)
         self.CBTTA.stateChanged.connect(self.ttaChanged)
+        self.SBBorderOverlap.SpinBox.valueChanged.connect(self.setBorder)
         self.CBWeightsonly.stateChanged.connect(self.weightsonlyChanged)
         
         self.CBgpu.setCurrentIndex(0)
@@ -208,6 +217,9 @@ class SettingsWindow(QMainWindow, Window):
               
     def ttaChanged(self):
         self.parent.dl.tta = self.CBTTA.isChecked()
+        
+    def setBorder(self):
+        self.parent.dl.borderremoval = self.SBBorderOverlap.SpinBox.value()
         
     def weightsonlyChanged(self):
         self.parent.saveload_modelweights_only = self.CBWeightsonly.isChecked()

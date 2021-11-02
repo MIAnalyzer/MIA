@@ -94,8 +94,8 @@ class PredictionDataGenerator(Sequence):
 
         channels = 1 if self.parent.MonoChrome is True else 3
         self.image = image.reshape(image.shape[0], image.shape[1], channels)
-        self.t_width = self.parent.augmentation.outputwidth - self.parent.borderremoval
-        self.t_height = self.parent.augmentation.outputheight - self.parent.borderremoval 
+        self.t_width = self.parent.augmentation.outputwidth - self.parent.ModelOverlap
+        self.t_height = self.parent.augmentation.outputheight - self.parent.ModelOverlap 
         
         
         if self.image.shape[1] < self.parent.augmentation.outputwidth or self.image.shape[0] < self.parent.augmentation.outputheight:
@@ -105,7 +105,7 @@ class PredictionDataGenerator(Sequence):
             pad = ((0,h), (0,w), (0, 0))
             self.image = np.pad(self.image, pad, 'reflect')
 
-        pad = ((self.parent.borderremoval//2, self.parent.borderremoval//2), (self.parent.borderremoval//2, self.parent.borderremoval//2), (0, 0))       
+        pad = ((self.parent.ModelOverlap//2, self.parent.ModelOverlap//2), (self.parent.ModelOverlap//2, self.parent.ModelOverlap//2), (0, 0))       
         self.image = np.pad(self.image, pad, 'reflect')
            
         self.num_in_width = np.ceil(image.shape[1] / self.t_width)
@@ -130,14 +130,14 @@ class PredictionDataGenerator(Sequence):
                 h_0 = max(h, 0)
                 
                 # split factor need to be reworked and reasonable, get it from network
-                h_til = min(h_0+self.t_height+self.parent.borderremoval, self.image.shape[0])
-                w_til = min(w_0+self.t_width+self.parent.borderremoval,  self.image.shape[1])
+                h_til = min(h_0+self.t_height+self.parent.ModelOverlap, self.image.shape[0])
+                w_til = min(w_0+self.t_width+self.parent.ModelOverlap,  self.image.shape[1])
                 
                 # a full tile at the borders results in better segmentations
                 if h_til == self.image.shape[0]:
-                    h_0 = max(self.image.shape[0] - (self.t_height + self.parent.borderremoval), 0)
+                    h_0 = max(self.image.shape[0] - (self.t_height + self.parent.ModelOverlap), 0)
                 if w_til == self.image.shape[1]:
-                    w_0 = max(self.image.shape[1] - (self.t_width + self.parent.borderremoval), 0)
+                    w_0 = max(self.image.shape[1] - (self.t_width + self.parent.ModelOverlap), 0)
 
                 tile = self.image[int(h_0):int(h_til), int(w_0):int(w_til)]
                 batch.append(tile)

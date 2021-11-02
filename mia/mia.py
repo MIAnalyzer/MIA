@@ -726,7 +726,7 @@ class MIA_UI(QMainWindow, MainWindow):
 
     def readCurrentImageAsBGR(self):
         with self.wait_cursor():
-
+            
             
             self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
             self.resetBrightnessContrast()
@@ -736,6 +736,7 @@ class MIA_UI(QMainWindow, MainWindow):
             else:
                 self.SFrame.hide()
 
+            
             self.canvas.ReloadImage()
             
             
@@ -1078,13 +1079,23 @@ class MIA_UI(QMainWindow, MainWindow):
             self.canvas.painter.autodetection()
         
     def saveDLClass(self):
-        filehandler = open('saveDLObject.pkl', 'wb') 
-        self.dl.detachObserver(self.dlobserver)
-        hed = self.dl.hed
-        self.dl.hed = None
-        pickle.dump(self.dl, filehandler)
-        self.dl.hed = hed
-        self.dl.attachObserver(self.dlobserver)
+        
+        defaultname = 'model_' + time.strftime("%Y-%m-%d_%H-%M-%S")
+        filename = saveFile("Save Settings","Settings File (*.pkl)", 'pkl', defaultname)
+        if filename:
+            filehandler = open(filename, 'wb') 
+            self.settings.saveSettings(filename.replace("pkl", "json"), networksettingsonly=True)
+            
+            self.dl.detachObserver(self.dlobserver)
+            hed = self.dl.hed
+            self.dl.hed = None
+            model = self.dl.Model
+            self.dl.Model = None
+            
+            pickle.dump(self.dl, filehandler)
+            self.dl.hed = hed
+            self.dl.Model = model
+            self.dl.attachObserver(self.dlobserver)
         
     # deep learning observer functions
     def dlStarted(self):

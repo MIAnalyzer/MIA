@@ -60,10 +60,8 @@ class Window(object):
 
         hlayout = QHBoxLayout(self.centralWidget)
         self.Flip = self.FlipGroup()
-        self.Flip.setObjectName('nn_ImageFlipping')
         hlayout.addWidget(self.Flip)
         self.Noise = self.NoiseGroup()
-        self.Noise.setObjectName('nn_ImageNoise')
         hlayout.addWidget(self.Noise)
         layout.addItem(hlayout)
 
@@ -253,10 +251,10 @@ class AugmentWindow(QMainWindow, Window):
         
         self.SBModelInputSize_x.SpinBox.setValue(self.parent.dl.augmentation.outputwidth)
         self.SBModelInputSize_y.SpinBox.setValue(self.parent.dl.augmentation.outputheight)
-        self.SBModelInputSize_x.SpinBox.setRange(self.parent.dl.borderremoval*2,1024)
         self.SBModelInputSize_x.SpinBox.setSingleStep(self.parent.dl.split_factor)
-        self.SBModelInputSize_y.SpinBox.setRange(self.parent.dl.borderremoval*2,1024)
         self.SBModelInputSize_y.SpinBox.setSingleStep(self.parent.dl.split_factor)
+        self.SBModelInputSize_x.SpinBox.setRange(self.parent.dl.split_factor,1024)
+        self.SBModelInputSize_y.SpinBox.setRange(self.parent.dl.split_factor,1024)
         
         
         self.CBFliplr.setChecked(self.parent.dl.augmentation.flip_horz)
@@ -303,6 +301,7 @@ class AugmentWindow(QMainWindow, Window):
         
         self.Affine.setChecked(self.parent.dl.augmentation.enableAffine)
         self.Affine.clicked.connect(self.enableAffine)
+    
         
     def enableAll(self):
         self.parent.dl.augmentation.enableAll = self.augmentations.isChecked()
