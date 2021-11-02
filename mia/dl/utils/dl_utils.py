@@ -55,7 +55,7 @@ def createWeightedBorderMapFromLabel(batch, weighting = None, w0 = 10, sigma = 5
     return out[...,np.newaxis].astype(np.uint8)
 
 
-def separatePredictions(prediction, min_distance = 20, threshold = 0.5):  
+def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitclasses = []):  
     # binary
     if len(prediction.shape) == 2 or prediction.shape[2] == 1:
         prediction_prob = prediction.copy()
@@ -83,7 +83,13 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5):
         prediction_prob = prediction.copy()
         prediction = np.squeeze(np.argmax(prediction, axis = 2))
         label = np.zeros_like(prediction, dtype=np.uint8)
-        for i in range(1,np.max(prediction)+1):
+        if splitclasses == []:
+            splitclasses = range(1,np.max(prediction)+1)
+        else:
+            for i in range(1,np.max(prediction)+1):
+                if i not in splitclasses:
+                    label[prediction == i] = i
+        for i in splitclasses:
             pred = prediction == i
             _, thresh = cv2.threshold(pred.astype(np.uint8),0,255,cv2.THRESH_BINARY)
             dist_transform = distance_transform_edt(thresh)
