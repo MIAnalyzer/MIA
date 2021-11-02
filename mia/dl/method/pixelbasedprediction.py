@@ -35,7 +35,6 @@ class PixelBasedPrediction(ABC):
 
         pred = self.PredictFullImage(image)
         pred = self.resizeLabel(pred, (width, height))
-
         return pred
 
     def PredictFullImage(self, image):
@@ -64,7 +63,6 @@ class PixelBasedPrediction(ABC):
 
         results = np.stack(results, axis = 0)
         result = np.mean(results, axis = 0)
-        
         return self.convert2Image(result).astype('uint8')
 
     def PredictFromGenerator(self, image):       
@@ -72,7 +70,7 @@ class PixelBasedPrediction(ABC):
         pred = self.parent.Model.predict(generator, workers=self.parent.worker)
         result = np.zeros(image.shape[0:2] + (self.parent.NumClasses,))
         i = 0
-        border = self.parent.borderremoval//2
+        border = self.parent.ModelOverlap//2
         p_width = self.parent.augmentation.outputwidth - 2*border
         p_height = self.parent.augmentation.outputheight - 2*border
 

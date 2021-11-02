@@ -65,7 +65,7 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5):
         _, thresh = cv2.threshold(prediction.astype(np.uint8),0,255,cv2.THRESH_BINARY)
         dist_transform = distance_transform_edt(thresh)
         
-        coords = peak_local_max(dist_transform, min_distance=min_distance,  labels=thresh)
+        coords = peak_local_max(dist_transform, min_distance=min_distance, labels=thresh)
         mask = np.zeros_like(thresh, dtype=bool)
         mask[tuple(coords.T)] = True
     
