@@ -69,11 +69,15 @@ class PixelBasedPrediction(ABC):
         generator = datagenerator.PredictionDataGenerator(self.parent, image)
         pred = self.parent.Model.predict(generator, workers=self.parent.worker)
         result = np.zeros(image.shape[0:2] + (self.parent.NumClasses,))
-        i = 0
+        sum_result = np.zeros(result.shape)
+        
         border = self.parent.ModelOverlap//2
         p_width = self.parent.augmentation.outputwidth - 2*border
         p_height = self.parent.augmentation.outputheight - 2*border
+        
+        grad_patch = self.createModelOutputGradient()
 
+        i = 0
         for h in range (0,image.shape[0],p_height):
             for w in range (0,image.shape[1],p_width):
                 h_end = min(h+p_height,image.shape[0])
@@ -82,42 +86,56 @@ class PixelBasedPrediction(ABC):
                 w_0 = min(w, result.shape[1]-p_width)
         
                 patch = pred[i]
-                result[h_0:h_end, w_0:w_end] = patch[border:border+p_height,border:border+p_width,...]
                 i += 1
+                ### calculate the overlap with the help of grad_patch
+                real_h0 = max(h_0-border,0)
+                real_h_end = min(h_end+border,result.shape[0])
+                real_w0 = max(w_0-border,0)
+                real_w_end = min(w_end+border,result.shape[1])
+                
+                ph_0 = 0
+                ph_end = patch.shape[0]
+                pw_0 = 0
+                pw_end = patch.shape[1]
+                
+                if real_h0 != h_0-border:
+                    ph_0 = border - h_0
+                if real_h_end != h_end+border:
+                    ph_end = patch.shape[0] - (h_end+border - result.shape[0])
+                
+                if real_w0 != w_0-border:
+                    pw_0 = border - w_0
+                if real_w_end != w_end+border:
+                    pw_end = patch.shape[1] - (w_end+border - result.shape[1])
+                
+                patch = patch * grad_patch
+                
+                result[real_h0:real_h_end, real_w0:real_w_end] += patch[ph_0:ph_end,pw_0:pw_end,...]
+                sum_result[real_h0:real_h_end, real_w0:real_w_end] += (np.ones_like(patch) * grad_patch)[ph_0:ph_end,pw_0:pw_end]
 
+                
+                
+        sum_result[sum_result == 0] = 1
+        # correct weighting
+        result = result / sum_result
         return result
 
     
-    # def predictTiled(self, image):
-    #     # deprecated, will be removed eventually
-    #     pred = np.zeros(image.shape[0:2],dtype='uint8')
-    #     p_width = self.parent.augmentation.outputwidth
-    #     p_height = self.parent.augmentation.outputheight
-    #     i = 0
+    def createModelOutputGradient(self):
+        # creates an 2d-array with 1s in the center and decaying to 0 at the borders
+        width = self.parent.augmentation.outputwidth
+        height = self.parent.augmentation.outputheight
+        cutoff = self.parent.ModelOverlap//2
         
-    #     for h in range (0,image.shape[0],p_height):
-    #         for w in range (0,image.shape[1],p_width):
-    #             w_0 = max(w -self.parent.split_factor//2, 0)
-    #             h_0 = max(h -self.parent.split_factor//2, 0)
-                    
-    #             # split factor need to be reworked and reasonable, get it from network
-    #             h_til = min(h+p_height+self.parent.split_factor//2, image.shape[0])
-    #             w_til = min(w+p_width+self.parent.split_factor//2,  image.shape[1])
-                
-    #             # a full tile at the borders results in better segmentations
-    #             if h_til == image.shape[0]:
-    #                 h_0 = max(image.shape[0] - (p_height + self.parent.split_factor//2), 0)
-    #             if w_til == image.shape[1]:
-    #                 w_0 = max(image.shape[1] - (p_width + self.parent.split_factor//2), 0)
-                
-    #             patch = image[h_0:h_til, w_0:w_til]
-    #             pred_patch = self.Predict(patch)
-    #             h_end = min(h+p_height,image.shape[0])
-    #             w_end = min(w+p_width,image.shape[1])
-                
-    #             pred[h:h_end, w:w_end] = pred_patch[h-h_0:patch.shape[0]-(h_til-h_end),w-w_0:patch.shape[1]-(w_til-w_end),...]
-    #             i += 1
-    #     return pred
+        a = np.arange(width)
+        b = np.minimum(a,a[::-1])
+        c = np.sqrt(b.reshape(1,width)*b.reshape(width,1))
+        outarray = c / c[width//2,cutoff]
+        outarray[outarray>1] = 1
+        outarray = cv2.resize(outarray, (width,height))
+        outarray = outarray.reshape(width,height,1)
+        
+        return outarray
     
     def Predict(self, image):
         if len(image.shape) == 2:
