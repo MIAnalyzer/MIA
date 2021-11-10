@@ -186,7 +186,7 @@ class Window(object):
         self.SBTranslateMax = LabelledDoubleSpinBox(' Translate Max (%)', self.centralWidget)
         self.SBTranslateMax.setToolTip('Set translation minimun percent')
         self.SBTranslateMax.SpinBox.setSingleStep(0.1)
-        self.SBTranslateMax.setObjectName('nn_Translate_min')
+        self.SBTranslateMax.setObjectName('nn_Translate_max')
         self.SBTranslateMax.SpinBox.setDecimals(1)
         self.SBTranslateMax.SpinBox.setRange(0,1)
 
