@@ -26,10 +26,13 @@ class Segmentation(PixelBasedPrediction, LearningMode):
         self.architecture = 'Unet'
         self.backbone = 'resnet50'
 
-    def LoadLabel(self, filename, height, width):
+    def LoadLabel(self, filename, height, width, rmBackground = False):
         label = np.zeros((height, width, 1), np.uint8)
         contours = Contour.loadContours(filename)
-        return Contour.drawContoursToLabel(label, contours)
+        label = Contour.drawContoursToLabel(label, contours)
+        if rmBackground:
+            return Contour.removeBackground(label)
+        return label
     
     def addWeightMap(self, label):
         if self.parent.seg_useWeightedDistanceMap:

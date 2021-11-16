@@ -397,7 +397,9 @@ def findContours(image, ext_only = False, offset=(0,0)):
         _, contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
     return contours, hierarchy
 
-
+def removeBackground(image):
+    image[image==BACKGROUNDCLASS] = 0
+    return image
 
 def checkIfContourInListOfContours(contour, contours):
     # returns True if contour is contained in contours

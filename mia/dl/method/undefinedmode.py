@@ -13,7 +13,7 @@ class UndefinedMode(LearningMode):
         super(UndefinedMode,self).__init__(parent)
         self.type = dlMode.Undefined
         
-    def LoadLabel(self, filename, height, width):
+    def LoadLabel(self, filename, height, width, rmBackground = False):
         return None
         
     def prepreprocessLabel(self, label):

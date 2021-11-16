@@ -21,7 +21,7 @@ from utils.shapes.Contour import loadContours
 from utils.shapes.Point import loadPoints
 from ui.Tools import canvasTool
 from ui.style import styleForm
-from ui.ui_utils import DCDButton, saveFile
+from ui.ui_utils import DCDButton, saveFile, openFolder
 from utils.Image import ImageFile
 from dl.method.mode import dlMode
 from utils.workerthread import WorkerThread
@@ -148,7 +148,7 @@ class ResultsWindow(QMainWindow, Window):
             return
         # currently unused
         image = self.parent.getCurrentImage()
-        label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1])
+        label = self.parent.dl.Mode.LoadLabel(self.parent.files.CurrentLabelPath(), image.shape[0], image.shape[1], rmBackground=True)
         
         #filename = QFileDialog.getSaveFileName(self, "Save Mask To File", '', "Tiff (*.tif)")[0]
         filename = saveFile("Save Mask To File", "Tiff (*.tif)", 'tif')
@@ -157,9 +157,11 @@ class ResultsWindow(QMainWindow, Window):
                 cv2.imwrite(filename, label)
                 
     def exportAllMasks(self):
+        folder = openFolder(("Select Target Folder"))
+        if not folder:
+            return
         with self.parent.wait_cursor():
             images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
-            folder = self.parent.files.testImagespath + os.path.sep + "exported_masks"
 
             if not images or not labels:
                 self.parent.PopupWarning('No predicted masks')
@@ -172,14 +174,14 @@ class ResultsWindow(QMainWindow, Window):
                     l = l[0]
                     if not image or image.path != i[0]:                
                         image = ImageFile(i[0])
-                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width())
+                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width(), rmBackground=True)
                     name = self.parent.files.getFilenameFromPath(l)
                     f = self.parent.files.extendLabelPathByFolder(folder, self.parent.files.getFilenameFromPath(i[0]))
                     self.parent.files.ensureFolder(f)
                     cv2.imwrite(os.path.join(f,name)+'.tif', label)
                 else:
                     image = ImageFile(i)
-                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width())
+                    label = self.parent.dl.Mode.LoadLabel(l, image.height(), image.width(), rmBackground=True)
                     name = self.parent.files.getFilenameFromPath(l)
                     self.parent.files.ensureFolder(folder)
                     cv2.imwrite(os.path.join(folder,name)+'.tif', label)

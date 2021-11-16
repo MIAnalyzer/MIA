@@ -9,6 +9,7 @@ from dl.method.mode import LearningMode, dlMode
 from dl.loss.classification_losses import ClassificationLosses
 from dl.metric.classification_metrics import ClassificationMetrics
 from utils.shapes.ImageLabel import ImageLabel, saveImageLabel, loadImageLabel, drawImageLabel, extractImageLabel
+from utils.shapes.Contour import removeBackground
 from tensorflow.keras.utils import to_categorical
 from dl.models.classification_models.tfkeras import Classifiers
 from tensorflow.keras.models import load_model
@@ -26,11 +27,14 @@ class Classification(LearningMode):
         self.backbone = 'resnet50'
         self.architecture = 'standard'
         
-    def LoadLabel(self, filename, height, width):
+    def LoadLabel(self, filename, height, width, rmBackground = False):
         # we need an image here to perform background subtraction
         label = np.zeros((height, width, 1), np.uint8)
         imagelabel, bg = loadImageLabel(filename)
-        return drawImageLabel(label, imagelabel, bg)
+        label = drawImageLabel(label, imagelabel, bg)
+        if rmBackground:
+            return removeBackground(label)
+        return label
         
     def prepreprocessLabel(self, label):
         # convert image to 1D array
