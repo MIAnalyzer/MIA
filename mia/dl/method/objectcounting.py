@@ -9,6 +9,7 @@ from dl.method.mode import LearningMode, dlMode
 from dl.method.pixelbasedprediction import PixelBasedPrediction
 from skimage.feature import peak_local_max
 import utils.shapes.Point as Point
+from utils.shapes.Contour import removeBackground
 import numpy as np
 import cv2
 from dl.loss.regression_losses import RegressionLosses
@@ -32,10 +33,13 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         self.architecture = 'UNet'
         self.backbone = 'resnet50'
         
-    def LoadLabel(self, filename, height, width):
+    def LoadLabel(self, filename, height, width, rmBackground = False):
         label = np.zeros((height, width, 1), np.uint8)
         points, bg = Point.loadPoints(filename)
-        return Point.drawPointsToLabel(label, points, bg)
+        label = Point.drawPointsToLabel(label, points, bg)
+        if rmBackground:
+            return removeBackground(label)
+        return label
     
     def setObjectSize(self):
         # stdev should be between 1 and 10 and equals the expansion of an object

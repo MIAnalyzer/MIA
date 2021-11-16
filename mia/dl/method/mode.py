@@ -70,7 +70,7 @@ class LearningMode(ABC):
             return image.astype('float')/(scale_f/2) -1
         
     @abstractmethod
-    def LoadLabel(self, filename, height, width):
+    def LoadLabel(self, filename, height, width, rmBackground = False):
         pass
     
     @abstractmethod
