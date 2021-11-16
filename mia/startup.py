@@ -19,13 +19,12 @@ def start():
     load_screen = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
     load_screen.setMask(splash_pix.mask())
     load_screen.show()
-    #try:
-    if True:
+    try:
         from mia import MIA_UI
         dcdui = MIA_UI()
-    #except:
-    #    e = sys.exc_info()[0]
-    #    print( "<p>error: %s</p>" % e )
+    except:
+        e = sys.exc_info()[0]
+        print( "<p>error: %s</p>" % e )
     load_screen.hide()
 #    sys.exit(app.exec_())
     app.exec_()
