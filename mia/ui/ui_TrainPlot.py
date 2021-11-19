@@ -4,13 +4,13 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
  
-        
+   
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from ui.style import styleForm, getHighlightColor, getBackgroundColor
-from ui.ui_utils import DCDButton
+from ui.ui_utils import DCDButton, saveFile
 import math
 import threading
 
@@ -27,20 +27,30 @@ class Window(object):
         self.figure.set_size_inches(6, 6)
 
         self.BStop = DCDButton(self.centralWidget,'Stop Training')
+        self.BStop.setIcon(QIcon('icons/train.png'))
+        self.BSave = DCDButton(self.centralWidget)
+        self.BSave.setIcon(QIcon('icons/savemodel.png'))
+        self.BSave.setToolTip('Save training data')
+        
         
         l1 = QHBoxLayout()
 
         self.LBatch = QLabel(self.centralWidget)
         self.LEpoch = QLabel(self.centralWidget)
-        self.LEpoch.setAlignment(Qt.AlignRight)
 
-        l1.addWidget(self.LBatch)
-        l1.addWidget(self.LEpoch)
+        l1.addWidget(self.LBatch, stretch=99, alignment= Qt.AlignLeft)
+        l1.addWidget(self.LEpoch, stretch=99, alignment= Qt.AlignRight)
+        l1.addWidget(self.BSave, stretch=0)
 
 
         layout.addLayout(l1)
-        layout.addWidget(self.canvas)        
-        layout.addWidget(self.BStop)
+        layout.addWidget(self.canvas)  
+        
+        l2 = QHBoxLayout()
+        l2.addWidget(self.BStop)
+
+        
+        layout.addLayout(l2)
 
         self.centralWidget.setFixedSize(layout.sizeHint())
         Form.setFixedSize(layout.sizeHint())
@@ -60,6 +70,7 @@ class TrainPlotWindow(QMainWindow, Window):
         self.val_metric_axis = None
         
         self.BStop.clicked.connect(self.Stop)
+        self.BSave.clicked.connect(self.saveTrainingRecord)
         
     def hide(self):
         self.dl.interrupt()
@@ -70,8 +81,6 @@ class TrainPlotWindow(QMainWindow, Window):
         super(TrainPlotWindow, self).closeEvent(event)
         
     def initialize(self):
-
-
         bg = getBackgroundColor()
         self.figure.patch.set_facecolor((bg.red()/255, bg.green()/255, bg.blue()/255))
         color = 'white'
@@ -162,6 +171,18 @@ class TrainPlotWindow(QMainWindow, Window):
             
             self.canvas.draw()
 
+
+    def saveTrainingRecord(self):
+        filename = saveFile("Save Results","Comma Separated File (*.csv)", 'csv') 
+        if not filename:
+            return
+        try:
+            self.dl.record.save(filename)  
+
+        except PermissionError: 
+            self.parent.emitPopup('Cannot write file (already open?)')
+            return
+
           
     def refresh(self):
         
@@ -181,7 +202,9 @@ class TrainPlotWindow(QMainWindow, Window):
         self.BStop.disconnect()
         if training:
             self.BStop.setText('Stop Training')
+            self.BStop.setIcon(QIcon('icons/delete.png'))
             self.BStop.clicked.connect(self.Stop)
         else:
             self.BStop.setText('Resume Training')
+            self.BStop.setIcon(QIcon('icons/train.png'))
             self.BStop.clicked.connect(self.Resume)
