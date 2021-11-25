@@ -254,6 +254,7 @@ class Contour(Shape):
 # utilities
 def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False):
     cnt = contour.points
+    ref_image = image.copy()
     if contour.numPoints() > 0:
         if separateContours:
             cv2.drawContours(image, [cnt], 0, (0), 3)  
@@ -269,6 +270,7 @@ def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False
                 cv2.drawContours(image, contour.innercontours, -1, (BACKGROUNDCLASS), -1)
                 # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
                 cv2.drawContours(image, contour.innercontours, -1, (int(contour.classlabel)), 1)
+                image[image==BACKGROUNDCLASS] = ref_image[image==BACKGROUNDCLASS]
             else:
                 cv2.drawContours(image, [cnt], 0, (BACKGROUNDCLASS), -1)  
                 cv2.drawContours(image, contour.innercontours, -1, (0), -1)
