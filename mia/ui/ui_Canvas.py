@@ -101,7 +101,7 @@ class Canvas(QGraphicsView):
         self.drawShapeNumber = True
         self.drawSkeleton = False
         self.skeletonsmoothingfactor = 11
-        self.minContourSize = 100
+        self.minContourSize = 3
         self.fastPainting = False
         
         self.displayedimage = DrawingImage(QPixmap())

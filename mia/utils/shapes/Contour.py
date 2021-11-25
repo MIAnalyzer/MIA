@@ -8,7 +8,6 @@ Created on Tue Oct 22 14:23:06 2019
 import cv2
 import numpy as np
 
-import imutils
 import math
 
 from skimage import morphology
@@ -22,7 +21,7 @@ from utils.shapes.Shape import Shape, Shapes, FreeFormContour_ID, FreeFormContou
 
 class Contours(Shapes):
     def __init__(self):
-        self.minSize = 100
+        self.minSize = 3
         super(Contours,self).__init__(FreeFormContour_ID)
         
     def ShapeAlreadyExist(self,c):
@@ -390,11 +389,11 @@ def loadContours(filename):
     return unpackContours(data)
 
 def findContours(image, ext_only = False, offset=(0,0)):
-    structure = cv2.RETR_EXTERNAL if ext_only else cv2.RETR_CCOMP 
-    if imutils.is_cv2() or imutils.is_cv4():
-        contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
-    elif imutils.is_cv3():
-        _, contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
+    structure = cv2.RETR_EXTERNAL if ext_only else cv2.RETR_CCOMP
+
+    # requires opencv 4 or greater, opencv 3 returns 3 params
+    contours, hierarchy = cv2.findContours(image, structure , cv2.CHAIN_APPROX_SIMPLE, offset = offset)
+
     return contours, hierarchy
 
 def removeBackground(image):
