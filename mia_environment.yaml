@@ -1,0 +1,16 @@
+# mia_environment
+
+name: mia_environment
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.7
+  - tensorflow-gpu=2.5
+  - pyqt=5.12.3
+  - opencv=4.5.1
+  - keras-applications=1.0.8
+  - scikit-image=0.18.1
+  - imgaug=0.4
+
+  
