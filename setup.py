@@ -14,7 +14,6 @@ setup(
     url="https://github.com/pypa/sampleproject",
 
 	install_requires=[
-	"imutils",
 	"tqdm",
 	"scipy",
 	"scikit_image",
