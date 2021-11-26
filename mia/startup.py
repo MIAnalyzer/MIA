@@ -5,7 +5,12 @@ from PyQt5.QtCore import *
 import sys
 from ui.style import setStyle
 
+import platform
 
+if platform.system() == 'Windows':
+	import ctypes
+	myappid = u'uniqueapplicationID123'
+	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 def start():
 
@@ -19,12 +24,10 @@ def start():
     load_screen = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
     load_screen.setMask(splash_pix.mask())
     load_screen.show()
-    try:
-        from mia import MIA_UI
-        dcdui = MIA_UI()
-    except:
-        e = sys.exc_info()[0]
-        print( "<p>error: %s</p>" % e )
+
+    from mia_gui import MIA_UI
+    dcdui = MIA_UI()
+
     load_screen.hide()
 #    sys.exit(app.exec_())
     app.exec_()

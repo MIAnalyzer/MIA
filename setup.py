@@ -1,11 +1,18 @@
 from setuptools import setup, find_packages
+import os
+
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+here = os.path.abspath(os.path.dirname(__file__))
+ver = {} 
+with open(os.path.join(here, 'mia', '__version__.py')) as f:
+    exec(f.read(), ver)
+
 setup(
     name="mianalyzer", 
-    version="0.1.0",
+    version=ver['__version__'],
     author="Nils Koerber",
     author_email="nils.koerber@t-online.de",
     description="MIA deep learning based Microscopic Image Analyzer",
@@ -14,7 +21,6 @@ setup(
     url="https://github.com/pypa/sampleproject",
 
 	install_requires=[
-	"tqdm",
 	"scipy",
 	"scikit_image",
 	"numpy",
