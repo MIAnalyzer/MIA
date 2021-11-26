@@ -9,8 +9,8 @@ import platform
 
 if platform.system() == 'Windows':
 	import ctypes
-	myappid = u'uniqueapplicationID123'
-	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+	appid = u'mia_application'
+	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
 
 def start():
 
