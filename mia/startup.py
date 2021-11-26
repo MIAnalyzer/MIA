@@ -20,7 +20,7 @@ def start():
         app = QApplication(sys.argv)
 
     setStyle(app)
-    splash_pix = QPixmap('icons/loading.jpg')
+    splash_pix = QPixmap('icons/loading.png')
     load_screen = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
     load_screen.setMask(splash_pix.mask())
     load_screen.show()
