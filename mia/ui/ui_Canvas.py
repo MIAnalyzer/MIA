@@ -202,7 +202,6 @@ class Canvas(QGraphicsView):
         self.displayedimage.setImage(self.getCurrentPixmap())
         self.ReloadLabels(resetView)
         self.painter.clearTracking()
-        self.checkForChanges()
 
             
     def ReloadLabels(self, resetView = True):
