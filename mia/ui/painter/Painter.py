@@ -21,8 +21,6 @@ import random
 
 from dl.data.labels import getMatchingImageLabelPairPaths
 
-import time
-
 class Painter(ABC):
     # every painter can draw contours 
     def __init__(self, canvas):
@@ -282,6 +280,7 @@ class Painter(ABC):
             
         self.contours.addShapes(contours)
         self.canvas.redrawImage()
+
         
     def finishNewContour(self, delete = False, close = True, drawaspolygon = False):
         if self.NewContour is not None:
