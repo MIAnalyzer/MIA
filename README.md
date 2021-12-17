@@ -16,7 +16,7 @@ Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/
 - cd to the environment file
 - type: 
 
-  - ```conda env create -f environment.yml```
+  - ```conda env create -f mia_environment.yml```
   - ```conda activate mia_environment```
   - ```mia```
 
