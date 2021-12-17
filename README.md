@@ -12,7 +12,7 @@ The easiest way to install MIA is via conda (see https://docs.conda.io/en/latest
 
 Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/master/mia_environment.yaml) file.
 
-- Open an anaconda prompt
+- Open an command line prompt
 - cd to the environment file
 - type: 
 
