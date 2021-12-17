@@ -21,6 +21,8 @@ Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/
   - ```mia```
 
 
+There will be an installer added, soon.
+
 ## manual
 
 The user manual can be found here.
