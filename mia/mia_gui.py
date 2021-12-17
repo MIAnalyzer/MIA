@@ -782,8 +782,10 @@ class MIA_UI(QMainWindow, MainWindow):
         self.keepImageSettings = self.CBKeep.isChecked()
         
     def resetBrightnessContrast(self):
-        self.SContrast.setValue(1)
+        self.SContrast.setValue(12)
         self.SBrightness.setValue(0)
+        
+        self.setContrast()
             
     def getCurrentImage(self):   
         if self.currentImageFile:

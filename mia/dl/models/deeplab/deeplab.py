@@ -40,15 +40,12 @@ from tensorflow.python.keras.layers import DepthwiseConv2D
 from tensorflow.python.keras.layers import ZeroPadding2D
 from tensorflow.python.keras.layers import GlobalAveragePooling2D
 from tensorflow.python.keras.utils.layer_utils import get_source_inputs
-from tensorflow.python.keras.utils.data_utils import get_file
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 from tensorflow.keras.utils import get_custom_objects
 
-WEIGHTS_PATH_X = "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.1/deeplabv3_xception_tf_dim_ordering_tf_kernels.h5"
-WEIGHTS_PATH_MOBILE = "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.1/deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels.h5"
-WEIGHTS_PATH_X_CS = "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.2/deeplabv3_xception_tf_dim_ordering_tf_kernels_cityscapes.h5"
-WEIGHTS_PATH_MOBILE_CS = "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.2/deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels_cityscapes.h5"
+
+from dl.utils.dl_downloads import get_deeplabX, get_deeplabM
 
 
 def SepConv_BN(x, filters, prefix, stride=1, kernel_size=3, rate=1, depth_activation=False, epsilon=1e-3):
@@ -454,23 +451,21 @@ def Deeplabv3(weights='pascal_voc', input_tensor=None, input_shape=(512, 512, 3)
 
     if weights == 'pascal_voc':
         if backbone == 'xception':
-            weights_path = get_file('deeplabv3_xception_tf_dim_ordering_tf_kernels.h5',
-                                    WEIGHTS_PATH_X,
-                                    cache_subdir='models')
+            weights_path = get_deeplabX()
         else:
-            weights_path = get_file('deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels.h5',
-                                    WEIGHTS_PATH_MOBILE,
-                                    cache_subdir='models')
+            weights_path = get_deeplabM()
+
         model.load_weights(weights_path, by_name=True)
     elif weights == 'cityscapes':
-        if backbone == 'xception':
-            weights_path = get_file('deeplabv3_xception_tf_dim_ordering_tf_kernels_cityscapes.h5',
-                                    WEIGHTS_PATH_X_CS,
-                                    cache_subdir='models')
-        else:
-            weights_path = get_file('deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels_cityscapes.h5',
-                                    WEIGHTS_PATH_MOBILE_CS,
-                                    cache_subdir='models')
+        raise 'not supported'
+    #     if backbone == 'xception':
+    #         weights_path = get_file('deeplabv3_xception_tf_dim_ordering_tf_kernels_cityscapes.h5',
+    #                                 WEIGHTS_PATH_X_CS,
+    #                                 cache_subdir='models')
+    #     else:
+    #         weights_path = get_file('deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels_cityscapes.h5',
+    #                                 WEIGHTS_PATH_MOBILE_CS,
+    #                                 cache_subdir='models')
         model.load_weights(weights_path, by_name=True)
     return model
 

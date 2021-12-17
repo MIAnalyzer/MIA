@@ -1,17 +1,18 @@
 
 
 # adapted from https://github.com/scaelles/DEXTR-KerasTensorflow
-# licence https://github.com/scaelles/DEXTR-KerasTensorflow/blob/master/LICENSE
+# licence GPLv3, https://github.com/scaelles/DEXTR-KerasTensorflow/blob/master/LICENSE
 
 import numpy as np
 from dl.machine_learning.dextr.dextr import DEXTR
 import dl.machine_learning.dextr.helpers as helpers
+from dl.utils.dl_downloads import get_dextr
 
 class DEXTR_Segmentation():
     def __init__(self):
         self.pad = 50
         self.thres = 0.8
-        self.modelName = './dextr/dextr_coco.h5'
+        self.modelName = get_dextr()
         self.net = None
         
     def loadModel(self):

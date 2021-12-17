@@ -1,6 +1,6 @@
 """ Utility functions for segmentation models """
 
-from keras_applications import get_submodules_from_kwargs
+from dl.models.keras_applications import get_submodules_from_kwargs
 from . import inject_global_submodules
 
 

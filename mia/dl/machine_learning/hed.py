@@ -1,7 +1,8 @@
 
-
+from dl.utils.dl_downloads import get_hed
 import cv2
 # see https://github.com/opencv/opencv/blob/master/samples/dnn/edge_detection.py
+
 
 class CropLayer(object):
     def __init__(self, params, blobs):
@@ -33,8 +34,8 @@ class HED_Segmentation():
         # crashs when double register
         cv2.dnn_unregisterLayer('Crop')
         cv2.dnn_registerLayer('Crop', CropLayer)
-        proto = './hed/deploy.prototxt'
-        model = './hed/hed_pretrained_bsds.caffemodel'
+        proto = './dl/machine_learning/deploy.prototxt'
+        model = get_hed()
         try:
             self.net = cv2.dnn.readNet(proto, model)
         except:
