@@ -1,7 +1,7 @@
 import os
 import collections
 
-from keras_applications import imagenet_utils
+from dl.models.keras_applications import imagenet_utils
 
 from dl.models.classification_models import get_submodules_from_kwargs
 from ._common_blocks import GroupConv2D, ChannelSE

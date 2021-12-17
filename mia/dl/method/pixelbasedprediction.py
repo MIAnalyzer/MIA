@@ -14,7 +14,6 @@ from tensorflow.keras.models import load_model
 import os
 from dl.models.segmentation_models import Unet, FPN, Linknet, PSPNet, get_preprocessing
 from dl.models.deeplab.deeplab import Deeplabv3, deeplab_preprocess, deeplab_backbones
-
 from dl.models.segmentation_models.backbones.backbones_factory import Backbones
 
 from enum import Enum

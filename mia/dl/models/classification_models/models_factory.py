@@ -1,5 +1,5 @@
 import functools
-import keras_applications as ka
+import dl.models.keras_applications as ka
 
 from .models import resnet as rn
 from .models import resnext as rx

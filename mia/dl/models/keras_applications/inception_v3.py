@@ -1,10 +1,14 @@
 """Inception V3 model for Keras.
+
 Note that the input image format for this model is different than for
 the VGG16 and ResNet models (299x299 instead of 224x224),
 and that the input preprocessing function is also different (same as Xception).
+
 # Reference
+
 - [Rethinking the Inception Architecture for Computer Vision](
     http://arxiv.org/abs/1512.00567) (CVPR 2016)
+
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -12,10 +16,12 @@ from __future__ import print_function
 
 import os
 
-from dl.models.keras_applications import imagenet_utils
-from dl.models.keras_applications import get_submodules_from_kwargs
-from dl.utils.dl_downloads import get_inceptionv3
+from . import get_submodules_from_kwargs
+from . import imagenet_utils
+from .imagenet_utils import decode_predictions
+from .imagenet_utils import _obtain_input_shape
 
+from dl.utils.dl_downloads import get_inceptionv3
 
 backend = None
 layers = None
@@ -31,6 +37,7 @@ def conv2d_bn(x,
               strides=(1, 1),
               name=None):
     """Utility function to apply conv + BN.
+
     # Arguments
         x: input tensor.
         filters: filters in `Conv2D`.
@@ -41,6 +48,7 @@ def conv2d_bn(x,
         name: name of the ops; will become `name + '_conv'`
             for the convolution and `name + '_bn'` for the
             batch norm layer.
+
     # Returns
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
@@ -73,9 +81,11 @@ def InceptionV3(include_top=True,
                 classes=1000,
                 **kwargs):
     """Instantiates the Inception v3 architecture.
+
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
     the one specified in your Keras config at `~/.keras/keras.json`.
+
     # Arguments
         include_top: whether to include the fully-connected
             layer at the top of the network.
@@ -105,8 +115,10 @@ def InceptionV3(include_top=True,
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
+
     # Returns
         A Keras model instance.
+
     # Raises
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
@@ -125,7 +137,7 @@ def InceptionV3(include_top=True,
                          ' as true, `classes` should be 1000')
 
     # Determine proper input shape
-    input_shape = imagenet_utils._obtain_input_shape(
+    input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,
         min_size=75,
@@ -146,14 +158,14 @@ def InceptionV3(include_top=True,
     else:
         channel_axis = 3
 
-    x = conv2d_bn(img_input, 32, 3, 3, strides=(2, 2), padding='same')
-    x = conv2d_bn(x, 32, 3, 3, padding='same')
-    x = conv2d_bn(x, 64, 3, 3, padding='same')
-    x = layers.MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = conv2d_bn(img_input, 32, 3, 3, strides=(2, 2), padding='valid')
+    x = conv2d_bn(x, 32, 3, 3, padding='valid')
+    x = conv2d_bn(x, 64, 3, 3)
+    x = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
 
-    x = conv2d_bn(x, 80, 1, 1, padding='same')
-    x = conv2d_bn(x, 192, 3, 3, padding='same')
-    x = layers.MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = conv2d_bn(x, 80, 1, 1, padding='valid')
+    x = conv2d_bn(x, 192, 3, 3, padding='valid')
+    x = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
 
     # mixed 0: 35 x 35 x 256
     branch1x1 = conv2d_bn(x, 64, 1, 1)
@@ -213,14 +225,14 @@ def InceptionV3(include_top=True,
         name='mixed2')
 
     # mixed 3: 17 x 17 x 768
-    branch3x3 = conv2d_bn(x, 384, 3, 3, strides=(2, 2), padding='same')
+    branch3x3 = conv2d_bn(x, 384, 3, 3, strides=(2, 2), padding='valid')
 
     branch3x3dbl = conv2d_bn(x, 64, 1, 1)
     branch3x3dbl = conv2d_bn(branch3x3dbl, 96, 3, 3)
     branch3x3dbl = conv2d_bn(
-        branch3x3dbl, 96, 3, 3, strides=(2, 2), padding='same')
+        branch3x3dbl, 96, 3, 3, strides=(2, 2), padding='valid')
 
-    branch_pool = layers.MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    branch_pool = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
     x = layers.concatenate(
         [branch3x3, branch3x3dbl, branch_pool],
         axis=channel_axis,
@@ -295,15 +307,15 @@ def InceptionV3(include_top=True,
     # mixed 8: 8 x 8 x 1280
     branch3x3 = conv2d_bn(x, 192, 1, 1)
     branch3x3 = conv2d_bn(branch3x3, 320, 3, 3,
-                          strides=(2, 2), padding='same')
+                          strides=(2, 2), padding='valid')
 
     branch7x7x3 = conv2d_bn(x, 192, 1, 1)
     branch7x7x3 = conv2d_bn(branch7x7x3, 192, 1, 7)
     branch7x7x3 = conv2d_bn(branch7x7x3, 192, 7, 1)
     branch7x7x3 = conv2d_bn(
-        branch7x7x3, 192, 3, 3, strides=(2, 2), padding='same')
+        branch7x7x3, 192, 3, 3, strides=(2, 2), padding='valid')
 
-    branch_pool = layers.MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    branch_pool = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
     x = layers.concatenate(
         [branch3x3, branch7x7x3, branch_pool],
         axis=channel_axis,
@@ -356,9 +368,9 @@ def InceptionV3(include_top=True,
 
     # Load weights.
     if weights == 'imagenet':
-        weights_path = get_inceptionv3()
+        weights_path = get_inceptionv3(include_top)
+
         model.load_weights(weights_path)
-        
     elif weights is not None:
         model.load_weights(weights)
 
@@ -367,8 +379,10 @@ def InceptionV3(include_top=True,
 
 def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
+
     # Arguments
         x: a 4D numpy array consists of RGB values within [0, 255].
+
     # Returns
         Preprocessed array.
     """

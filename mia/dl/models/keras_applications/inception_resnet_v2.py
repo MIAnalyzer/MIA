@@ -1,14 +1,18 @@
 """Inception-ResNet V2 model for Keras.
+
 Model naming and structure follows TF-slim implementation
 (which has some additional layers and different number of
 filters from the original arXiv paper):
 https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_resnet_v2.py
+
 Pre-trained ImageNet weights are also converted from TF-slim,
 which can be found in:
 https://github.com/tensorflow/models/tree/master/research/slim#pre-trained-models
+
 # Reference
 - [Inception-v4, Inception-ResNet and the Impact of
    Residual Connections on Learning](https://arxiv.org/abs/1602.07261) (AAAI 2017)
+
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -16,9 +20,13 @@ from __future__ import print_function
 
 import os
 
-from dl.models.keras_applications import imagenet_utils
-from dl.models.keras_applications import get_submodules_from_kwargs
+from . import get_submodules_from_kwargs
+from . import imagenet_utils
+from .imagenet_utils import decode_predictions
+from .imagenet_utils import _obtain_input_shape
+
 from dl.utils.dl_downloads import get_inception_resnet_v2
+
 
 backend = None
 layers = None
@@ -28,8 +36,10 @@ keras_utils = None
 
 def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
+
     # Arguments
         x: a 4D numpy array consists of RGB values within [0, 255].
+
     # Returns
         Preprocessed array.
     """
@@ -45,6 +55,7 @@ def conv2d_bn(x,
               use_bias=False,
               name=None):
     """Utility function to apply conv + BN.
+
     # Arguments
         x: input tensor.
         filters: filters in `Conv2D`.
@@ -55,6 +66,7 @@ def conv2d_bn(x,
         use_bias: whether to use a bias in `Conv2D`.
         name: name of the ops; will become `name + '_ac'` for the activation
             and `name + '_bn'` for the batch norm layer.
+
     # Returns
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
@@ -78,12 +90,14 @@ def conv2d_bn(x,
 
 def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
     """Adds a Inception-ResNet block.
+
     This function builds 3 types of Inception-ResNet blocks mentioned
     in the paper, controlled by the `block_type` argument (which is the
     block name used in the official TF-slim implementation):
         - Inception-ResNet-A: `block_type='block35'`
         - Inception-ResNet-B: `block_type='block17'`
         - Inception-ResNet-C: `block_type='block8'`
+
     # Arguments
         x: input tensor.
         scale: scaling factor to scale the residuals (i.e., the output of
@@ -106,8 +120,10 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
             (see [activations](../activations.md)).
             When `activation=None`, no activation is applied
             (i.e., "linear" activation: `a(x) = x`).
+
     # Returns
         Output tensor for the block.
+
     # Raises
         ValueError: if `block_type` is not one of `'block35'`,
             `'block17'` or `'block8'`.
@@ -165,9 +181,11 @@ def InceptionResNetV2(include_top=True,
                       classes=1000,
                       **kwargs):
     """Instantiates the Inception-ResNet v2 architecture.
+
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
     the one specified in your Keras config at `~/.keras/keras.json`.
+
     # Arguments
         include_top: whether to include the fully-connected
             layer at the top of the network.
@@ -195,8 +213,10 @@ def InceptionResNetV2(include_top=True,
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is `True`, and
             if no `weights` argument is specified.
+
     # Returns
         A Keras `Model` instance.
+
     # Raises
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
@@ -215,10 +235,10 @@ def InceptionResNetV2(include_top=True,
                          ' as true, `classes` should be 1000')
 
     # Determine proper input shape
-    input_shape = imagenet_utils._obtain_input_shape(
+    input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,
-        min_size=32,
+        min_size=75,
         data_format=backend.image_data_format(),
         require_flatten=include_top,
         weights=weights)
@@ -232,23 +252,23 @@ def InceptionResNetV2(include_top=True,
             img_input = input_tensor
 
     # Stem block: 35 x 35 x 192
-    x = conv2d_bn(img_input, 32, 3, strides=2, padding='same')
-    x = conv2d_bn(x, 32, 3, padding='same')
-    x = conv2d_bn(x, 64, 3, padding='same')
-    x = layers.MaxPooling2D(3, strides=2, padding='same')(x)
-    x = conv2d_bn(x, 80, 1, padding='same')
-    x = conv2d_bn(x, 192, 3, padding='same')
-    x = layers.MaxPooling2D(3, strides=2, padding='same')(x)
+    x = conv2d_bn(img_input, 32, 3, strides=2, padding='valid')
+    x = conv2d_bn(x, 32, 3, padding='valid')
+    x = conv2d_bn(x, 64, 3)
+    x = layers.MaxPooling2D(3, strides=2)(x)
+    x = conv2d_bn(x, 80, 1, padding='valid')
+    x = conv2d_bn(x, 192, 3, padding='valid')
+    x = layers.MaxPooling2D(3, strides=2)(x)
 
     # Mixed 5b (Inception-A block): 35 x 35 x 320
-    branch_0 = conv2d_bn(x, 96, 1, padding='same')
-    branch_1 = conv2d_bn(x, 48, 1, padding='same')
-    branch_1 = conv2d_bn(branch_1, 64, 5, padding='same')
-    branch_2 = conv2d_bn(x, 64, 1, padding='same')
-    branch_2 = conv2d_bn(branch_2, 96, 3, padding='same')
-    branch_2 = conv2d_bn(branch_2, 96, 3, padding='same')
+    branch_0 = conv2d_bn(x, 96, 1)
+    branch_1 = conv2d_bn(x, 48, 1)
+    branch_1 = conv2d_bn(branch_1, 64, 5)
+    branch_2 = conv2d_bn(x, 64, 1)
+    branch_2 = conv2d_bn(branch_2, 96, 3)
+    branch_2 = conv2d_bn(branch_2, 96, 3)
     branch_pool = layers.AveragePooling2D(3, strides=1, padding='same')(x)
-    branch_pool = conv2d_bn(branch_pool, 64, 1, padding='same')
+    branch_pool = conv2d_bn(branch_pool, 64, 1)
     branches = [branch_0, branch_1, branch_2, branch_pool]
     channel_axis = 1 if backend.image_data_format() == 'channels_first' else 3
     x = layers.Concatenate(axis=channel_axis, name='mixed_5b')(branches)
@@ -261,11 +281,11 @@ def InceptionResNetV2(include_top=True,
                                    block_idx=block_idx)
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
-    branch_0 = conv2d_bn(x, 384, 3, strides=2, padding='same')
-    branch_1 = conv2d_bn(x, 256, 1, padding='same')
-    branch_1 = conv2d_bn(branch_1, 256, 3, padding='same')
-    branch_1 = conv2d_bn(branch_1, 384, 3, strides=2, padding='same')
-    branch_pool = layers.MaxPooling2D(3, strides=2, padding='same')(x)
+    branch_0 = conv2d_bn(x, 384, 3, strides=2, padding='valid')
+    branch_1 = conv2d_bn(x, 256, 1)
+    branch_1 = conv2d_bn(branch_1, 256, 3)
+    branch_1 = conv2d_bn(branch_1, 384, 3, strides=2, padding='valid')
+    branch_pool = layers.MaxPooling2D(3, strides=2, padding='valid')(x)
     branches = [branch_0, branch_1, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_6a')(branches)
 
@@ -277,14 +297,14 @@ def InceptionResNetV2(include_top=True,
                                    block_idx=block_idx)
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
-    branch_0 = conv2d_bn(x, 256, 1, padding='same')
-    branch_0 = conv2d_bn(branch_0, 384, 3, strides=2, padding='same')
-    branch_1 = conv2d_bn(x, 256, 1, padding='same')
-    branch_1 = conv2d_bn(branch_1, 288, 3, strides=2, padding='same')
-    branch_2 = conv2d_bn(x, 256, 1, padding='same')
-    branch_2 = conv2d_bn(branch_2, 288, 3, padding='same')
-    branch_2 = conv2d_bn(branch_2, 320, 3, strides=2, padding='same')
-    branch_pool = layers.MaxPooling2D(3, strides=2, padding='same')(x)
+    branch_0 = conv2d_bn(x, 256, 1)
+    branch_0 = conv2d_bn(branch_0, 384, 3, strides=2, padding='valid')
+    branch_1 = conv2d_bn(x, 256, 1)
+    branch_1 = conv2d_bn(branch_1, 288, 3, strides=2, padding='valid')
+    branch_2 = conv2d_bn(x, 256, 1)
+    branch_2 = conv2d_bn(branch_2, 288, 3)
+    branch_2 = conv2d_bn(branch_2, 320, 3, strides=2, padding='valid')
+    branch_pool = layers.MaxPooling2D(3, strides=2, padding='valid')(x)
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_7a')(branches)
 
@@ -326,7 +346,6 @@ def InceptionResNetV2(include_top=True,
     # Load weights.
     if weights == 'imagenet':
         weights_path = get_inception_resnet_v2(include_top)
-
         model.load_weights(weights_path)
     elif weights is not None:
         model.load_weights(weights)

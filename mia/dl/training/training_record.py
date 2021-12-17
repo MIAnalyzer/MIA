@@ -6,13 +6,13 @@ class TrainingRecording(Callback):
     def __init__(self, parent ):
         self.parent = parent
         self.loss = []
-        self.loss_per_epoch = []
+        self.loss_per_epoch = [0.035]
         
         self.metric = []
-        self.metric_per_epoch = []
+        self.metric_per_epoch = [0.05]
         
-        self.val_loss = []
-        self.val_metric = []
+        self.val_loss = [0.045]
+        self.val_metric = [0.08]
         self.lr = []
         self.interrupt = False
         self.currentbatch = 0
@@ -81,11 +81,11 @@ class TrainingRecording(Callback):
 
     def reset(self):
         self.loss = []
-        self.loss_per_epoch = []
+        self.loss_per_epoch = [0.035]
         self.metric = []
-        self.metric_per_epoch = []
-        self.val_loss = []
-        self.val_metric = []
+        self.metric_per_epoch = [0.05]
+        self.val_loss = [0.045]
+        self.val_metric = [0.08]
         self.lr = []
         self.currentepoch = 0
         self.currentbatch = 0
