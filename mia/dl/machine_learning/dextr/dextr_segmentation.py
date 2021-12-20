@@ -12,11 +12,13 @@ class DEXTR_Segmentation():
     def __init__(self):
         self.pad = 50
         self.thres = 0.8
-        self.modelName = get_dextr()
+        self.modelName = None 
         self.net = None
         
     def loadModel(self):
         try:
+            if self.modelName is None:
+                self.modelName =  get_dextr()
             self.net = DEXTR(nb_classes=1, resnet_layers=101, input_shape=(512, 512), weights=self.modelName, num_input_channels=4, classifier='psp', sigmoid=True)
         except:
             # can not load file
