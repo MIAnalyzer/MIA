@@ -18,7 +18,7 @@ setup(
     description="MIA deep learning based Microscopic Image Analyzer",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/MIAnalyzer/MIA/tree/master/mia",
 
 	install_requires=[
 	"scipy",
@@ -30,7 +30,6 @@ setup(
 	"matplotlib",
 	"Pillow",
 	"PyQt5",
-	"keras-applications"
 	],
 
     classifiers=[
@@ -84,7 +83,6 @@ setup(
 	'mia/icons/shift.png',
 	'mia/icons/tracking.png', 
 	'mia/icons/train.png',
-	
 	'mia/icons/logo.png', 
 	'mia/icons/loading.png', 
 	]
