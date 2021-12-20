@@ -34,15 +34,18 @@ class HED_Segmentation():
         # crashs when double register
         cv2.dnn_unregisterLayer('Crop')
         cv2.dnn_registerLayer('Crop', CropLayer)
-        proto = './dl/machine_learning/deploy.prototxt'
-        model = get_hed()
+        self.proto = './dl/machine_learning/deploy.prototxt'
+        self.model = None 
+        
+    def applyHED(self, image):
         try:
-            self.net = cv2.dnn.readNet(proto, model)
+            if self.model is None:
+                self.model = get_hed()
+            self.net = cv2.dnn.readNet(self.proto, self.model)
         except:
             # can not load file
             self.net = None
 
-    def applyHED(self, image):
         if not self.net:
             raise # model not loaded
         if image.dtype == 'uint16':
