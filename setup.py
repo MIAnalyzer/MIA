@@ -2,8 +2,6 @@ from setuptools import setup, find_packages
 import os
 
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
 
 here = os.path.abspath(os.path.dirname(__file__))
 ver = {} 
@@ -16,9 +14,8 @@ setup(
     author="Nils Koerber",
     author_email="nils.koerber@t-online.de",
     description="MIA deep learning based Microscopic Image Analyzer",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/MIAnalyzer/MIA/tree/master/mia",
+	long_description="MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking, see https://github.com/MIAnalyzer/MIA/ for details.",
+    url="https://github.com/MIAnalyzer/MIA/",
 
 	install_requires=[
 	"scipy",
@@ -34,7 +31,7 @@ setup(
 
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: General Public License v3 (GPLv3)",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ],
 	packages=find_packages(include=[
