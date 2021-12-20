@@ -82,6 +82,7 @@ setup(
 	'mia/icons/train.png',
 	'mia/icons/logo.png', 
 	'mia/icons/loading.png', 
+	'mia/dl/machine_learning/deploy.prototxt',
 	]
 	
 	),
