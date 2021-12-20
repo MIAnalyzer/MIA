@@ -83,6 +83,13 @@ def _preprocess_numpy_input(x, data_format, mode, **kwargs):
                 x[:, 1, :, :] /= std[1]
                 x[:, 2, :, :] /= std[2]
     else:
+        # added in case of mono input for pretrained net
+        if x.shape[-1] == 1:
+            x[..., 0] -= np.mean(mean)
+            if std is not None:
+                x[..., 0] /= np.mean(std)
+            return x
+
         x[..., 0] -= mean[0]
         x[..., 1] -= mean[1]
         x[..., 2] -= mean[2]
