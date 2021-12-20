@@ -241,6 +241,9 @@ class MIA_UI(QMainWindow, MainWindow):
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
         
+        # monkey patching download request for model weights
+        import dl.utils.dl_downloads as down
+        down.callBack = lambda: self.ConfirmPopup('Do you want to download model weights')
         
         
     def defineShortcuts(self):

@@ -9,34 +9,61 @@ Created on Thu Dec 16 12:32:17 2021
 ### to do:
 # rework and unify
     
+import os
 from tensorflow.python.keras.utils.data_utils import get_file
 
 SUBDIR = 'models'
 
 
+def callbackFunction():
+    return True
+
+# quick and dirty callback for gui
+callBack = callbackFunction
+
+
+def checkFile(fname):
+    cache_dir = os.path.join(os.path.expanduser('~'), '.keras')
+    datadir_base = os.path.expanduser(cache_dir)
+    if not os.access(datadir_base, os.W_OK):
+        datadir_base = os.path.join('/tmp', '.keras')
+    datadir = os.path.join(datadir_base, SUBDIR)
+    fpath = os.path.join(datadir, fname)
+    if os.path.exists(fpath):
+        return True
+    return False
+
+def getTargetFile(fname, url, fhash):
+    if checkFile(fname):
+        return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+    else:
+        if callBack():
+            return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+
+
 def get_hed():
     fname = 'hed_pretrained_bsds.caffemodel'
-    url = 'https://data.vision.ee.ethz.ch/csergi/share/DEXTR/dextr_coco.h5'
+    url = 'http://vcl.ucsd.edu/hed/hed_pretrained_bsds.caffemodel'
     fhash = '8d371aa3c27a5b2a31228282a047965d'
-    return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+    return getTargetFile(fname, url, fhash)
 
 def get_dextr():
     fname = 'dextr_coco.h5'
     url = 'https://data.vision.ee.ethz.ch/csergi/share/DEXTR/dextr_coco.h5'
     fhash = '16415d65f6e15d3fa053afa21d5927e0'
-    return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+    return getTargetFile(fname, url, fhash)
 
 def get_deeplabX():
     fname = 'deeplabv3_xception_tf_dim_ordering_tf_kernels.h5'
     url = "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.1/deeplabv3_xception_tf_dim_ordering_tf_kernels.h5"
     fhash = "b979702082524aca6a249fd546f8ea13"
-    return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+    return getTargetFile(fname, url, fhash)
     
 def get_deeplabM():
     fname = 'deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels.h5'
     url= "https://github.com/bonlime/keras-deeplab-v3-plus/releases/download/1.1/deeplabv3_mobilenetv2_tf_dim_ordering_tf_kernels.h5"
     fhash = "370affe402895f37d171fb7123eac200"
-    return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+    return getTargetFile(fname, url, fhash)
 
 def get_EfficientNet(model_name, include_top):
     base = (
@@ -85,7 +112,7 @@ def get_EfficientNet(model_name, include_top):
         file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
         file_hash = hashes[model_name][1]
     
-    return get_file(file_name, base + file_name, cache_subdir=SUBDIR, file_hash=file_hash)
+    return getTargetFile(file_name, base + file_name, file_hash)
 
 
 def get_inception_resnet_v2(include_top):
@@ -96,7 +123,7 @@ def get_inception_resnet_v2(include_top):
     else:
         fname = 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels_notop.h5'
         file_hash='d19885ff4a710c122648d3b5c3b684e4'
-    return get_file(fname, url + fname, cache_subdir=SUBDIR, file_hash=file_hash)
+    return getTargetFile(fname, url + fname, file_hash)
 
 def get_inceptionv3(include_top):
     if include_top:
@@ -107,7 +134,7 @@ def get_inceptionv3(include_top):
         fname = 'inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5'
         url = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.5/inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5'
         fhash = 'bcbd6486424b2319ff4ef7d526e38f63'
-    return get_file(fname, url, cache_subdir=SUBDIR, file_hash=fhash) 
+    return getTargetFile(fname, url, fhash) 
 
 def get_xception(include_top):
     if include_top:
@@ -122,7 +149,7 @@ def get_xception(include_top):
             'releases/download/v0.4/'
             'xception_weights_tf_dim_ordering_tf_kernels_notop.h5')
         fhash = 'b0042744bf5b25fce3cb969f33bebb97'
-    return get_file(fname, url, cache_subdir=SUBDIR, file_hash=fhash)
+    return getTargetFile(fname, url, fhash)
         
 def get_NasNetLarge(include_top):
     url = ('https://github.com/titu1994/Keras-NASNet/'
@@ -134,7 +161,7 @@ def get_NasNetLarge(include_top):
         fname = 'NASNet-large-no-top.h5'
         fhash = 'd81d89dc07e6e56530c4e77faddd61b5'
 
-    return get_file(fname, url+fname, cache_subdir=SUBDIR, file_hash=fhash)
+    return getTargetFile(fname, url+fname, fhash)
     
     
 def get_NasNetMobile(include_top):
@@ -147,7 +174,7 @@ def get_NasNetMobile(include_top):
         fname = 'NASNet-mobile-no-top.h5'
         fhash = '1ed92395b5b598bdda52abe5c0dbfd63'
     
-    return get_file(fname, url+fname, cache_subdir=SUBDIR, file_hash=fhash)
+    return getTargetFile(fname, url+fname, fhash)
 
 
 
@@ -165,7 +192,7 @@ def get_MobileNet(include_top, alpha, rows):
         fname = 'mobilenet_1_0_224_tf_no_top.h5'
         fhash = '725ccbd03d61d7ced5b5c4cd17e7d527'
         
-    return get_file(fname, url+fname, cache_subdir=SUBDIR, file_hash=fhash)
+    return getTargetFile(fname, url+fname, fhash)
 
 def get_MobileNetv2(include_top, alpha, rows):    
     url = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
@@ -182,7 +209,7 @@ def get_MobileNetv2(include_top, alpha, rows):
         fname = 'mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224_no_top.h5'
         fhash = 'f1a68526548f7541cda07e19ba6c85f4'
         
-    return get_file(fname, url+fname, cache_subdir=SUBDIR, file_hash=fhash)
+    return getTargetFile(fname, url+fname, fhash)
 
 
 def get_DenseNet(include_top, blocks):
@@ -209,7 +236,7 @@ def get_DenseNet(include_top, blocks):
             fname = 'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5',
             file_hash='c13680b51ded0fb44dff2d8f86ac8bb1'
     
-    return get_file(fname, url + fname, cache_subdir=SUBDIR, file_hash=file_hash) 
+    return getTargetFile(fname, url + fname, file_hash) 
     
 
 def get_ResNet(include_top, model_name):
@@ -241,7 +268,7 @@ def get_ResNet(include_top, model_name):
     else:
         file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_notop.h5'
         file_hash = hashes[model_name][1]
-    return get_file(file_name,  url + file_name,  cache_subdir=SUBDIR, file_hash=file_hash)
+    return getTargetFile(file_name,  url + file_name,  file_hash)
     
     
     
@@ -261,7 +288,7 @@ def get_vgg16(include_top):
                                'vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5') 
         file_hash = '6d6bbae143d832006294945121d1f1fc'
         
-    return get_file(fname,  url ,  cache_subdir=SUBDIR, file_hash=file_hash)
+    return getTargetFile(fname,  url, file_hash)
 
 def get_vgg19(include_top):  
     if include_top:
@@ -278,7 +305,7 @@ def get_vgg19(include_top):
                                'vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5') 
         file_hash = '253f8cb515780f3b799900260a226db6'
         
-    return get_file(fname,  url ,  cache_subdir=SUBDIR, file_hash=file_hash)
+    return getTargetFile(fname,  url,  file_hash)
 
 
 

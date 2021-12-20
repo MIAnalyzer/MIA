@@ -1,6 +1,6 @@
 from . import get_submodules_from_kwargs
 
-from dl.utils.dl_downloads import WEIGHTS_COLLECTION
+from dl.utils.dl_downloads import WEIGHTS_COLLECTION, getTargetFile
 
 __all__ = ['load_model_weights']
 
@@ -24,12 +24,7 @@ def load_model_weights(model, model_name, dataset, classes, include_top, **kwarg
             raise ValueError('If using `weights` and `include_top`'
                              ' as true, `classes` should be {}'.format(weights['classes']))
 
-        weights_path = keras_utils.get_file(
-            weights['name'],
-            weights['url'],
-            cache_subdir='models',
-            file_hash=weights['md5']
-        )
+        weights_path = getTargetFile(weights['name'], weights['url'], weights['md5'])
 
         model.load_weights(weights_path)
 

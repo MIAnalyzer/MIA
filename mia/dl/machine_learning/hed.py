@@ -36,12 +36,14 @@ class HED_Segmentation():
         cv2.dnn_registerLayer('Crop', CropLayer)
         self.proto = './dl/machine_learning/deploy.prototxt'
         self.model = None 
-        
+        self.net = None
+
     def applyHED(self, image):
         try:
-            if self.model is None:
-                self.model = get_hed()
-            self.net = cv2.dnn.readNet(self.proto, self.model)
+            if self.net is None:
+                if self.model is None:
+                    self.model = get_hed()
+                self.net = cv2.dnn.readNet(self.proto, self.model)
         except:
             # can not load file
             self.net = None
