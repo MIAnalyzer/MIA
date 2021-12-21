@@ -17,7 +17,8 @@ Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/
 - type: 
   - ```conda env create -f mia_environment.yml```
   
-### to start the software type in an anaconda prompt:
+### to start the software 
+type in an anaconda prompt:
   - ```conda activate mia_environment```
   - ```mia_console```
 
