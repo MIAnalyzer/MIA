@@ -294,7 +294,7 @@ class TrainSettingsWindow(QMainWindow, Window):
         self.STrainVal.valueChanged.connect(self.changeTrainTestSplit)
         self.STrainVal.setValue(self.parent.parent.dl.data.TrainTestSplit*100)
         
-        self.RBConstant.setChecked(True)
+        self.RBRlroP.setChecked(True)
         self.LROption()
         self.updateLossesAndMetrics()
         self.changeClassWeightSettings()

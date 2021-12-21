@@ -47,7 +47,7 @@ class DeepLearning(dlObservable):
     def __init__(self):
         super().__init__()
         self.TrainInMemory = True
-        self.ImageScaleFactor = 0.5
+        self.ImageScaleFactor = 1
         self.worker = multiprocessing.cpu_count() // 2
         self.hed = hed.HED_Segmentation()
         self.dextr = dextr.DEXTR_Segmentation()
@@ -75,7 +75,7 @@ class DeepLearning(dlObservable):
         self.tta = False
         
         # Training settings
-        self.batch_size = 4
+        self.batch_size = 8
         self.epochs = 100
         self.learning_rate = 0.001
         self.preprocess = dlPreprocess.scale

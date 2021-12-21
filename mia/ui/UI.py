@@ -80,7 +80,7 @@ class MainWindow(object):
         
         self.CBLearningMode = QComboBox(self.centralWidget)
         self.CBLearningMode.addItem("Classification")
-        self.CBLearningMode.addItem("Object Counting")
+        self.CBLearningMode.addItem("Object Detection")
         self.CBLearningMode.addItem("Segmentation")
         self.CBLearningMode.setToolTip('Select analysis mode')        
         self.CBLearningMode.setObjectName("nn_Learning_Mode")
