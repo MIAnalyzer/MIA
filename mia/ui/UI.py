@@ -16,8 +16,9 @@ class MainWindow(object):
     def setupUi(self, Form):
         screen_resolution = QDesktopWidget().screenGeometry()
 
-        height = screen_resolution.height() - 150
-        width = height * 4/3
+
+        height = int(0.85*screen_resolution.height())
+        width = int(height * 4/3)
 
         Form.setWindowTitle('Microscopic Image Analyzer') 
         Form.setWindowIcon(QIcon('icons/logo.png'))
