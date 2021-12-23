@@ -1,6 +1,6 @@
 # mia_environment
 # to use this environment 
-# - download minoconda and this file
+# - download miniconda and this file
 # - open anaconda prompt and cd to the directory of this file
 # - type the following commands in the prompt:
 #   - conda env create -f mia_environment.yml
