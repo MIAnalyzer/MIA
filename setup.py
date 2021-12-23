@@ -22,7 +22,7 @@ setup(
 	"scikit_image",
 	"numpy",
 	"imgaug",
-	"opencv_python",
+	"opencv",
 	"tensorflow",
 	"matplotlib",
 	"Pillow",
