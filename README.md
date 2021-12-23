@@ -2,9 +2,10 @@
 
 MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking.
 
-## cite
 
-If using the software for your research, please cite:
+<!-- ## cite --> 
+<!-- If using the software for your research, please cite: --> 
+
 
 ## installation
 
@@ -22,10 +23,9 @@ type in an anaconda prompt:
   - ```conda activate mia_environment```
   - ```mianalyzer```
 
-
 ## manual
 
-The user manual can be found here.
+The user manual can be found [here](https://github.com/MicroscopicImageAnalyzer/MIA/).
 
 ## requirements
 
