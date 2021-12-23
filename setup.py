@@ -18,15 +18,15 @@ setup(
     url="https://github.com/MIAnalyzer/MIA/",
 
 	install_requires=[
-	"scipy",
-	"scikit_image",
-	"numpy",
-	"imgaug",
-	"opencv",
-	"tensorflow",
+	"scipy>=1.7",
+	"scikit_image>=0.18",
+	"numpy>=1.21",
+	"imgaug>=0.4",
+	"opencv>=4.5",
+	"tensorflow>=2.5",
 	"matplotlib",
-	"Pillow",
-	"PyQt5",
+	"Pillow>=8.4",
+	"PyQt5>=5.12",
 	],
 
     classifiers=[
