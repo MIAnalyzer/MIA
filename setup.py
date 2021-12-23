@@ -40,8 +40,9 @@ setup(
     ]),
 	entry_points={
         'console_scripts': [
-            'mia_console = mia.startup:start',
+            'mianalyzer = mia.startup:start',
         ],
+        # downloads do not work without console -> fix
 		'gui_scripts': [
             'mia = mia.startup:start',
         ],
