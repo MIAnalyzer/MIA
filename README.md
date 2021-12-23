@@ -20,10 +20,8 @@ Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/
 ### to start the software 
 type in an anaconda prompt:
   - ```conda activate mia_environment```
-  - ```mia_console```
+  - ```mianalyzer```
 
-
-There will be an installer added, soon.
 
 ## manual
 
