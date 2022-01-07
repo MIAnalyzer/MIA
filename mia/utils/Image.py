@@ -53,6 +53,9 @@ class ImageFile():
         except:
             self._image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             self._stack = False
+            if self._image is None:
+                raise
+            
         
     def convertToBGR(self):
         if self._image is None:

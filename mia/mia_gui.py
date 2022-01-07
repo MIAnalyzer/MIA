@@ -738,7 +738,12 @@ class MIA_UI(QMainWindow, MainWindow):
                 c = self.currentImageFile.contrast
                 keep = True
             
-            self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
+            try:
+                self.currentImageFile = ImageFile(self.files.CurrentImagePath(), asBGR = True)
+            except:
+                self.PopupWarning('Can not load image')
+                return
+                
             self.resetBrightnessContrast()
             if self.currentImageFile.isStack():
                 self.SFrame.show()

@@ -249,12 +249,12 @@ class AugmentWindow(QMainWindow, Window):
         self.setupUi(self)
         
         
-        self.SBModelInputSize_x.SpinBox.setValue(self.parent.dl.augmentation.outputwidth)
-        self.SBModelInputSize_y.SpinBox.setValue(self.parent.dl.augmentation.outputheight)
-        self.SBModelInputSize_x.SpinBox.setSingleStep(self.parent.dl.split_factor)
-        self.SBModelInputSize_y.SpinBox.setSingleStep(self.parent.dl.split_factor)
         self.SBModelInputSize_x.SpinBox.setRange(self.parent.dl.split_factor,1024)
         self.SBModelInputSize_y.SpinBox.setRange(self.parent.dl.split_factor,1024)
+        self.SBModelInputSize_x.SpinBox.setSingleStep(self.parent.dl.split_factor)
+        self.SBModelInputSize_y.SpinBox.setSingleStep(self.parent.dl.split_factor)
+        self.SBModelInputSize_x.SpinBox.setValue(self.parent.dl.augmentation.outputwidth)
+        self.SBModelInputSize_y.SpinBox.setValue(self.parent.dl.augmentation.outputheight)
         
         
         self.CBFliplr.setChecked(self.parent.dl.augmentation.flip_horz)
