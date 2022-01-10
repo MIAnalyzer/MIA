@@ -1,5 +1,7 @@
 # MIA - Microscopic Image Analyzer
 
+![MIA](https://github.com/MIAnalyzer/MIA/blob/master/docs/source/gettingstarted/images/user_interface.PNG?raw=true)
+
 MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking.
 
 
@@ -30,3 +32,4 @@ The user manual can be found [here](https://github.com/MicroscopicImageAnalyzer/
 ## requirements
 
 In general, MIA should run on any system with Linux or windows. You can use the cpu only, but it is highly recommended to have a system with a cuda-compatible gpu (from NVIDIA) to accelerate neural network training.
+
