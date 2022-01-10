@@ -43,7 +43,9 @@ def getTargetFile(fname, url, fhash):
 
 def get_hed():
     fname = 'hed_pretrained_bsds.caffemodel'
-    url = 'http://vcl.ucsd.edu/hed/hed_pretrained_bsds.caffemodel'
+    url = 'https://github.com/ashukid/hed-edge-detector/raw/master/hed_pretrained_bsds.caffemodel'
+    # original link not valid atm
+    # url = 'http://vcl.ucsd.edu/hed/hed_pretrained_bsds.caffemodel'
     fhash = '8d371aa3c27a5b2a31228282a047965d'
     return getTargetFile(fname, url, fhash)
 

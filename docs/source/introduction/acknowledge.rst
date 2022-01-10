@@ -2,9 +2,18 @@
 Acknowledgement
 ***************
 
-Source code from several other open source projects are used within this project. We hope this list is complete. If you find source code in the project that is not mentioned here, please leave a note and we will update this here.
+Source code from several other open source projects was gratefully used within this project. Hopefully, this list is complete; however, if you find source code in the project that is not mentioned, please leave a note so that it can be updated here.
 
-* 
+* https://www.riverbankcomputing.com/software/pyqt/
+* https://www.tensorflow.org/
+* https://opencv.org/
+* https://numpy.org/
+* https://scikit-image.org/
+* https://github.com/aleju/imgaug
+* https://matplotlib.org/
+* https://github.com/qubvel/segmentation_models
+* https://github.com/qubvel/classification_models
+* https://github.com/keras-team/keras-applications
+* https://github.com/bonlime/keras-deeplab-v3-plus
+* https://cvlsegmentation.github.io/dextr/
 
-..
-   _comment: segmentation-models, image-classifiers, loss functions (focal), tracking (hungarian), dextr, hed, what about: tensorflow, opencv, pyqt

@@ -1,164 +1,164 @@
-.. |addobject| image:: ../../../icons/addobject.png
+.. |addobject| image:: ../../../mia/icons/addobject.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |assign| image:: ../../../icons/assign.png
+.. |assign| image:: ../../../mia/icons/assign.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |assignclass| image:: ../../../icons/assignclass.png
+.. |assignclass| image:: ../../../mia/icons/assignclass.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |augmentation| image:: ../../../icons/augmentation.png
+.. |augmentation| image:: ../../../mia/icons/augmentation.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |clear| image:: ../../../icons/clear.png
+.. |clear| image:: ../../../mia/icons/clear.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |delete| image:: ../../../icons/delete.png
+.. |delete| image:: ../../../mia/icons/delete.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |dextr| image:: ../../../icons/dextr.png
+.. |dextr| image:: ../../../mia/icons/dextr.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |drag| image:: ../../../icons/drag.png
+.. |drag| image:: ../../../mia/icons/drag.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |draw| image:: ../../../icons/draw.png
+.. |draw| image:: ../../../mia/icons/draw.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |expand| image:: ../../../icons/expand.png
+.. |expand| image:: ../../../mia/icons/expand.png
   :class: inline-icon
   :width: 16
   :height: 16
   
-.. |exportallmasks| image:: ../../../icons/exportallmasks.png
+.. |exportallmasks| image:: ../../../mia/icons/exportallmasks.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |exportmask| image:: ../../../icons/exportmask.png
+.. |exportmask| image:: ../../../mia/icons/exportmask.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |load| image:: ../../../icons/load.png
+.. |load| image:: ../../../mia/icons/load.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |loadmodel| image:: ../../../icons/loadmodel.png
+.. |loadmodel| image:: ../../../mia/icons/loadmodel.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |magicwand| image:: ../../../icons/magicwand.png
+.. |magicwand| image:: ../../../mia/icons/magicwand.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |measure| image:: ../../../icons/measure.png
+.. |measure| image:: ../../../mia/icons/measure.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |objectcolor| image:: ../../../icons/objectcolor.png
+.. |objectcolor| image:: ../../../mia/icons/objectcolor.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |objectnumber| image:: ../../../icons/objectnumber.png
+.. |objectnumber| image:: ../../../mia/icons/objectnumber.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |poly| image:: ../../../icons/poly.png
+.. |poly| image:: ../../../mia/icons/poly.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |postprocessing| image:: ../../../icons/postprocessing.png
+.. |postprocessing| image:: ../../../mia/icons/postprocessing.png
   :class: inline-icon
   :width: 16
   :height: 16
   
-.. |predict| image:: ../../../icons/predict.png
+.. |predict| image:: ../../../mia/icons/predict.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |predictall| image:: ../../../icons/predictall.png
+.. |predictall| image:: ../../../mia/icons/predictall.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |reset| image:: ../../../icons/reset.png
+.. |reset| image:: ../../../mia/icons/reset.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |results| image:: ../../../icons/results.png
+.. |results| image:: ../../../mia/icons/results.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |saveall| image:: ../../../icons/saveall.png
+.. |saveall| image:: ../../../mia/icons/saveall.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |savemodel| image:: ../../../icons/savemodel.png
+.. |savemodel| image:: ../../../mia/icons/savemodel.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |setclass| image:: ../../../icons/setclass.png
+.. |setclass| image:: ../../../mia/icons/setclass.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |settings| image:: ../../../icons/settings.png
+.. |settings| image:: ../../../mia/icons/settings.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |shift| image:: ../../../icons/shift.png
+.. |shift| image:: ../../../mia/icons/shift.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |tracking| image:: ../../../icons/tracking.png
+.. |tracking| image:: ../../../mia/icons/tracking.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |train| image:: ../../../icons/train.png
+.. |train| image:: ../../../mia/icons/train.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |previous| image:: ../../../icons/previous.png
+.. |previous| image:: ../../../mia/icons/previous.png
   :class: inline-icon
   :width: 16
   :height: 16
 
-.. |next| image:: ../../../icons/next.png
+.. |next| image:: ../../../mia/icons/next.png
   :class: inline-icon
   :width: 16
   :height: 16

@@ -46,7 +46,7 @@ exclude_patterns = []
 #
 #html_theme = 'sphinx_rtd_theme'
 html_theme = "furo"
-html_logo = "../../icons/logo.png"
+html_logo = "../../mia/icons/logo.png"
 
 
 
