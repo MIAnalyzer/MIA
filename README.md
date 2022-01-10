@@ -9,9 +9,9 @@ MIA is a software for deep learning based image analysis. It covers image labeli
 
 ## installation
 
-The easiest way to install MIA is via conda (see https://docs.conda.io/en/latest/miniconda.html).
+The easiest way to install MIA is via conda (see https://docs.conda.io/en/latest/miniconda.html for installation options).
 
-Download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/master/mia_environment.yaml) file.
+After installation of conda, download the [environment](https://github.com/MicroscopicImageAnalyzer/MIA/blob/master/mia_environment.yaml) file. Then:
 
 - Open an anaconda prompt
 - cd to the environment file
