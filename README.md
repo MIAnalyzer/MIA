@@ -19,6 +19,7 @@ After installation of conda, download the [environment](https://github.com/Micro
 - cd to the environment file
 - type: 
   - ```conda env create -f mia_environment.yml```
+- wait and follow instructions
   
 ### to start the software 
 type in an anaconda prompt:
