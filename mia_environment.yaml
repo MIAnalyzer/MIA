@@ -22,7 +22,7 @@ dependencies:
   - imgaug=0.4
   - conda-forge:pillow=8.4.0
   - pip
-  -pip:
+  - pip:
     - mianalyzer
 
   
