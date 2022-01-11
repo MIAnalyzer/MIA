@@ -18,15 +18,8 @@ setup(
     url="https://github.com/MIAnalyzer/MIA/",
 
 	install_requires=[
-	"scipy>=1.7",
-	"scikit_image>=0.18",
-	"numpy>=1.21",
-	"imgaug>=0.4",
-	"opencv>=4.5",
-	"tensorflow>=2.5",
-	"matplotlib",
-	"Pillow>=8.4",
-	"PyQt5>=5.12",
+	# requirements removed here as MIA installation via conda is recommended
+    # when installing via pip use requirements.txt
 	],
 
     classifiers=[
@@ -43,9 +36,9 @@ setup(
             'mianalyzer = mia.startup:start',
         ],
         # downloads do not work without console -> fix
-		'gui_scripts': [
-            'mia = mia.startup:start',
-        ],
+		#'gui_scripts': [
+        #    'mia = mia.startup:start',
+        #],
 	},
 	data_files=[('icons', [
 	'mia/icons/addobject.png', 
