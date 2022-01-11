@@ -7,7 +7,7 @@
 
 # to start the software open anaconda prompt and type:
 # - conda activate mia_environment
-# - mia_console
+# - mianalyzer
 
 name: mia_environment
 channels:
