@@ -12,7 +12,6 @@ setup(
     name="mianalyzer", 
     version=ver['__version__'],
     author="Nils Koerber",
-    author_email="nils.koerber@t-online.de",
     description="MIA deep learning based Microscopic Image Analyzer",
 	long_description="MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking, see https://github.com/MIAnalyzer/MIA/ for details.",
     url="https://github.com/MIAnalyzer/MIA/",
