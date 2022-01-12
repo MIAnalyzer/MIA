@@ -31,5 +31,5 @@ A quickstart guide can be found [here](https://github.com/MicroscopicImageAnalyz
 
 ## Requirements
 
-In general, MIA should run on any system with Linux or windows. You can use the cpu only, but it is highly recommended to have a system with a cuda-compatible gpu (from NVIDIA) to accelerate neural network training.
+In general, MIA should run on any system with Linux or windows. You can use the cpu only, but it is highly recommended to have a system with a [cuda-compatible](https://developer.nvidia.com/cuda-gpus) gpu (from NVIDIA) to accelerate neural network training.
 
