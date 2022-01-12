@@ -6,7 +6,7 @@ Quickstart Guide
 
 After starting the software, you will see the MIA user interface. 
 
-.. figure:: images/empty_ui.PNG
+.. figure:: images/empty_ui.png
   :class: shadow-image
   :align: center
 
@@ -14,7 +14,7 @@ After starting the software, you will see the MIA user interface.
   
 Before starting a new project select the :doc:`../applications/index`, that you would like to use with MIA. Note that the application can be changed later and multiple applications can be used with the same dataset.
 
-.. figure:: images/setmode.PNG
+.. figure:: images/setmode.png
   :class: shadow-image
   :align: center
 
@@ -22,7 +22,7 @@ Before starting a new project select the :doc:`../applications/index`, that you 
   
 For starting a new project you can open and load a folder with training images, that are used for image labeling. To load the training folder, press |load| on the top left. 
 
-.. figure:: images/settrain.PNG
+.. figure:: images/settrain.png
   :class: shadow-image
   :align: center
 
@@ -32,7 +32,7 @@ After loading the training image folder, the first image in the folder is displa
 
 To label images for neural network training, use the labeling tools.
 
-.. figure:: images/settool.PNG
+.. figure:: images/settool.png
   :class: shadow-image
   :align: center
 
@@ -40,7 +40,7 @@ To label images for neural network training, use the labeling tools.
   
 Navigate through the training folder to label multiple images. When finished labeling a first set of images you can start training a neural network. Open the training window (:doc:`../training/nntraining`).
 
-.. figure:: images/train.PNG
+.. figure:: images/train.png
   :class: shadow-image
   :align: center
 
@@ -48,7 +48,7 @@ Navigate through the training folder to label multiple images. When finished lab
   
 Adjust training settings if necessary and start training.
 
-.. figure:: images/starttraining.PNG
+.. figure:: images/starttraining.png
   :class: shadow-image
   :align: center
 
@@ -56,7 +56,7 @@ Adjust training settings if necessary and start training.
   
 Depending on the number of training images and your hardware, the training takes several minutes or hours. The process and model performance can be monitored meanwhile in the window that pops up. 
 
-.. figure:: ../training/images/trainplot.PNG
+.. figure:: ../training/images/trainplot.png
   :class: shadow-image
   :align: center
 
@@ -65,7 +65,7 @@ Depending on the number of training images and your hardware, the training takes
 If training is finished, open the test images, i. e. the ones you would like to use for :doc:`../prediction/index`.
  
 
-.. figure:: images/settest.PNG
+.. figure:: images/settest.png
   :class: shadow-image
   :align: center
 
@@ -73,7 +73,7 @@ If training is finished, open the test images, i. e. the ones you would like to 
   
 Now you can use the prediction buttons to predict images of the test folder.
 
-.. figure:: images/predict.PNG
+.. figure:: images/predict.png
   :class: shadow-image
   :align: center
 
