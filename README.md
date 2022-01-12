@@ -27,7 +27,7 @@ type in an anaconda prompt:
 
 ## Manual
 
-A quickstart guide can be found [here](https://github.com/MicroscopicImageAnalyzer/MIA/) and the complete user manual [here](https://github.com/MicroscopicImageAnalyzer/MIA/).
+A quickstart guide can be found [here](https://mianalyzer.github.io/gettingstarted/quickstart.html) and the complete user manual [here](https://mianalyzer.github.io/).
 
 ## Requirements
 
