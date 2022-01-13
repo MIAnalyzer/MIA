@@ -20,7 +20,9 @@ import multiprocessing
 import threading
 import concurrent.futures
 import time
+import webbrowser
 from contextlib import contextmanager
+
 
 import dl.DeepLearning as DeepLearning
 from dl.method.mode import dlMode
@@ -237,6 +239,9 @@ class MIA_UI(QMainWindow, MainWindow):
         self.ASaveSettings.triggered.connect(self.SaveSettings)
         self.ALoadSettings.triggered.connect(self.LoadSettings)
         self.ASaveDeepLearning.triggered.connect(self.saveDLClass)
+        self.AOpenManual.triggered.connect(self.OpenManual)
+        self.AOpenGithub.triggered.connect(self.OpenGithub)
+        
         
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
@@ -379,6 +384,15 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.results_form.show()
 
+    def OpenManual(self):
+        self.OpenWebsite('https://mianalyzer.github.io/')
+    
+    def OpenGithub(self):
+        self.OpenWebsite('https://github.com/MIAnalyzer/MIA')
+    
+    def OpenWebsite(self, url):
+        webbrowser.open(url) 
+        
         
     def PopupWarning(self, message):
         msg = QMessageBox(self)

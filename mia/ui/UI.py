@@ -53,6 +53,7 @@ class MainWindow(object):
         self.FileMenu.addAction(self.ASaveDeepLearning)
         
         
+        
         self.FileMenu.addSeparator()
         self.AExit = QAction("Quit", self)
         self.FileMenu.addAction(self.AExit)
@@ -60,6 +61,13 @@ class MainWindow(object):
         self.ASettings = QAction("Settings")
         self.EditMenu.addAction(self.ASettings)
         self.AboutMenu = self.menubar.addMenu("About")
+        self.AOpenManual = QAction("Manual", self.centralWidget)
+        self.AOpenGithub = QAction("Source Code", self.centralWidget)
+        self.AboutMenu.addAction(self.AOpenManual)
+        self.AboutMenu.addAction(self.AOpenGithub)
+        
+        
+        
         self.setMenuBar(self.menubar)
         self.hlayout = QHBoxLayout(self.centralWidget)
         self.hlayout.setContentsMargins(3, 3, 3, 3)

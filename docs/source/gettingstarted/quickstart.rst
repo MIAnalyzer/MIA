@@ -54,7 +54,7 @@ Adjust training settings if necessary and start training.
 
   Start the training process
   
-Depending on the number of training images and your hardware, the training takes several minutes or hours. The process and model performance can be monitored meanwhile in the window that pops up. 
+Depending on the number of training images and your hardware, the training may take from several minutes to hours. The process and model performance can be monitored meanwhile in the window that pops up. 
 
 .. figure:: ../training/images/trainplot.png
   :class: shadow-image
