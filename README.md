@@ -1,16 +1,9 @@
 # MIA - Microscopic Image Analyzer
-
 ![MIA](https://github.com/MIAnalyzer/MIA/blob/master/docs/source/gettingstarted/images/user_interface.PNG?raw=true)
 
 MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking.
 
-
-<!-- ## cite --> 
-<!-- If using the software for your research, please cite: --> 
-
-
 ## Installation
-
 The easiest way to install MIA is via conda (see https://docs.conda.io/en/latest/miniconda.html for installation options).
 
 After installation of conda, download the [environment](https://github.com/MIAnalyzer/MIA/releases/download/v0.2.4/mia_environment.yaml) file. 
@@ -26,8 +19,13 @@ type in an anaconda prompt:
   - ```mianalyzer```
 
 ## Manual
-
 A quickstart guide can be found [here](https://mianalyzer.github.io/gettingstarted/quickstart.html) and the complete user manual [here](https://mianalyzer.github.io/).
+
+## Reference
+If you use this code for your research, please cite: 
+
+https://biorxiv.org/cgi/content/short/2022.01.14.476308v1
+
 
 ## Requirements
 
