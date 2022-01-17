@@ -22,7 +22,7 @@ type in an anaconda prompt:
 
 A quickstart guide can be found [here](https://mianalyzer.github.io/gettingstarted/quickstart.html) and the complete user manual [here](https://mianalyzer.github.io/).
 
-Please use the [image.sc](https://forum.image.sc/) for general discussion, questions about how to use the software or feature requests. Bugs can be reported directly in the [issues](https://github.com/MIAnalyzer/MIA/issues) panel.
+Please use [image.sc](https://forum.image.sc/) for general discussion, questions about how to use the software or feature requests. Bugs can be reported directly in the [issues](https://github.com/MIAnalyzer/MIA/issues) panel.
 
 ## Reference
 If you use this code for your research, please cite: 
