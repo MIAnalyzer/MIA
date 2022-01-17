@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'MIA'
-copyright = '2021, Nils Körber'
+copyright = '2022, Nils Körber'
 author = 'Nils Körber'
 
 
