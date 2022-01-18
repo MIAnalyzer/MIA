@@ -10,7 +10,7 @@ After installation of conda, download the [environment](https://github.com/MIAna
 
 Then, open an anaconda prompt and type:
 - ```cd /path/to/mia_environment.yaml```  (change '/path/to/' to the path of the folder with the environment file)
-- ```conda env create -f mia_environment.yml```
+- ```conda env create -f mia_environment.yaml```
 - wait and follow instructions
   
 ### to start the software 
