@@ -758,13 +758,14 @@ class MIA_UI(QMainWindow, MainWindow):
                 self.PopupWarning('Can not load image')
                 return
                 
-            self.resetBrightnessContrast()
+            # order important
             if self.currentImageFile.isStack():
                 self.SFrame.show()
                 self.initFrameSlider()
             else:
                 self.SFrame.hide()
-            
+                
+            self.resetBrightnessContrast()
             if keep:
                 self.currentImageFile.brightness = br
                 self.currentImageFile.contrast = c
