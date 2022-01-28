@@ -96,7 +96,7 @@ class Classification(LearningMode):
 
         # we cut here and pool, to rebuild models like vgg exactly, fc layers (a 4096, 4096 and 1000 units in case of vgg) should be added
         x = tf.keras.layers.GlobalAveragePooling2D()(basemodel.output)
-        output = tf.keras.layers.Dense(n_classes, activation=out_activation)(x)
+        output = tf.keras.layers.Dense(n_classes, activation=out_activation, dtype='float32')(x)
         self.setModelInputSize()
         return tf.keras.models.Model(inputs=[basemodel.input], outputs=[output])
     

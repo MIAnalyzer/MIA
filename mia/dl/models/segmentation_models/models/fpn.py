@@ -160,7 +160,7 @@ def build_fpn(
         kernel_initializer='glorot_uniform',
         name='head_conv',
     )(x)
-    x = layers.Activation(activation, name=activation)(x)
+    x = layers.Activation(activation, name=activation, dtype='float32')(x)
 
     # create keras model instance
     model = models.Model(input_, x)

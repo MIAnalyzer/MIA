@@ -170,7 +170,7 @@ def build_linknet(
         use_bias=True,
         kernel_initializer='glorot_uniform'
     )(x)
-    x = layers.Activation(activation, name=activation)(x)
+    x = layers.Activation(activation, name=activation, dtype='float32')(x)
 
     # create keras model instance
     model = models.Model(input_, x)

@@ -69,7 +69,7 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         return label*self.scalefactor
 
     def getModel(self, nclasses, channels):
-        return PixelBasedPrediction.getPixelModel(self, nclasses, channels, None)
+        return PixelBasedPrediction.getPixelModel(self, nclasses, channels, 'linear')
 
  
     def extractShapesFromPrediction(self, prediction, unused, offset=(0,0)):

@@ -60,6 +60,11 @@ class Window(object):
         hlayout.addWidget(self.Lgpu)
         vlayout.addLayout(hlayout)     
         
+        self.CBMixedPrecision = QCheckBox("Mixed Precision Computation",self.centralWidget)
+        self.CBMixedPrecision.setObjectName('Mixed_precision')
+        self.CBMixedPrecision.setToolTip('Select to use mixed precision during training, reduces gpu memory and increases computation speed on modern gpus')
+        vlayout.addWidget(self.CBMixedPrecision)
+        
         self.CBSeparateLabels = QCheckBox("Separate Labels of Stacks",self.centralWidget)
         self.CBSeparateLabels.setObjectName('Separate_Labels')
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
@@ -167,6 +172,7 @@ class SettingsWindow(QMainWindow, Window):
         self.CBTTA.setChecked(self.parent.dl.tta)
         self.SBBorderOverlap.SpinBox.setValue(self.parent.dl.borderremoval)
         self.CBWeightsonly.setChecked(self.parent.saveload_modelweights_only)
+        self.CBMixedPrecision.setChecked(self.parent.dl.mixed_precision)
         
         
         self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
@@ -181,6 +187,7 @@ class SettingsWindow(QMainWindow, Window):
         self.CBTTA.stateChanged.connect(self.ttaChanged)
         self.SBBorderOverlap.SpinBox.valueChanged.connect(self.setBorder)
         self.CBWeightsonly.stateChanged.connect(self.weightsonlyChanged)
+        self.CBMixedPrecision.stateChanged.connect(self.precisionChanged)
         
         self.CBgpu.setCurrentIndex(0)
         
@@ -223,6 +230,9 @@ class SettingsWindow(QMainWindow, Window):
         
     def weightsonlyChanged(self):
         self.parent.saveload_modelweights_only = self.CBWeightsonly.isChecked()
+        
+    def precisionChanged(self):
+        self.parent.dl.mixed_precision = self.CBMixedPrecision.isChecked()
         
     def ScaleFactorChanged(self):
         self.parent.training_form.SBScaleFactor.SpinBox.setValue(self.SBScaleFactor.SpinBox.value())

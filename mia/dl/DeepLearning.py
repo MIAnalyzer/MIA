@@ -73,6 +73,8 @@ class DeepLearning(dlObservable):
         self.observer = None
         
         self.tta = False
+        self.mixed_precision = False
+        
         
         # Training settings
         self.batch_size = 8
@@ -167,6 +169,14 @@ class DeepLearning(dlObservable):
         try:
             if numClasses == 2:
                 numClasses = 1
+                
+            if self.mixed_precision:
+                policy = tf.keras.mixed_precision.Policy('mixed_float16')
+            else:
+                policy = tf.keras.mixed_precision.Policy('float32')
+
+            tf.keras.mixed_precision.set_global_policy(policy)
+
             self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
             return self.initialized
         except:
@@ -209,6 +219,7 @@ class DeepLearning(dlObservable):
                 self.val_generator = datagenerator.TrainingDataGenerator(self, validation = True)
             else: 
                 self.val_generator = None 
+            # do we need to call explicit tf.keras.mixed_precision.LossScaleOptimizer here?
             self.Model.compile(optimizer=self.optimizer.getOptimizer(), loss=self.Mode.loss.getLoss(), metrics=self.Mode.metric.getMetric()) 
             self.resumeEpoch = 0
 
