@@ -11,7 +11,7 @@ Then, open an anaconda prompt and type:
 
 - Open an anaconda prompt
 - ``cd /path/to/mia_environment.yaml`` (change '/path/to/' to the path of the folder with the environment file)
-- ``conda env create -f mia_environment.yml``
+- ``conda env create -f mia_environment.yaml``
   
 **to start the software:**
 

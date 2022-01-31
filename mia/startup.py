@@ -13,7 +13,6 @@ if platform.system() == 'Windows':
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
 
 def start():
-
     app = QCoreApplication.instance()
     # app = QApplication.instance()
     if app is None:
