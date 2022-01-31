@@ -13,7 +13,6 @@ import math
 from skimage import morphology
 from skimage.morphology import medial_axis, skeletonize
 
-    
 
 BACKGROUNDCLASS = 255
 from utils.shapes.Shape import Shape, Shapes, FreeFormContour_ID, FreeFormContour_ID_legacy
@@ -253,60 +252,64 @@ class Contour(Shape):
 
 # utilities
 def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False):
-    cnt = contour.points
+    drawcontours(image, [contour], classlabel=contour.classlabel, ignoreclasslabel=False, separateContours = False)
+
+
+def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separateContours = False):
+    cnt = [x.points for x in contours if x.numPoints() > 0]
+    inner = []
+    [inner.extend(x.innercontours) for x in contours if x.innercontours != []]
     ref_image = image.copy()
-    if contour.numPoints() > 0:
-        if separateContours:
-            cv2.drawContours(image, [cnt], 0, (0), 3)  
-            cv2.drawContours(image, [cnt], 0, (1), -1) 
+    if separateContours:
+        cv2.drawContours(image, cnt, -1, (0), 3)  
+        cv2.drawContours(image, cnt, -1, (1), -1) 
+    else:
+        if ignoreclasslabel:
+            cv2.drawContours(image, cnt, -1, (1), -1)  
+            cv2.drawContours(image, inner, -1, (0), -1)
+            # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
+            cv2.drawContours(image, inner, -1, (1), 1)
+        elif classlabel != 0:
+            cv2.drawContours(image, cnt, -1, (int(classlabel)), -1)  
+            cv2.drawContours(image, inner, -1, (BACKGROUNDCLASS), -1)
+            # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
+            cv2.drawContours(image, inner, -1, (int(classlabel)), 1)
+            image[image==BACKGROUNDCLASS] = ref_image[image==BACKGROUNDCLASS]
         else:
-            if ignoreclasslabel:
-                cv2.drawContours(image, [cnt], 0, (1), -1)  
-                cv2.drawContours(image, contour.innercontours, -1, (0), -1)
-                # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
-                cv2.drawContours(image, contour.innercontours, -1, (1), 1)
-            elif contour.classlabel != 0:
-                cv2.drawContours(image, [cnt], 0, (int(contour.classlabel)), -1)  
-                cv2.drawContours(image, contour.innercontours, -1, (BACKGROUNDCLASS), -1)
-                # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
-                cv2.drawContours(image, contour.innercontours, -1, (int(contour.classlabel)), 1)
-                image[image==BACKGROUNDCLASS] = ref_image[image==BACKGROUNDCLASS]
-            else:
-                cv2.drawContours(image, [cnt], 0, (BACKGROUNDCLASS), -1)  
-                cv2.drawContours(image, contour.innercontours, -1, (0), -1)
-                # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
-                cv2.drawContours(image, contour.innercontours, -1, (BACKGROUNDCLASS), 1)
+            cv2.drawContours(image, cnt, -1, (BACKGROUNDCLASS), -1)  
+            cv2.drawContours(image, inner, -1, (0), -1)
+            # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
+            cv2.drawContours(image, inner, -1, (BACKGROUNDCLASS), 1)
 
 
 def drawContoursToLabel(label, contours, drawbackground = True):
-    # split contours
-    bg_contours, target_contours = [], []
-    for c in contours:
-       target = bg_contours if c.classlabel == 0 else target_contours
-       target.append(c)
-       
-    if drawbackground:
-        label = drawbackgroundToLabel(label, bg_contours)
-      
-    for c in target_contours:
-        drawcontour(label, c)
+    if contours == []:
+        return
 
+    maxclass = max([x.classlabel for x in contours])
+    for i in range(maxclass+1):
+        class_cnts = filter(lambda x: x.classlabel == i, contours)
+        if i== 0:
+            label = drawbackgroundToLabel(label, list(class_cnts))
+        else:
+            drawcontours(label, list(class_cnts), classlabel=i)
+        
     if not drawbackground:
         label[label==BACKGROUNDCLASS] = 0
-
+    
     return label
 
 def drawbackgroundToLabel(label, background):
     if not background or background == list():
         label[:] = (BACKGROUNDCLASS)
     else:
-        for c in background:
-            drawcontour(label, c) 
+        drawcontours(label, background, classlabel=0)
     return label
        
 def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
+    counter = -1
 
     # contours
     if np.all(image == BACKGROUNDCLASS):
@@ -320,9 +323,10 @@ def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
                 thresh = (image == BACKGROUNDCLASS).astype(np.uint8)
         else:
             thresh = (image == i).astype(np.uint8)
+
         contours, hierarchy = findContours(thresh, ext_only, offset)
         if contours is not None:
-            counter = -1
+            
             for k, c in enumerate(contours):
                 parent = hierarchy [0][k][3]
                 if parent > -1:
@@ -333,9 +337,9 @@ def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
     ret_contours.reverse()
     return ret_contours
 
-def drawContoursToImage(image, contours, separate = False): 
-    for c in contours:
-        drawcontour(image, c, ignoreclasslabel=True, separateContours=separate)
+def drawContoursToImage(image, contours, separate = False):  
+    drawcontours(image, contours, ignoreclasslabel=True, separateContours=separate)
+
 
 def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
     image = np.squeeze(image).astype(np.uint8)

@@ -240,7 +240,7 @@ class Painter(ABC):
             path.lineTo(self.canvas.np2QPoint(contour.points[0].reshape(2,1)))
             
             innerpath = QPainterPath()
-            for c in contour.innercontours:           
+            for c in contour.innercontours:    
                 innerpath.moveTo(self.canvas.np2QPoint(c[0].reshape(2,1)))
                 [innerpath.lineTo(self.canvas.np2QPoint(p.reshape(2,1))) for p in c]
                 innerpath.lineTo(self.canvas.np2QPoint(c[0].reshape(2,1)))

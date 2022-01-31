@@ -130,7 +130,7 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
         self.parent.canvas.skeletonsmoothingfactor = val
         
     def closeEvent(self, event):
-        self.parent.canvas.ReloadImage()
+        self.parent.canvas.ReloadImage(resetView = False)
     
     def setminContourSize(self):
         self.parent.canvas.setMinimumContourSize(self.SBminContourSize.value())

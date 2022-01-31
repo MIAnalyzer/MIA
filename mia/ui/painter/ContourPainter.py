@@ -49,7 +49,8 @@ class ContourPainter(Painter):
         # as the order of drawing is important 
         # and color has to be the same for the path
         # update: additionally, path.subtracted does not work for multiple objects
-        for c in self.shapes.shapes:  
+        shapes = sorted(self.shapes.shapes, key=lambda x: x.classlabel)
+        for c in shapes: 
             if c.classlabel != 0:
                 self.drawcontour(c)             
 

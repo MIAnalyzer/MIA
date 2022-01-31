@@ -247,15 +247,19 @@ class SettingsWindow(QMainWindow, Window):
     
     def showContourNumbers(self):
         self.parent.canvas.drawShapeNumber = self.CBShapeNumbers.isChecked()
+        self.parent.canvas.redrawImage()
         
     def setPenSize(self):
         self.parent.canvas.pen_size = self.SBPenSize.SpinBox.value()
+        self.parent.canvas.redrawImage()
         
     def setFontSize(self):
         self.parent.canvas.FontSize = self.SBFontSize.SpinBox.value()
+        self.parent.canvas.redrawImage()
         
     def setTransparency(self):
         self.parent.canvas.ContourTransparency = self.STransparency.value()
+        self.parent.canvas.redrawImage()
         
     def closeEvent(self, event):
-        self.parent.canvas.checkForChanges()
+        self.parent.canvas.redrawImage()
