@@ -63,9 +63,11 @@ def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):
 def splitStackLabels(image, folder):
     if not os.path.isdir(os.path.join(folder)):
         return [image], [folder]
+    
     # using same label for complete stack unhandled atm
     subfiles = [(os.path.join(folder,f),f[-7:-4]) for f in os.listdir(folder) if os.path.splitext(os.path.basename(folder))[0] in f]
     images = list(repeat((image,'stack'), len(subfiles)))
+    
     return images, subfiles
 
 def unrollPaths(images, labels):

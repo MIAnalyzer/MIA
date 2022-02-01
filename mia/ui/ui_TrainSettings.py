@@ -26,12 +26,12 @@ class Window(object):
 
         self.centralWidget = QWidget(Form)
 
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 3, 3, 3)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
 
-        layout = QHBoxLayout(self.centralWidget)
+        layout = QHBoxLayout()
         self.CBMemory = QCheckBox("Load Full Dataset",self.centralWidget)
         self.CBMemory.setToolTip('Check to load full dataset into memory, uncheck to reload data on each iteration')
         self.CBMemory.setObjectName('nn_TrainInMemory')
@@ -71,10 +71,10 @@ class Window(object):
     def LossGroup(self):
         groupBox = QGroupBox("Loss, Metric, Optimizer")
         
-        layout = QVBoxLayout(self.centralWidget)
-        hlayout = QHBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
+        hlayout = QHBoxLayout()
 
-        hlayout_2 = QHBoxLayout(self.centralWidget)
+        hlayout_2 = QHBoxLayout()
         
         self.LWeights = QLabel("Class Weighting",self.centralWidget)
         self.RBAutoClassWeight = QRadioButton("Auto weighting",self.centralWidget)
@@ -93,7 +93,7 @@ class Window(object):
         hlayout_2.addWidget(self.RBAutoClassWeight)
         hlayout_2.addWidget(self.RBManuClassWeight)
         
-        hlayout_3 = QHBoxLayout(self.centralWidget)
+        hlayout_3 = QHBoxLayout()
         
         self.CBClassWeights = QComboBox(self.centralWidget)
         self.SBWeight = LabelledAdaptiveDoubleSpinBox ('Class weight', self.centralWidget)
@@ -108,7 +108,7 @@ class Window(object):
         layout.addLayout(hlayout_2)
         layout.addLayout(hlayout_3)
         
-        vlayout_1 = QVBoxLayout(self.centralWidget)
+        vlayout_1 = QVBoxLayout()
         self.LLoss = QLabel("Loss",self.centralWidget)
         self.CBLoss = QComboBox(self.centralWidget)
         self.CBLoss.setObjectName('nn_Loss')
@@ -116,14 +116,14 @@ class Window(object):
         vlayout_1.addWidget(self.LLoss)
         vlayout_1.addWidget(self.CBLoss)
         
-        vlayout_2 = QVBoxLayout(self.centralWidget)
+        vlayout_2 = QVBoxLayout()
         self.LMetric = QLabel("Metric",self.centralWidget)
         self.CBMetrics = QComboBox(self.centralWidget)
         self.CBMetrics.setObjectName('nn_Metric')
         self.CBMetrics.setToolTip('Set metric to measure network performance')
         vlayout_2.addWidget(self.LMetric)
         vlayout_2.addWidget(self.CBMetrics)
-        vlayout_3 = QVBoxLayout(self.centralWidget)
+        vlayout_3 = QVBoxLayout()
         self.LOptimizer = QLabel("Optimizer",self.centralWidget)
         self.CBOptimizer = QComboBox(self.centralWidget)
         self.CBOptimizer.setObjectName('nn_Optimizer')
@@ -147,9 +147,9 @@ class Window(object):
     def TrainValGroup(self):
         groupBox = QGroupBox("Train/Validation Split")
         
-        vlayout = QVBoxLayout(self.centralWidget)
-        h1layout = QHBoxLayout(self.centralWidget)
-        h2layout = QHBoxLayout(self.centralWidget)
+        vlayout = QVBoxLayout()
+        h1layout = QHBoxLayout()
+        h2layout = QHBoxLayout()
         
         self.RBUseDir = QRadioButton(self.centralWidget)
         self.RBUseDir.setObjectName('ValidationDir')
@@ -194,8 +194,8 @@ class Window(object):
     def LRScheduleGroup(self):
         groupBox = QGroupBox("Learning Rate Schedule")
         
-        layout = QVBoxLayout(self.centralWidget)
-        hlayout = QHBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
+        hlayout = QHBoxLayout()
 
         self.RBConstant = QRadioButton(self.centralWidget)
         self.RBConstant.setObjectName('nn_ConstantLR')

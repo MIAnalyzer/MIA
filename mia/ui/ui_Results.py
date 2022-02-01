@@ -36,7 +36,7 @@ class Window(object):
         styleForm(Form)
         self.centralWidget = QWidget(Form)
 
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
@@ -47,7 +47,7 @@ class Window(object):
         self.CBSize.setToolTip('Use scale to calculate size from pixel values')
         self.vlayout.addWidget(self.CBSize)
                 
-        self.hlayout = QHBoxLayout(self.centralWidget)
+        self.hlayout = QHBoxLayout()
         self.BSetScale = DCDButton(self.centralWidget)
         self.BSetScale.setToolTip('Measure scale with known distance')
         self.BSetScale.setIcon(QIcon('icons/measure.png'))
@@ -71,7 +71,7 @@ class Window(object):
         self.BExportSettings.setIcon(QIcon('icons/settings.png'))
         self.vlayout.addWidget(self.BExportSettings)
         
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.BExportMasks = DCDButton(self.centralWidget, 'Export all Masks')
         self.BExportMasks.setToolTip('Export contour masks of all images in prediction folder')
         self.BExportMasks.setIcon(QIcon('icons/exportallmasks.png'))
@@ -82,7 +82,7 @@ class Window(object):
         hlayout.addWidget(self.BExportMasks)
         self.vlayout.addLayout(hlayout)
         
-        hlayout2 = QHBoxLayout(self.centralWidget)
+        hlayout2 = QHBoxLayout()
         self.BExport = DCDButton(self.centralWidget, 'Save')
         self.BExport.setToolTip('save data from current image')
         self.BExport.setIcon(QIcon('icons/savemodel.png'))

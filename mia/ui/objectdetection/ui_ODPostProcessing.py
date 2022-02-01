@@ -20,7 +20,7 @@ class Window(object):
 
         self.centralWidget = QWidget(Form)
         
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
@@ -29,11 +29,8 @@ class Window(object):
         self.CBTrackingMode.setToolTip('Check to enable tracking mode')
         self.CBTrackingMode.setObjectName('TrackingMode_od')
 
-        self.BCopyStackLabels = DCDButton(self.centralWidget, "Use as Stack Label")
-        self.BCopyStackLabels.setToolTip('Press to reuse current label for all frames in the current stack')
-
         self.vlayout.addWidget(self.CBTrackingMode)
-        self.vlayout.addWidget(self.BCopyStackLabels)
+
 
         self.centralWidget.setFixedSize(self.vlayout.sizeHint())
         Form.setFixedSize(self.vlayout.sizeHint())
@@ -46,13 +43,10 @@ class ObjectDetectionPostProcessingWindow(QMainWindow, Window):
         self.setupUi(self)
         self.CBTrackingMode.stateChanged.connect(self.enableTrackingMode)
         self.CBTrackingMode.setChecked(self.parent.TrackingModeEnabled)
-        self.BCopyStackLabels.clicked.connect(self.shareStackLabels)
 
     def enableTrackingMode(self):
         if self.parent.LearningMode() == dlMode.Object_Counting:
             self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())
 
-    def shareStackLabels(self):
-        self.parent.copyStackLabels()
 
 

@@ -19,7 +19,7 @@ class Window(object):
         styleForm(Form)
         self.centralWidget = QWidget(Form)
 
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)

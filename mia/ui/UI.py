@@ -26,6 +26,7 @@ class MainWindow(object):
         Form.setStyleSheet("background: " + getBackgroundColor(asString = True))
         styleForm(Form)
 
+
         self.centralWidget = QWidget(Form)
 
         sizePolicy = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
@@ -41,6 +42,7 @@ class MainWindow(object):
         self.ASetTrainingFolder = QAction("Training Folder", self.centralWidget)
         self.FileMenu.addAction(self.ASetTrainingFolder)
         
+
         self.ASetTestFolder = QAction("Test Folder", self.centralWidget)
         self.FileMenu.addAction(self.ASetTestFolder)
         
@@ -69,7 +71,7 @@ class MainWindow(object):
         
         
         self.setMenuBar(self.menubar)
-        self.hlayout = QHBoxLayout(self.centralWidget)
+        self.hlayout = QHBoxLayout()
         self.hlayout.setContentsMargins(3, 3, 3, 3)
         self.hlayout.setSpacing(6)
         self.centralWidget.setLayout(self.hlayout)
@@ -100,7 +102,7 @@ class MainWindow(object):
         bwidth = 28
         bheight = 28
         
-        self.TrainImagelayout = QHBoxLayout(self.centralWidget)
+        self.TrainImagelayout = QHBoxLayout()
         self.BLoadTrainImages = DCDButton(self.centralWidget)
         self.BLoadTrainImages.setToolTip('Set folder with training images')
         self.BLoadTrainImages.setMaximumSize(bwidth, bheight)
@@ -114,7 +116,7 @@ class MainWindow(object):
         self.TrainImagelayout.addWidget(self.BTrainImageFolder)
         self.vlayout.addItem(self.TrainImagelayout)
         
-        self.TestImagelayout = QHBoxLayout(self.centralWidget)
+        self.TestImagelayout = QHBoxLayout()
         self.BLoadTestImages = DCDButton(self.centralWidget)
         self.BLoadTestImages.setMaximumSize(bwidth, bheight)
         self.BLoadTestImages.setToolTip('Set folder with prediction images')
@@ -140,9 +142,9 @@ class MainWindow(object):
         
         
         # settings for segmentation
-        self.SegmentationSettingslayout = QHBoxLayout(self.centralWidget)
+        self.SegmentationSettingslayout = QHBoxLayout()
         self.SegmentationSettingslayout.setContentsMargins(0, 0, 0, 0)
-        layout0 = QVBoxLayout(self.centralWidget)
+        layout0 = QVBoxLayout()
         self.Bautoseg = DCDButton(self.centralWidget)
         self.Bautoseg.setToolTip('press to perform auto segmentation')
         self.Bautoseg.setText('Auto Seg')
@@ -156,7 +158,7 @@ class MainWindow(object):
         layout0.addWidget(self.Bautoseg)
         layout0.addWidget(self.Bassist)
 
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         self.CBSmartMode = QCheckBox("Smart Mode",self.centralWidget)
         self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
         self.CBSmartMode.setObjectName('SmartMode')
@@ -176,7 +178,7 @@ class MainWindow(object):
         
         
         # settings for object detection
-        self.DetectionSettingslayout = QHBoxLayout(self.centralWidget)
+        self.DetectionSettingslayout = QHBoxLayout()
         self.DetectionSettingslayout.setContentsMargins(0, 0, 0, 0)
         self.Bautodect = DCDButton(self.centralWidget)
         self.Bautodect.setToolTip('press to perform auto detection')
@@ -207,7 +209,7 @@ class MainWindow(object):
         self.Bdraw.setToolTip('Select drawing tool')
         self.Bdraw.setIcon(QIcon('icons/draw.png'))
         # settings for drawing tool
-        self.DrawSettingslayout = QHBoxLayout(self.centralWidget)
+        self.DrawSettingslayout = QHBoxLayout()
         self.DrawSettingslayout.setContentsMargins(0, 0, 0, 0)
         self.CBAddShape = QRadioButton(self.centralWidget)
         self.CBAddShape.setText("Add ")
@@ -247,7 +249,7 @@ class MainWindow(object):
         self.Bextend.setToolTip('Select extend/erase tool')
         self.Bextend.setIcon(QIcon('icons/expand.png'))
         # settings for extend tool
-        self.ExtendSettingslayout = QHBoxLayout(self.centralWidget)
+        self.ExtendSettingslayout = QHBoxLayout()
         self.ExtendSettingslayout.setContentsMargins(0, 0, 0, 0)
         self.CBExtend = QRadioButton(self.centralWidget)
         self.CBExtend.setText("Expand ")
@@ -303,7 +305,7 @@ class MainWindow(object):
         self.BsetClass.setIcon(QIcon('icons/setclass.png'))
         
         # tool buttons
-        self.ToolButtonslayout = QHBoxLayout(self.centralWidget)
+        self.ToolButtonslayout = QHBoxLayout()
         self.ToolButtonslayout.setContentsMargins(0, 0, 0, 0)
         self.ToolButtons = QFrame()
         self.ToolButtons.setMaximumWidth(self.CBExtend.width()*3)
@@ -317,7 +319,7 @@ class MainWindow(object):
         self.ToolButtonslayout.addWidget(self.Bextend)
         self.ToolButtonslayout.addWidget(self.Bdelete)
 
-        self.ClassificationToolButtonslayout = QHBoxLayout(self.centralWidget)
+        self.ClassificationToolButtonslayout = QHBoxLayout()
         self.ClassificationToolButtonslayout.setContentsMargins(0, 0, 0, 0)
         self.ClassificationToolButtons = QFrame()
         self.ClassificationToolButtons.setLayout(self.ClassificationToolButtonslayout)
@@ -342,7 +344,7 @@ class MainWindow(object):
         self.vlayout.addWidget(line)
 
         # tracking mode
-        self.Trackinglayout = QVBoxLayout(self.centralWidget)
+        self.Trackinglayout = QVBoxLayout()
         self.Trackinglayout.setContentsMargins(0, 0, 0, 0)
         self.Tracking = QFrame()
         self.Tracking.setLayout(self.Trackinglayout)
@@ -351,7 +353,7 @@ class MainWindow(object):
         self.BTrack.setToolTip('Press to calculate tracking')
         self.BTrack.setIcon(QIcon('icons/tracking.png'))
 
-        self.trcolorlayout = QHBoxLayout(self.centralWidget)
+        self.trcolorlayout = QHBoxLayout()
         self.CBtrackcolor = QCheckBox("Color Coding",self.centralWidget)
         self.CBtrackcolor.setToolTip("Check to change coloring by objects, uncheck to color by classes")
         self.CBtrackcolor.setObjectName('TrackColor')
@@ -364,7 +366,7 @@ class MainWindow(object):
         self.trcolorlayout.addWidget(self.CBtrackcolor)
         self.trcolorlayout.addWidget(self.CBshowtrack)
 
-        self.objNumLayout = QHBoxLayout(self.centralWidget)
+        self.objNumLayout = QHBoxLayout()
         self.BSetObjectNumber = DCDButton(self.centralWidget)
         self.BSetObjectNumber.setMaximumSize(bwidth, bheight)
         self.BSetObjectNumber.setObjectName('objectnumber')
@@ -402,7 +404,7 @@ class MainWindow(object):
 
 
         
-        self.ralayout = QHBoxLayout(self.centralWidget)
+        self.ralayout = QHBoxLayout()
         self.Bundo = DCDButton(self.centralWidget, "Undo")
         self.Bundo.setIcon(QIcon('icons/reset.png'))
         self.Bundo.setToolTip('Undo drawing') 
@@ -419,7 +421,7 @@ class MainWindow(object):
         line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
 
-        self.trlayout = QHBoxLayout(self.centralWidget)
+        self.trlayout = QHBoxLayout()
         self.Btrain = DCDButton(self.centralWidget, "Train Model")
         self.Btrain.setToolTip('Open training window')
         self.Btrain.setIcon(QIcon('icons/train.png'))
@@ -435,7 +437,7 @@ class MainWindow(object):
             
 
         
-        self.predictlayout = QHBoxLayout(self.centralWidget)
+        self.predictlayout = QHBoxLayout()
         self.Bpredictall = DCDButton(self.centralWidget, "Predict All")
         self.Bpredictall.setIcon(QIcon('icons/predictall.png'))
         self.Bpredictall.setToolTip('Predict all images in prediction folder')
@@ -447,7 +449,7 @@ class MainWindow(object):
         
         self.vlayout.addItem(self.predictlayout) 
         
-        self.lslayout = QHBoxLayout(self.centralWidget)
+        self.lslayout = QHBoxLayout()
         self.Bloadmodel = DCDButton(self.centralWidget, "Load Model")
         self.Bloadmodel.setIcon(QIcon('icons/loadmodel.png'))
         self.Bloadmodel.setToolTip('Load trained model')
@@ -473,7 +475,7 @@ class MainWindow(object):
         
 
         
-        self.add_del_layout = QHBoxLayout(self.centralWidget)
+        self.add_del_layout = QHBoxLayout()
         self.Baddclass = DCDButton(self.centralWidget)
         self.Baddclass.setIcon(QIcon('icons/addobject.png'))
         self.Baddclass.setToolTip('Add a new class')
@@ -515,7 +517,7 @@ class MainWindow(object):
         self.CBKeep.setChecked(False)
         self.vlayout.addWidget(self.CBKeep)
 
-        brightnesslayout = QHBoxLayout(self.centralWidget)
+        brightnesslayout = QHBoxLayout()
         self.SBrightness = QSlider(Qt.Horizontal, self.centralWidget)
         self.SBrightness.setMinimum(-200)
         self.SBrightness.setMaximum(200)
@@ -526,7 +528,7 @@ class MainWindow(object):
         brightnesslayout.addWidget(self.SBrightness, stretch = 2)
         brightnesslayout.addWidget(self.LBrightness, stretch = 1)
         
-        contrastlayout = QHBoxLayout(self.centralWidget)
+        contrastlayout = QHBoxLayout()
         self.SContrast = QSlider(Qt.Horizontal, self.centralWidget)
         self.SContrast.setMinimum(-50)
         self.SContrast.setMaximum(250)
@@ -545,7 +547,7 @@ class MainWindow(object):
         line.setStyleSheet("background: " + getBrightColor(asString = True))
         self.vlayout.addWidget(line)
         
-        self.nextprev_layout = QHBoxLayout(self.centralWidget)
+        self.nextprev_layout = QHBoxLayout()
         self.Bprev = DCDButton(self.centralWidget)
         self.Bprev.setIcon(QIcon('icons/previous.png'))
         self.Bprev.setStyleSheet('text-align:center')
@@ -570,13 +572,26 @@ class MainWindow(object):
         self.canvas.setObjectName("canvas")
         self.canvas.setPixmap(QPixmap(width, height))
         self.hlayout.addWidget(self.canvas)
+        self.stacklayout = QVBoxLayout()
         self.SFrame = QSlider(Qt.Vertical, self.centralWidget)
         self.SFrame.setMinimum(1)
         self.SFrame.setMaximum(10)
         self.SFrame.setValue(1)
         self.SFrame.setToolTip('Change Frame of Stack')
-        self.SFrame.hide()
-        self.hlayout.addWidget(self.SFrame)
+        self.BCopyStackLabel = DCDButton(self.centralWidget)
+        self.BCopyStackLabel.setMaximumSize(bwidth//1.5, bheight//1.5)       
+        self.BCopyStackLabel.setToolTip('Press to reuse current label for all frames in the current stack')
+        self.BCopyStackLabel.setIcon(QIcon('icons/predictall.png'))  
+        self.stacklayout.addWidget(self.SFrame)
+        self.stacklayout.addWidget(self.BCopyStackLabel)
+        self.StackSettings = QFrame()
+        self.StackSettings.setLayout(self.stacklayout)
+        self.StackSettings.hide()
+        
+        
+        
+        self.hlayout.addWidget(self.StackSettings)
+        
         
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)

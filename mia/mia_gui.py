@@ -133,7 +133,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.canvas.setFixedSize(QSize(width, height))
         self.canvas.reset()
         self.hlayout.addWidget(self.canvas)
-        self.hlayout.addWidget(self.SFrame)
+        self.hlayout.addWidget(self.StackSettings)
         horizontalspacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout.addItem(horizontalspacer)
         
@@ -146,22 +146,18 @@ class MIA_UI(QMainWindow, MainWindow):
         self.segpostprocessing_form = SegmentationPostProcessingWindow(self)
         self.results_form = ResultsWindow(self)
         self.odpostprocessing_form = ObjectDetectionPostProcessingWindow(self)
-        
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
         
         self.plotting_form = TrainPlotWindow(self)
-        
         self.ClassListUpdated()
         self.classList.setClass(1)
-        
+        self.enableCopyStackLabels()
         
         self.initialized = True
         self.settings = Settings(self)
         self.settings.loadSettings(SETTINGS_FILENAME)
-        
         self.defineShortcuts()
-        
 
 
     def setCallbacks(self):
@@ -174,6 +170,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.Bnext.clicked.connect(self.nextImage)
         self.Bprev.clicked.connect(self.previousImage)
         self.SFrame.valueChanged.connect(self.FrameChanged)
+        self.BCopyStackLabel.clicked.connect(self.copyStackLabels)
         
         self.Bdrag.clicked.connect(self.setCanvasMode)
         self.Bdraw.clicked.connect(self.setCanvasMode)
@@ -260,6 +257,12 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.sc_next = QShortcut(QKeySequence(Qt.Key_D), self)
         self.sc_next.activated.connect(self.nextImage) 
+        
+        self.sc_prevframe = QShortcut(QKeySequence(Qt.Key_W), self)
+        self.sc_prevframe.activated.connect(self.previousFrame) 
+        
+        self.sc_nextframe = QShortcut(QKeySequence(Qt.Key_S), self)
+        self.sc_nextframe.activated.connect(self.nextFrame) 
         
         self.sc_class0 = QShortcut(48, self)
         self.sc_class0.activated.connect(self.setClassShortcut) 
@@ -711,6 +714,9 @@ class MIA_UI(QMainWindow, MainWindow):
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
             self.training_form.settings_form.changeClassWeightSettings()
 
+    def enableCopyStackLabels(self):
+        self.BCopyStackLabel.setEnabled(self.separateStackLabels)
+
     def copyStackLabels(self):
         if self.files.CurrentLabelPath() and os.path.exists(self.files.CurrentLabelPath()) and self.hasStack():
             if self.ConfirmPopup('Are you sure? All labels of the current stack are replaced.'):
@@ -760,10 +766,10 @@ class MIA_UI(QMainWindow, MainWindow):
                 
             # order important
             if self.currentImageFile.isStack():
-                self.SFrame.show()
+                self.StackSettings.show()
                 self.initFrameSlider()
             else:
-                self.SFrame.hide()
+                self.StackSettings.hide()
                 
             self.resetBrightnessContrast()
             if keep:
@@ -779,7 +785,13 @@ class MIA_UI(QMainWindow, MainWindow):
         self.files.currentFrame = 0
         self.SFrame.setValue(maxval)
         self.canvas.resetView()     
-  
+        
+    def nextFrame(self):
+        self.SFrame.setValue(self.SFrame.value()-1)
+        
+    def previousFrame(self):
+        self.SFrame.setValue(self.SFrame.value()+1)
+
     def FrameChanged(self):
         self.files.currentFrame = self.currentImageFile.numOfImagesInStack() - self.SFrame.value() 
         self.canvas.ReloadImage(resetView = False)

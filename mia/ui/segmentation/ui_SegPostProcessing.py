@@ -19,7 +19,7 @@ class Window(object):
 
         self.centralWidget = QWidget(Form)
         
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
@@ -50,7 +50,7 @@ class Window(object):
         self.vlayout.addWidget(self.SBWTDist)
         
         
-        self.hlayout = QHBoxLayout(self.centralWidget)
+        self.hlayout = QHBoxLayout()
         self.SBminContourSize = QSpinBox(self.centralWidget)
         self.SBminContourSize.lineEdit().setObjectName('')
         self.SBminContourSize.setRange(3,999999999)
@@ -63,7 +63,7 @@ class Window(object):
         
         self.vlayout.addLayout(self.hlayout)
         
-        self.h2layout = QHBoxLayout(self.centralWidget)
+        self.h2layout = QHBoxLayout()
         self.CBCalculateSkeleton = QCheckBox("Show Skeleton",self.centralWidget)
         self.CBCalculateSkeleton.setToolTip('Calculate the skeleton of each contour')
         self.CBCalculateSkeleton.setObjectName('ShowSkeleton')
@@ -76,11 +76,6 @@ class Window(object):
         self.h2layout.addWidget(self.SSkeletonSmoothing)
 
         self.vlayout.addLayout(self.h2layout)
-
-        self.BCopyStackLabels = DCDButton(self.centralWidget, "Use as Stack Label")
-        self.BCopyStackLabels.setToolTip('Press to reuse current label for all frames in the current stack')
-
-        self.vlayout.addWidget(self.BCopyStackLabels)
 
         self.centralWidget.setFixedSize(self.vlayout.sizeHint())
         Form.setFixedSize(self.vlayout.sizeHint())
@@ -101,7 +96,6 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
         self.SSkeletonSmoothing.valueChanged.connect(self.skeletonsmoothing)
         self.SSkeletonSmoothing.setValue(self.parent.canvas.skeletonsmoothingfactor)
         self.SBminContourSize.valueChanged.connect(self.setminContourSize)     
-        self.BCopyStackLabels.clicked.connect(self.shareStackLabels)
         
         
         
@@ -138,9 +132,6 @@ class SegmentationPostProcessingWindow(QMainWindow, Window):
     def enableTrackingMode(self):
         if self.parent.LearningMode() == dlMode.Segmentation:
             self.parent.enableTrackingMode(self.CBTrackingMode.isChecked())
-
-    def shareStackLabels(self):
-        self.parent.copyStackLabels()
         
     def WatershedChanged(self):
         self.parent.dl.seg_wt_separation = self.CBWatershed.isChecked()

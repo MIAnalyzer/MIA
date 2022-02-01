@@ -19,12 +19,12 @@ class Window(object):
         
         self.centralWidget = QWidget(Form)
          
-        vlayout = QVBoxLayout(self.centralWidget)
+        vlayout = QVBoxLayout()
         vlayout.setContentsMargins(3, 3, 3, 3)
         vlayout.setSpacing(2)
         
 
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.SObjectSize =  QSlider(Qt.Horizontal, self.centralWidget)
         self.SObjectSize.setMinimum(1)
         self.SObjectSize.setMaximum(10)
@@ -35,7 +35,7 @@ class Window(object):
         hlayout.addWidget(self.SObjectSize)
         hlayout.addWidget(self.LObjSize)
         
-        h2layout = QHBoxLayout(self.centralWidget)
+        h2layout = QHBoxLayout()
         self.SObjectIntensity =  QSlider(Qt.Horizontal, self.centralWidget)
         self.SObjectIntensity.setMinimum(1)
         self.SObjectIntensity.setMaximum(500)

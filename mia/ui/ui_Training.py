@@ -24,7 +24,7 @@ class Window(object):
         styleForm(Form)
         self.centralWidget = QWidget(Form)
     
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
@@ -37,7 +37,7 @@ class Window(object):
         self.vlayout.addWidget(self.Parameter)
 
         # row 4
-        self.settings3layout = QHBoxLayout(self.centralWidget)
+        self.settings3layout = QHBoxLayout()
         self.BModeSettings = DCDButton(self.centralWidget, 'Extended')
         self.BModeSettings.setToolTip('Open extended settings')
         self.BModeSettings.setIcon(QIcon('icons/settings.png'))
@@ -65,9 +65,9 @@ class Window(object):
 
     def ModelGroup(self):
         groupBox = QGroupBox("Deep Learning Model")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
 
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.CBArchitecture = QComboBox(self.centralWidget)
         self.CBArchitecture.setObjectName('nn_Architecture')
         self.CBArchitecture.setToolTip('Select model architecture for training')
@@ -78,7 +78,7 @@ class Window(object):
      
         layout.addLayout(hlayout)
 
-        h2layout = QHBoxLayout(self.centralWidget)
+        h2layout = QHBoxLayout()
         self.CBBackbone = QComboBox(self.centralWidget)
         self.CBBackbone.setObjectName('nn_Backbone')
         self.CBBackbone.setToolTip('Select model Backbone')
@@ -99,9 +99,9 @@ class Window(object):
 
     def ParameterGroup(self):
         groupBox = QGroupBox("Training Parameter")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         # row 1
-        self.settings0layout = QHBoxLayout(self.centralWidget)
+        self.settings0layout = QHBoxLayout()
         self.SBClasses = LabelledSpinBox('Classes', self.centralWidget)
         self.SBClasses.setObjectName('nn_NumOfClasses')
         self.SBClasses.SpinBox.setRange(1,100)
@@ -123,7 +123,7 @@ class Window(object):
         layout.addLayout(self.settings0layout)
         
         # row 2
-        self.settings1layout = QHBoxLayout(self.centralWidget)
+        self.settings1layout = QHBoxLayout()
         self.SBBatchSize = LabelledSpinBox('Batch Size',self.centralWidget)
         self.SBBatchSize.setToolTip('Set batch size')
         self.SBBatchSize.setObjectName('nn_BatchSize')
@@ -139,7 +139,7 @@ class Window(object):
         layout.addLayout(self.settings1layout)
         
         # row 3
-        self.settings2layout = QHBoxLayout(self.centralWidget)
+        self.settings2layout = QHBoxLayout()
         self.SBLearningRate = LabelledAdaptiveDoubleSpinBox ('Learning Rate',self.centralWidget)
         self.SBLearningRate.SpinBox.setRange(0.000001,1)
         self.SBLearningRate.setToolTip('Set learning rate')

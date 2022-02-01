@@ -19,7 +19,7 @@ class Window(object):
         Form.setWindowTitle('Training Data') 
         styleForm(Form)
         self.centralWidget = QWidget(Form)
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         self.centralWidget.setLayout(layout)
 
         self.figure = Figure(constrained_layout = True, dpi= 100)

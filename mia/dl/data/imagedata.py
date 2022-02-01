@@ -55,6 +55,14 @@ class ImageData():
         else:
             return self.TrainingLabelPaths
     
+    def clearPaths(self):
+        self.TrainingImagePaths.clear()
+        self.TrainingLabelPaths.clear()
+        self.TrainingTileIndices.clear()
+        self.ValidationImagePaths.clear()
+        self.ValidationLabelPaths.clear()
+        self.ValidationTileIndices.clear()
+    
             
     def addTileIndices(self, tiles, validation):
         if validation:
@@ -73,44 +81,40 @@ class ImageData():
     
     
     def initTrainingDataset(self, train_imagepath, val_imagepath):
+        self.clearPaths()
         images, labels = getMatchingImageLabelPairsRecursive(train_imagepath, self.parent.LabelFolderName)
         if images is None or labels is None or not images or not labels:
             return None, None
         
         
-             
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))
 
         random.shuffle(z)
         images, labels = zip(*z)
-
+        # why does zip return tuple?
+        images = list(images)
+        labels = list(labels)
 
         if self.UseValidationDir:  
             self.TrainingImagePaths = images
             self.TrainingLabelPaths = labels
-            self.TrainingTileIndices = []
             
             if val_imagepath and os.path.isdir(val_imagepath):
                 val_images, val_labels = getMatchingImageLabelPairsRecursive(val_imagepath, self.parent.LabelFolderName)
                 self.ValidationImagePaths = val_images
                 self.ValidationLabelPaths = val_labels
-                self.ValidationTileIndices = [] 
         else:
             split = int(self.TrainTestSplit*len(images))
     
             if split > 0:
                 self.TrainingImagePaths = images[0:split]
                 self.TrainingLabelPaths = labels[0:split]
-                self.TrainingTileIndices = []
                 self.ValidationImagePaths = images[split:]
                 self.ValidationLabelPaths = labels[split:]
-                self.ValidationTileIndices = []
             else:
                 self.TrainingImagePaths = images
                 self.TrainingLabelPaths = labels
-                self.TrainingTileIndices = []
-
 
 
     def initialized(self):

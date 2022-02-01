@@ -244,8 +244,6 @@ class FilesAndFolders():
                 return path if os.path.exists(path) else None
 
     def copyStackLabels(self, label, frames):
-        print(label)
-        print(frames)
         if not self.parent.hasStack():
             return
         label = self.convertIfStackPath(label)

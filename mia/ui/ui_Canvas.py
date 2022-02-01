@@ -98,7 +98,7 @@ class Canvas(QGraphicsView):
         self.FontSize = 18
         self.pen_size = 3
         self.ContourTransparency = 50
-        self.drawShapeNumber = True
+        self.drawShapeNumber = False
         self.drawSkeleton = False
         self.skeletonsmoothingfactor = 11
         self.minContourSize = 3

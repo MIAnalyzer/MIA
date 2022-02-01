@@ -22,7 +22,7 @@ class Window(object):
 
         self.centralWidget = QWidget(Form)
         
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 10, 3, 3)
         self.vlayout.setSpacing(2)
         self.centralWidget.setLayout(self.vlayout)
@@ -39,12 +39,12 @@ class Window(object):
         
     def DLGroup(self):
         groupBox = QGroupBox("Deep Learning Settings")
-        vlayout = QVBoxLayout(self.centralWidget)
+        vlayout = QVBoxLayout()
         
         vlayout.setContentsMargins(1, 1, 1, 1)
         vlayout.setSpacing(1)
         
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.CBgpu = QComboBox(self.centralWidget)
         self.CBgpu.setObjectName('GPUSettings')
 
@@ -111,7 +111,7 @@ class Window(object):
     
     def DispGroup(self):
         groupBox = QGroupBox("Display Settings")
-        vlayout = QVBoxLayout(self.centralWidget)
+        vlayout = QVBoxLayout()
         vlayout.setContentsMargins(1, 1, 1, 1)
         vlayout.setSpacing(1)        
         
@@ -139,7 +139,7 @@ class Window(object):
         self.SBPenSize.setToolTip('Set pen size')
         vlayout.addWidget(self.SBPenSize)
         
-        self.h2layout = QHBoxLayout(self.centralWidget)
+        self.h2layout = QHBoxLayout()
         self.STransparency = QSlider(Qt.Horizontal, self.centralWidget)
         self.STransparency.setToolTip('Set opacity of contours')
         self.STransparency.setObjectName('ContourTransparency')
@@ -221,6 +221,8 @@ class SettingsWindow(QMainWindow, Window):
        
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
+        self.parent.enableCopyStackLabels()
+        self.parent.canvas.ReloadLabels()
               
     def ttaChanged(self):
         self.parent.dl.tta = self.CBTTA.isChecked()

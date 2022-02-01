@@ -23,7 +23,7 @@ class Window(object):
         self.centralWidget = QWidget(Form)
 
 
-        self.vlayout = QVBoxLayout(self.centralWidget)
+        self.vlayout = QVBoxLayout()
         self.vlayout.setContentsMargins(3, 3, 3, 3)
         self.vlayout.setSpacing(0)
         self.centralWidget.setLayout(self.vlayout)
@@ -41,10 +41,10 @@ class Window(object):
        
         groupBox = QGroupBox("Augmentations")
 
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(1)
         layout.setContentsMargins(1, 1, 1, 1)
-        sizelayout = QHBoxLayout(self.centralWidget)
+        sizelayout = QHBoxLayout()
         sizelayout.setSpacing(0)
         sizelayout.setContentsMargins(1, 1, 1, 1)
         self.SBModelInputSize_x = LabelledSpinBox(' Input width', self.centralWidget)
@@ -58,7 +58,7 @@ class Window(object):
         sizelayout.addWidget(self.SBModelInputSize_y)
         layout.addItem(sizelayout)
 
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.Flip = self.FlipGroup()
         hlayout.addWidget(self.Flip)
         self.Noise = self.NoiseGroup()
@@ -77,7 +77,7 @@ class Window(object):
 
     def FlipGroup(self):
         groupBox = QGroupBox("Flip")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.CBFliplr = QCheckBox("Flip horizontal",self.centralWidget)
@@ -97,7 +97,7 @@ class Window(object):
 
     def NoiseGroup(self):
         groupBox = QGroupBox("Noise")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBNoise = LabelledSpinBox(' Blur (%)', self.centralWidget)
@@ -125,10 +125,10 @@ class Window(object):
     def AffineGroup(self):
 
         groupBox = QGroupBox("Affine")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(1)
         layout.setContentsMargins(1, 1, 1, 1)
-        hlayout = QHBoxLayout(self.centralWidget)
+        hlayout = QHBoxLayout()
         self.SBPercentage = LabelledSpinBox(' Apply Affine (%)', self.centralWidget)
         self.SBPercentage.setToolTip('Percentage to apply affine transformation')
         self.SBPercentage.SpinBox.setRange(0,100)
@@ -136,7 +136,7 @@ class Window(object):
 
         layout.addLayout(hlayout)
 
-        grid = QGridLayout(self.centralWidget)
+        grid = QGridLayout()
         grid.addWidget(self.ScaleGroup(), 0,0)
         grid.addWidget(self.TranslateGroup(), 0,1)
         grid.addWidget(self.ShearGroup(), 1,0)
@@ -147,7 +147,7 @@ class Window(object):
 
     def ScaleGroup(self):
         groupBox = QGroupBox("Scale")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBScaleMin = LabelledDoubleSpinBox(' Scale Min (factor)', self.centralWidget)
@@ -173,7 +173,7 @@ class Window(object):
 
     def TranslateGroup(self):
         groupBox = QGroupBox("Translate")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBTranslateMin = LabelledDoubleSpinBox(' Translate Min (%)', self.centralWidget)
@@ -198,7 +198,7 @@ class Window(object):
 
     def ShearGroup(self):
         groupBox = QGroupBox("Shear")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBShearMin = LabelledSpinBox(' Shear Min (deg)', self.centralWidget)
@@ -219,7 +219,7 @@ class Window(object):
 
     def RotateGroup(self):
         groupBox = QGroupBox("Rotate")
-        layout = QVBoxLayout(self.centralWidget)
+        layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.SBRotMin = LabelledSpinBox(' Rotation Min (deg)', self.centralWidget)
