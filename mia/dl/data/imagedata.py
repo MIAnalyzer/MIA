@@ -8,7 +8,7 @@ Created on Thu Apr 16 14:56:23 2020
 import os
 import glob
 import cv2
-from dl.data.labels import getMatchingImageLabelPairsRecursive
+from dl.data.labels import getMatchingImageLabelPairsRecursive, CheckIfStackLabel
 import numpy as np
 from utils.Image import ImageFile
 import random
@@ -16,7 +16,6 @@ import concurrent.futures
 from itertools import repeat
 import math
 import random
-import time
 
 
 class ImageData():
@@ -86,7 +85,6 @@ class ImageData():
         if images is None or labels is None or not images or not labels:
             return None, None
         
-        
         # careful: we got new validation set each time we start training
         z = list(zip(images, labels))
 
@@ -147,7 +145,7 @@ class ImageData():
 
         # handle image stacks and others
         # using same label for complete stack unhandled atm
-        if isinstance(masks[index], tuple):
+        if CheckIfStackLabel(masks[index]):
             mask = masks[index][0]
             try:
                 frame = int(masks[index][1])
@@ -201,7 +199,7 @@ class ImageData():
             for _ in range(xtimes):
                 index = random.randint(0,numImages-1)
                 
-                if isinstance(images[index], tuple):
+                if CheckIfStackLabel(images[index]):
                     image = images[index][0]
                 else:
                     image = images[index]

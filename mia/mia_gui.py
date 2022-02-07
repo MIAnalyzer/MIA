@@ -48,7 +48,6 @@ from utils.Observer import QtObserver
 from utils.FilesAndFolders import FilesAndFolders
 from utils.postprocessing.tracking import ObjectTracking
 
-from dl.data.labels import getMatchingImageLabelPairPaths
 
 from utils.workerthread import WorkerThread
 from ui.ui_utils import DCDButton, openFolder, saveFile, loadFile

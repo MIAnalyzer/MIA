@@ -14,20 +14,20 @@ import os
 from itertools import repeat, chain
 from utils.Image import supportedImageFormats
 
-def getMatchingImageLabelPairsRecursive(imagepath, labelfoldername):
+def getMatchingImageLabelPairsRecursive(imagepath, labelfoldername, uniquestacklabel=False):
     images = []
     labels = []
     for root, dirs, files in os.walk(imagepath): 
         if labelfoldername in dirs:
             # this is inefficent because we search again content of subdir, which is the information we already have in files or dirs+files
-            img, lab = getMatchingImageLabelPairPaths(root,os.path.join(root,labelfoldername))
+            img, lab = getMatchingImageLabelPairPaths(root,os.path.join(root,labelfoldername),uniquestacklabel)
             if img and lab:
                 images.extend(img)
                 labels.extend(lab)
                 
     return images, labels
 
-def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):
+def getMatchingImageLabelPairPaths(imagepath, labelpath, uniquestacklabel=False, unroll=True):
     if not imagepath or not labelpath:
         return list(), list()
     if not os.path.isdir(imagepath) or not os.path.isdir(labelpath):
@@ -56,26 +56,51 @@ def getMatchingImageLabelPairPaths(imagepath, labelpath, unroll=True):
     labels.sort()
     
     if unroll:
-        return unrollPaths(images, labels)
+        return unrollPaths(images, labels, uniquestacklabel)
     else:
         return images, labels
 
-def splitStackLabels(image, folder):
+def splitStackLabels(image, folder, uniquestacklabel):
     if not os.path.isdir(os.path.join(folder)):
         return [image], [folder]
-    
-    # using same label for complete stack unhandled atm
-    subfiles = [(os.path.join(folder,f),f[-7:-4]) for f in os.listdir(folder) if os.path.splitext(os.path.basename(folder))[0] in f]
-    images = list(repeat((image,'stack'), len(subfiles)))
-    
-    return images, subfiles
 
-def unrollPaths(images, labels):
+    if uniquestacklabel:
+        # combined stack label
+        labelname = os.path.join(folder, os.path.basename(folder)) + '.npz'
+        if os.path.exists(labelname):
+            label = (labelname, '-1')
+            image = (image, 'uniquestack')
+            return [image], [label]
+        else:
+            return [], []
+
+    else: 
+        # separated labels
+        subfiles = [(os.path.join(folder,f),f[-7:-4]) for f in os.listdir(folder) if os.path.splitext(os.path.basename(folder))[0]+f[-8:-4] in f]
+        images = list(repeat((image,'stack'), len(subfiles)))
+        return images, subfiles
+
+def unrollPaths(images, labels, uniquestacklabel):
     if not images or not labels:
         return None, None
-    split = [splitStackLabels(x,y) for x,y in zip(images, labels)]
+    split = [splitStackLabels(x,y,uniquestacklabel) for x,y in zip(images, labels)]
     images,labels = zip(*split)
     images = list(chain.from_iterable(images))
     labels = list(chain.from_iterable(labels))
 
     return images, labels
+
+def CheckIfStackLabel(path):
+    if isinstance(path,tuple):
+        return True
+    else:
+        return False
+
+def extendLabelNameByFrame(labelname, frame):
+    return labelname + '_' + "{0:0=3d}".format(frame)
+
+def removeFrameFromLabelName(labelname):
+    return labelname[:-4]
+
+def getFrameFromLabelPath(labelpath):
+    return int(labelpath[-7:-4])

@@ -18,9 +18,6 @@ import utils.shapes.Contour as Contour
 from ui.Tools import canvasTool
 import random
 
-
-from dl.data.labels import getMatchingImageLabelPairPaths
-
 class Painter(ABC):
     # every painter can draw contours 
     def __init__(self, canvas):

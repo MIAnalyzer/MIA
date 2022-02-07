@@ -11,6 +11,7 @@ import os
 import time
 import re
 from shutil import copyfile
+from dl.data.labels import CheckIfStackLabel, extendLabelNameByFrame, getFrameFromLabelPath, removeFrameFromLabelName
 
 
 class FilesAndFolders():
@@ -192,13 +193,14 @@ class FilesAndFolders():
         return os.path.join(path, folder) 
 
     def extendNameByFrameNumber(self,name, frame):
-        return name + '_' + "{0:0=3d}".format(frame)
+        return extendLabelNameByFrame(name, frame)
 
     def getFrameNumber(self, labelpath):
         if self.isStackLabel(labelpath):
             return int(labelpath[1])
         labelpath = self.convertIfStackPath(labelpath)
-        return int(labelpath[-7:-4])
+        return getFrameFromLabelPath(labelpath)
+
 
     def convertIfStackPath(self, path):
         if self.isStackLabel(path):
@@ -206,10 +208,8 @@ class FilesAndFolders():
         return path
 
     def isStackLabel(self,path):
-        if isinstance(path,tuple):
-            return True
-        else:
-            return False
+        return CheckIfStackLabel(path)
+
 
     def convertLabelPath2FileName(self, labelpath):
         if self.isStackLabel(labelpath):
@@ -224,7 +224,8 @@ class FilesAndFolders():
             # os.mkdir(foldername)
 
     def removeFrameNumFromLabelName(self, stacklabel):
-        return stacklabel[:-4]
+        return removeFrameFromLabelName(stacklabel)
+
 
     def ImagePath2LabelPath(self, imagepath, checkexistence = False, stack = False):
         if imagepath is None:

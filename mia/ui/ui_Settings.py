@@ -68,7 +68,7 @@ class Window(object):
         self.CBSeparateLabels = QCheckBox("Separate Labels of Stacks",self.centralWidget)
         self.CBSeparateLabels.setObjectName('Separate_Labels')
         self.CBSeparateLabels.setToolTip('Select to use different labels for each frame in an image stack')
-        self.CBSeparateLabels.setEnabled(False)
+        self.CBSeparateLabels.setEnabled(True)
         vlayout.addWidget(self.CBSeparateLabels)
                 
         
