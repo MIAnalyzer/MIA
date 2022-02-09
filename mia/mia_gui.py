@@ -244,8 +244,8 @@ class MIA_UI(QMainWindow, MainWindow):
         
         # monkey patching download request for model weights
         import dl.utils.dl_downloads as down
-        down.callBack = lambda: self.ConfirmPopup('Do you want to download model weights')
-        
+        down.callBackstart = lambda: self.ConfirmPopup('Do you want to download model weights')
+        down.callBackfail = lambda: self.PopupWarning('Failed to download model weights')
         
     def defineShortcuts(self):
         self.sc_toggle = QShortcut(QKeySequence(Qt.Key_Space), self)
@@ -394,7 +394,6 @@ class MIA_UI(QMainWindow, MainWindow):
     
     def OpenWebsite(self, url):
         webbrowser.open(url) 
-        
         
     def PopupWarning(self, message):
         msg = QMessageBox(self)

@@ -154,7 +154,7 @@ class DeepLearning(dlObservable):
         else:
             self.Mode = UndefinedMode(self)
         # we reset here to avoid using a wrong model
-        self.Model = None
+        self.Reset()
      
     @property
     def LabelFolderName(self):
@@ -177,7 +177,11 @@ class DeepLearning(dlObservable):
 
             tf.keras.mixed_precision.set_global_policy(policy)
 
-            self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
+            self.Reset()
+            try:
+                self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
+            except:
+                pass
             return self.initialized
         except:
             self.notifyError()

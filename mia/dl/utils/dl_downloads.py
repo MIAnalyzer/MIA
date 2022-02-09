@@ -15,12 +15,15 @@ from tensorflow.python.keras.utils.data_utils import get_file
 SUBDIR = 'models'
 
 
-def callbackFunction():
+def startFunction():
     return True
 
-# quick and dirty callback for gui
-callBack = callbackFunction
+def failFunction():
+    return
 
+# quick and dirty callback for gui
+callBackstart = startFunction
+callBackfail = failFunction
 
 def checkFile(fname):
     cache_dir = os.path.join(os.path.expanduser('~'), '.keras')
@@ -37,9 +40,12 @@ def getTargetFile(fname, url, fhash):
     if checkFile(fname):
         return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
     else:
-        if callBack():
-            return get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
-
+        if callBackstart():
+            try:
+                file = get_file(fname, url, file_hash = fhash, cache_subdir=SUBDIR)
+                return file
+            except:
+                callBackfail()
 
 def get_hed():
     fname = 'hed_pretrained_bsds.caffemodel'
