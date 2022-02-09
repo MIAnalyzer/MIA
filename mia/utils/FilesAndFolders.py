@@ -11,7 +11,7 @@ import os
 import time
 import re
 from shutil import copyfile
-from dl.data.labels import CheckIfStackLabel, extendLabelNameByFrame, getFrameFromLabelPath, removeFrameFromLabelName
+from dl.data.labels import CheckIfStackLabel, extendLabelNameByFrame, getFrameFromLabelPath, removeFrameFromLabelName, extendLabelNameByMaxFrame
 
 
 class FilesAndFolders():
@@ -72,7 +72,10 @@ class FilesAndFolders():
     # @property
     def CurrentLabelName(self):
         if self.parent.hasStack():
-            return self.extendNameByFrameNumber(self.CurrentImageName(), self.currentFrame)
+            if self.parent.separateStackLabels:
+                return self.extendNameByFrameNumber(self.CurrentImageName(), self.currentFrame)
+            else:
+                return self.extendNameByMaxFrameNumber(self.CurrentImageName(), self.parent.currentImageFile.numOfImagesInStack())
         else:
             return self.CurrentImageName()
     # @property
@@ -86,8 +89,11 @@ class FilesAndFolders():
         if self.currentlabelspath is None or self.CurrentImageName() is None:
             return None
         path = os.path.join(self.currentlabelspath, self.CurrentImageName())
-        if self.parent.hasStack() and self.parent.separateStackLabels:
-            return self.extendNameByFrameNumber(path, self.currentFrame) + ".npz"
+        if self.parent.hasStack():
+            if self.parent.separateStackLabels:
+                return self.extendNameByFrameNumber(path, self.currentFrame) + ".npz"
+            else:
+                return self.extendNameByMaxFrameNumber(path, self.parent.currentImageFile.numOfImagesInStack()) + ".npz"
         else:
             return path + ".npz"
 
@@ -194,6 +200,9 @@ class FilesAndFolders():
 
     def extendNameByFrameNumber(self,name, frame):
         return extendLabelNameByFrame(name, frame)
+
+    def extendNameByMaxFrameNumber(self, path, maxframe):
+        return extendLabelNameByMaxFrame(path, maxframe)
 
     def getFrameNumber(self, labelpath):
         if self.isStackLabel(labelpath):

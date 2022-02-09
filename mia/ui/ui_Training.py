@@ -15,6 +15,7 @@ from ui.objectdetection.ui_ODSettings import ObjectDetectionSettingsWindow
 from ui.ui_utils import LabelledAdaptiveDoubleSpinBox, LabelledSpinBox, LabelledDoubleSpinBox, DCDButton
 from ui.style import styleForm
 from dl.method.mode import dlMode
+from dl.data.imagedata import dlChannels
 
 
 class Window(object):
@@ -111,15 +112,22 @@ class Window(object):
         self.CBMono = QRadioButton(self.centralWidget)
         self.CBMono.setText("Mono")
         self.CBMono.setObjectName('nn_MonochromaticInput')
-        self.CBMono.setToolTip('Select if only monochromatic images are used as input')
+        self.CBMono.setToolTip('Select to use monochromatic images as input')
         
         self.CBRGB = QRadioButton(self.centralWidget)
         self.CBRGB.setText("Color")
         self.CBRGB.setObjectName('nn_RGBInput')
-        self.CBRGB.setToolTip('Select if color images are used as input')
-        self.settings0layout.addWidget(self.SBClasses,stretch = 2)
+        self.CBRGB.setToolTip('Select to use color images as input')
+        
+        self.CBnChan = QRadioButton(self.centralWidget)
+        self.CBnChan.setText("nChan")
+        self.CBnChan.setObjectName('nn_nChanInput')
+        self.CBnChan.setToolTip('Select to use n-channel images as input')
+        
+        self.settings0layout.addWidget(self.SBClasses,stretch = 3)
         self.settings0layout.addWidget(self.CBRGB, stretch = 1)
         self.settings0layout.addWidget(self.CBMono, stretch = 1)
+        self.settings0layout.addWidget(self.CBnChan, stretch = 1)
         layout.addLayout(self.settings0layout)
         
         # row 2
@@ -168,7 +176,6 @@ class TrainingWindow(QMainWindow, Window):
         
         self.SBLearningRate.SpinBox.setMinimum(self.parent.dl.lrschedule.minlr)
         self.SBLearningRate.SpinBox.setValue(self.parent.dl.learning_rate)
-        self.CBMono.setChecked(True)
         self.SBEpochs.SpinBox.setValue(self.parent.dl.epochs)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         self.SBBatchSize.SpinBox.setValue(self.parent.dl.batch_size)
@@ -183,6 +190,10 @@ class TrainingWindow(QMainWindow, Window):
         self.CBBackbone.currentIndexChanged.connect(self.BackBoneChanged)
         self.CBPretrained.setChecked(self.parent.dl.Mode.pretrained)
         self.CBPretrained.stateChanged.connect(self.UsePretrained)
+        self.CBMono.toggled.connect(self.ChannelsChanged)
+        self.CBRGB.toggled.connect(self.ChannelsChanged)
+        self.CBnChan.toggled.connect(self.ChannelsChanged)
+        
 
         self.setModelOptions()
 
@@ -197,6 +208,7 @@ class TrainingWindow(QMainWindow, Window):
         self.BAugmentation.clicked.connect(self.augmentation_form.show)
         self.BModeSettings.clicked.connect(self.showModeSettings)
         self.BTrain.clicked.connect(self.Train)
+        self.changeStackLabelOption()
         
     def show(self):
         self.setParameterStatus()
@@ -207,20 +219,41 @@ class TrainingWindow(QMainWindow, Window):
         if not self.parent.dl.initialized:
             self.CBMono.setEnabled(True)
             self.CBRGB.setEnabled(True)
+            self.CBnChan.setEnabled(not self.parent.separateStackLabels)
             self.CBArchitecture.setEnabled(True)
             self.CBBackbone.setEnabled(True)
             self.CBPretrained.setEnabled(True)
         else:
             self.CBMono.setEnabled(False)
             self.CBRGB.setEnabled(False)
+            self.CBnChan.setEnabled(False)
             self.CBArchitecture.setEnabled(False)
             self.CBBackbone.setEnabled(False)
             self.CBPretrained.setEnabled(False)
+        self.getChannels()
 
-            if self.parent.dl.MonoChrome:
-                self.CBMono.setChecked(True)
-            else:
-                self.CBRGB.setChecked(True) 
+        
+    def changeStackLabelOption(self):
+        self.CBnChan.setEnabled(not self.parent.separateStackLabels)
+        if self.CBnChan.isChecked():
+            self.CBMono.setChecked(True)
+            
+
+    def getChannels(self):
+        if self.parent.dl.data.channels == dlChannels.Mono:
+            self.CBMono.setChecked(True)
+        elif self.parent.dl.data.channels == dlChannels.RGB:
+            self.CBRGB.setChecked(True) 
+        elif self.parent.dl.data.channels == dlChannels.nChan:
+            self.CBnChan.setChecked(True) 
+        
+    def ChannelsChanged(self):
+        if self.CBMono.isChecked():
+            self.parent.dl.data.channels = dlChannels.Mono
+        elif self.CBRGB.isChecked():
+            self.parent.dl.data.channels = dlChannels.RGB
+        elif self.CBnChan.isChecked():
+            self.parent.dl.data.channels = dlChannels.nChan
         
     def hide(self):
         self.closeWindows()

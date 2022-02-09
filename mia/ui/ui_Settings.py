@@ -221,6 +221,7 @@ class SettingsWindow(QMainWindow, Window):
        
     def separateLabels(self):
         self.parent.separateStackLabels = self.CBSeparateLabels.isChecked()
+        self.parent.training_form.changeStackLabelOption()
         self.parent.enableCopyStackLabels()
         self.parent.canvas.ReloadLabels()
               

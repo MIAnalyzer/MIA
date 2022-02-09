@@ -93,7 +93,6 @@ class MIA_UI(QMainWindow, MainWindow):
         self.currentImageFile = None
         self.keepImageSettings = False
 
-        self.separateStackLabels = True
         self.setFocusPolicy(Qt.NoFocus)
         width = self.canvas.geometry().width()
         height = self.canvas.geometry().height() 
@@ -711,6 +710,14 @@ class MIA_UI(QMainWindow, MainWindow):
         if self.initialized:
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
             self.training_form.settings_form.changeClassWeightSettings()
+      
+    @property
+    def separateStackLabels(self):
+        return self.dl.data.separateStackLabels
+    
+    @separateStackLabels.setter
+    def separateStackLabels(self, value):
+        self.dl.data.separateStackLabels = value
 
     def enableCopyStackLabels(self):
         self.BCopyStackLabel.setEnabled(self.separateStackLabels)
@@ -940,7 +947,7 @@ class MIA_UI(QMainWindow, MainWindow):
                         self.settings.loadSettings(filename.replace("h5", "json"))
                     except:
                         pass
-                    self.dl.initModel(self.NumOfClasses(), self.training_form.CBMono.isChecked())
+                    self.dl.initModel(self.NumOfClasses())
                     self.dl.LoadModelWeights(filename)
                     self.writeStatus('model loaded')
                     
@@ -993,8 +1000,8 @@ class MIA_UI(QMainWindow, MainWindow):
         self.training_form.show()
         
     def startTraining(self):
-        if not self.dl.parameterFit(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
-            if not self.dl.initModel(self.NumOfClasses(), self.training_form.CBMono.isChecked()):
+        if not self.dl.parameterFit(self.NumOfClasses()):
+            if not self.dl.initModel(self.NumOfClasses()):
                self.PopupWarning('Cannot initialize model') 
                return
         self.plotting_form.show()
@@ -1054,7 +1061,7 @@ class MIA_UI(QMainWindow, MainWindow):
         else:
             path = self.files.testImageLabelspath
         for i in range(image.numOfImagesInStack()):
-            img = image.getDLInputImage(self.dl.MonoChrome, i)
+            img = image.getDLInputImage(self.dl.Channels,self.dl.data.channels, i)
             pred = self.dl.Mode.PredictImage(img)
             if image.isStack():
                 filename = self.files.extendNameByFrameNumber(name,i)

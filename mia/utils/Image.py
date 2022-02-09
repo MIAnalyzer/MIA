@@ -2,6 +2,9 @@
 import cv2
 from PIL import Image
 import numpy as np
+from scipy.ndimage import zoom
+
+import dl.data.imagedata as data
 
 def supportedImageFormats():
     return ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']
@@ -49,6 +52,7 @@ class ImageFile():
                 self._image = np.squeeze(self._image)
             elif frames > 1:
                 self._stack = True  
+
                 
         except:
             self._image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
@@ -110,21 +114,35 @@ class ImageFile():
         else:
             return self._image.shape[0]
 
-    def convert2DeepLearningInput(self, monochrome, image):
-        if len(image.shape) == 4:
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR )
+    def convertFrame2DeepLearningInput(self, channels, image):
         if len(image.shape) == 2:
-            if not monochrome:
+            if channels == 3:
                 image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR )
-            else:
+            elif channels == 1:
                 image = image[..., np.newaxis]
+            else:
+                raise
         elif len(image.shape) == 3:
-            if monochrome and image.shape[2] > 1:
+            if image.shape[2] == 4:
+                image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR )
+            if channels == 1 and image.shape[2] > 1:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY )
                 # atm I dont know if bgr2gray squeezes
                 if len(image.shape) == 2:
-                    image = image[..., np.newaxis]    
+                    image = image[..., np.newaxis] 
         return image
+    
+    def convertStack2DeepLearningInput(self, channels, image):
+        if not self._stack:
+            image = self.convertFrame2DeepLearningInput( 1, image)
+            image = np.broadcast_to(image, (image.shape[0], image.shape[1], channels))
+            return image
+        else:
+            assert(len(image.shape)==3)
+            curr_ch = image.shape[0]
+            image = np.moveaxis(image, 0, -1)
+            image = zoom(image, (1, 1, channels/curr_ch))
+            return image
    
     def adjustBrightnessContrast(self, image):
         if self.contrast == 1 and self.brightness == 0:
@@ -135,15 +153,21 @@ class ImageFile():
         im[im>255]=255
         return im.astype(np.uint8)
 
-    def getDLInputImage(self,monochrome,frame=0):
-        return self.convert2DeepLearningInput(monochrome, self.getImage(frame))
+    def getDLInputImage(self, channels, channelmode, frame=0):
+        if channelmode == data.dlChannels.Mono or channelmode == data.dlChannels.RGB:
+            return self.convertFrame2DeepLearningInput(channels, self.getImage(frame))
+        else:
+            return self.convertStack2DeepLearningInput(channels, self.getImage(frame))
+
 
     def getCorrectedImage(self, frame = 0):
         return self.adjustBrightnessContrast(self.getImage(frame))
 
     def getImage(self, frame = 0):
         if self._stack:
-            return self._image[frame]
+            if frame >= 0:
+                return self._image[frame]
+            return self._image
         else:
             return self._image
 

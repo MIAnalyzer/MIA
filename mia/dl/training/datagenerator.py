@@ -92,7 +92,7 @@ class PredictionDataGenerator(Sequence):
         self.lock = threading.Lock()
         self.inMemory  = parent.TrainInMemory
 
-        channels = 1 if self.parent.MonoChrome is True else 3
+        channels = self.parent.Channels
         self.image = image.reshape(image.shape[0], image.shape[1], channels)
         self.t_width = self.parent.augmentation.outputwidth - self.parent.ModelOverlap
         self.t_height = self.parent.augmentation.outputheight - self.parent.ModelOverlap 

@@ -124,10 +124,11 @@ class DeepLearning(dlObservable):
         return classes
     
     @property
-    def MonoChrome(self):        
+    def Channels(self):        
         if not self.initialized:
             raise ('model not initialized')
-        return True if self.Model.input_shape[3] == 1 else False
+        return self.Model.input_shape[3]
+
 
     @property
     def InputSize(self):        
@@ -165,7 +166,7 @@ class DeepLearning(dlObservable):
         self.interrupted = True
         self.resumeEpoch = self.record.currentepoch
           
-    def initModel(self, numClasses, MonoChrome):
+    def initModel(self, numClasses):
         try:
             if numClasses == 2:
                 numClasses = 1
@@ -179,7 +180,7 @@ class DeepLearning(dlObservable):
 
             self.Reset()
             try:
-                self.Model = self.Mode.getModel(numClasses, 1 if MonoChrome is True else 3)
+                self.Model = self.Mode.getModel(numClasses, self.data.numChannels)
             except:
                 pass
             return self.initialized
@@ -304,12 +305,10 @@ class DeepLearning(dlObservable):
         ret = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
         return ret
 
-    def parameterFit(self, nclasses, mono):
+    def parameterFit(self, nclasses):
         if not self.initialized:
             return False    
-        if nclasses == 2:
-            nclasses = 1
-        if nclasses == self.NumClasses and mono == self.MonoChrome:
+        if nclasses == self.NumClasses_real:
             return True       
         else:
             return False

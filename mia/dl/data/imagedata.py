@@ -8,7 +8,7 @@ Created on Thu Apr 16 14:56:23 2020
 import os
 import glob
 import cv2
-from dl.data.labels import getMatchingImageLabelPairsRecursive, CheckIfStackLabel
+from dl.data.labels import getMatchingImageLabelPairsRecursive, CheckIfStackLabel, dlStackLabels
 import numpy as np
 from utils.Image import ImageFile
 import random
@@ -16,11 +16,23 @@ import concurrent.futures
 from itertools import repeat
 import math
 import random
+from enum import Enum
+
+class dlChannels(Enum):
+    Mono = 1
+    RGB = 2
+    nChan = 3
 
 
 class ImageData():
     def __init__(self, parent):
         self.parent = parent
+        
+        
+        self.channels = dlChannels.Mono
+        self.separateStackLabels = True
+        # only used if self.channels == dlChannels.nChan
+        self.nchannels = 10
         
         # should we split validation data and image data in 2 dataset classes ?
         self.TrainingImagePaths = []
@@ -40,6 +52,25 @@ class ImageData():
         self.ValidationImagePaths = []
         self.ValidationLabelPaths = []
         self.ValidationTileIndices = []
+        
+        
+    @property
+    def numChannels(self):
+        if self.channels == dlChannels.Mono:
+            return 1
+        if self.channels == dlChannels.RGB:
+            return 3
+        if self.channels == dlChannels.nChan:
+            return self.nchannels
+        raise # undefined channel mode
+        
+    @property
+    def stacklabels(self):
+        if self.separateStackLabels:
+            return dlStackLabels.separated
+        if self.channels == dlChannels.nChan:
+            return dlStackLabels.unique_collectiveInput
+        return dlStackLabels.unique_detachedInput
 
     def getImagePaths(self, validation):
         if validation:
@@ -75,13 +106,13 @@ class ImageData():
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
         # con dataset: single image normalization is better suited for different sources, like 8-bit and 16-bit and color images combined
         file.normalizeImage()
-        image = file.getDLInputImage(self.parent.MonoChrome,frame)
+        image = file.getDLInputImage(self.parent.Channels, channelmode=self.channels, frame=frame)
         return image
     
     
     def initTrainingDataset(self, train_imagepath, val_imagepath):
         self.clearPaths()
-        images, labels = getMatchingImageLabelPairsRecursive(train_imagepath, self.parent.LabelFolderName)
+        images, labels = getMatchingImageLabelPairsRecursive(train_imagepath, self.parent.LabelFolderName, stacklabels=self.stacklabels)
         if images is None or labels is None or not images or not labels:
             return None, None
         
@@ -99,7 +130,7 @@ class ImageData():
             self.TrainingLabelPaths = labels
             
             if val_imagepath and os.path.isdir(val_imagepath):
-                val_images, val_labels = getMatchingImageLabelPairsRecursive(val_imagepath, self.parent.LabelFolderName)
+                val_images, val_labels = getMatchingImageLabelPairsRecursive(val_imagepath, self.parent.LabelFolderName, stacklabels=self.stacklabels)
                 self.ValidationImagePaths = val_images
                 self.ValidationLabelPaths = val_labels
         else:
@@ -141,7 +172,7 @@ class ImageData():
         images = self.getImagePaths(validation)
         masks = self.getLabelPaths(validation)
 
-        channels = 1 if self.parent.MonoChrome is True else 3
+        channels = self.parent.Channels
 
         # handle image stacks and others
         # using same label for complete stack unhandled atm
@@ -168,11 +199,13 @@ class ImageData():
         train_img =  cv2.resize(train_img, (width, height))
         train_mask = self.parent.Mode.resizeLabel(train_mask, (width, height))
 
+
         if self.autocalcClassWeights and not validation:
             if self.classValues is not None:
                 self.classValues += self.parent.Mode.countLabelWeight(train_mask)
 
         train_mask = train_mask.reshape(height, width, 1)
+
         train_img = train_img.reshape(height, width, channels)
         
         if self.IgnoreBorder > 0 and 3*self.IgnoreBorder < height and 3*self.IgnoreBorder < width:
@@ -233,7 +266,6 @@ class ImageData():
         if not validation:
             self.initclassValues()
 
-        im_channels = 1 if self.parent.MonoChrome is True else 3
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.parent.worker) as executor:
             x = executor.map(self.createImageLabelPair,range(numImages), repeat(validation))
         if not validation:
