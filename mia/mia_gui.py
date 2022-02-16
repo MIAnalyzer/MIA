@@ -26,6 +26,7 @@ from contextlib import contextmanager
 
 import dl.DeepLearning as DeepLearning
 from dl.method.mode import dlMode
+from dl.data.labels import dlStackLabels
 from ui.UI import MainWindow
 from ui.Tools import canvasTool, canvasToolButton
 from ui.ui_Canvas import Canvas
@@ -99,7 +100,7 @@ class MIA_UI(QMainWindow, MainWindow):
         
         
         self.predictionRate = 0
-        self.saveload_modelweights_only = False
+        self.saveload_modelweights_only = True
         
         self.dl = DeepLearning.DeepLearning()
         self.tracking = ObjectTracking(self.dl, self.files)
@@ -758,9 +759,11 @@ class MIA_UI(QMainWindow, MainWindow):
         with self.wait_cursor():
             
             keep = False
+            frame = 0
             if not forcereset and self.currentImageFile and self.keepImageSettings:
                 br = self.currentImageFile.brightness
                 c = self.currentImageFile.contrast
+                frame = self.files.currentFrame
                 keep = True
             
             try:
@@ -772,7 +775,7 @@ class MIA_UI(QMainWindow, MainWindow):
             # order important
             if self.currentImageFile.isStack():
                 self.StackSettings.show()
-                self.initFrameSlider()
+                self.initFrameSlider(frame)           
             else:
                 self.StackSettings.hide()
                 
@@ -784,11 +787,12 @@ class MIA_UI(QMainWindow, MainWindow):
             self.canvas.ReloadImage(not keep)
 
 
-    def initFrameSlider(self):
+    def initFrameSlider(self, frame):
         maxval = self.currentImageFile.numOfImagesInStack()
         self.SFrame.setMaximum(maxval)
-        self.files.currentFrame = 0
-        self.SFrame.setValue(maxval)
+        if frame >= maxval:
+            frame = 0
+        self.SFrame.setValue(maxval - frame)
         self.canvas.resetView()     
         
     def nextFrame(self):
@@ -1060,14 +1064,24 @@ class MIA_UI(QMainWindow, MainWindow):
             path = self.files.extendLabelPathByFolder(self.files.testImageLabelspath, name)
         else:
             path = self.files.testImageLabelspath
-        for i in range(image.numOfImagesInStack()):
-            img = image.getDLInputImage(self.dl.Channels,self.dl.data.channels, i)
+            
+        if self.dl.data.stacklabels == dlStackLabels.unique_collectiveInput:
+            img = image.getDLInputImage(self.dl.Channels,self.dl.data.channels, -1)
             pred = self.dl.Mode.PredictImage(img)
             if image.isStack():
-                filename = self.files.extendNameByFrameNumber(name,i)
+                filename = self.files.extendNameByMaxFrameNumber(name,image.numOfImagesInStack())
             else:
                 filename = name
             self.extractAndSavePredictedResults(pred, path, filename)
+        else:
+            for i in range(image.numOfImagesInStack()):
+                img = image.getDLInputImage(self.dl.Channels,self.dl.data.channels, i)
+                pred = self.dl.Mode.PredictImage(img)
+                if image.isStack():
+                    filename = self.files.extendNameByFrameNumber(name,i)
+                else:
+                    filename = name
+                self.extractAndSavePredictedResults(pred, path, filename)
         self.emitProgress()
         
     def predictImage_async(self):

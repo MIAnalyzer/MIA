@@ -32,7 +32,7 @@ class ImageData():
         self.channels = dlChannels.Mono
         self.separateStackLabels = True
         # only used if self.channels == dlChannels.nChan
-        self.nchannels = 10
+        self.nchannels = 5
         
         # should we split validation data and image data in 2 dataset classes ?
         self.TrainingImagePaths = []
@@ -106,6 +106,8 @@ class ImageData():
         # pro dataset: better for images from the same source, i.e. images that do not contain any target will lead to background that gets amplified by single image normalization
         # con dataset: single image normalization is better suited for different sources, like 8-bit and 16-bit and color images combined
         file.normalizeImage()
+        if self.stacklabels == dlStackLabels.unique_collectiveInput:
+            frame = -1
         image = file.getDLInputImage(self.parent.Channels, channelmode=self.channels, frame=frame)
         return image
     
@@ -175,7 +177,6 @@ class ImageData():
         channels = self.parent.Channels
 
         # handle image stacks and others
-        # using same label for complete stack unhandled atm
         if CheckIfStackLabel(masks[index]):
             mask = masks[index][0]
             try:

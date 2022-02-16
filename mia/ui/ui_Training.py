@@ -103,12 +103,6 @@ class Window(object):
         layout = QVBoxLayout()
         # row 1
         self.settings0layout = QHBoxLayout()
-        self.SBClasses = LabelledSpinBox('Classes', self.centralWidget)
-        self.SBClasses.setObjectName('nn_NumOfClasses')
-        self.SBClasses.SpinBox.setRange(1,100)
-        self.SBClasses.setToolTip('Number of classes')
-        self.SBClasses.SpinBox.setEnabled(False)
-
         self.CBMono = QRadioButton(self.centralWidget)
         self.CBMono.setText("Mono")
         self.CBMono.setObjectName('nn_MonochromaticInput')
@@ -124,11 +118,31 @@ class Window(object):
         self.CBnChan.setObjectName('nn_nChanInput')
         self.CBnChan.setToolTip('Select to use n-channel images as input')
         
-        self.settings0layout.addWidget(self.SBClasses,stretch = 3)
-        self.settings0layout.addWidget(self.CBRGB, stretch = 1)
-        self.settings0layout.addWidget(self.CBMono, stretch = 1)
-        self.settings0layout.addWidget(self.CBnChan, stretch = 1)
+        
+        self.settings0layout.addWidget(self.CBRGB)
+        self.settings0layout.addWidget(self.CBMono)
+        self.settings0layout.addWidget(self.CBnChan)
         layout.addLayout(self.settings0layout)
+        
+        
+        # row 1.5
+        self.settings15layout = QHBoxLayout()
+        
+        self.SBClasses = LabelledSpinBox('Classes', self.centralWidget)
+        self.SBClasses.setObjectName('nn_NumOfClasses')
+        self.SBClasses.SpinBox.setRange(1,100)
+        self.SBClasses.setToolTip('Number of classes')
+        self.SBClasses.SpinBox.setEnabled(False)
+        
+        self.SBnumChan = LabelledSpinBox('Input Channels',self.centralWidget)
+        self.SBnumChan.setToolTip('Set number of input channels')
+        self.SBnumChan.setObjectName('nn_InputChannels')
+        self.SBnumChan.SpinBox.setRange(1,56)
+        
+        self.settings15layout.addWidget(self.SBClasses, stretch = 1)
+        self.settings15layout.addWidget(self.SBnumChan, stretch = 1)
+        layout.addLayout(self.settings15layout)
+
         
         # row 2
         self.settings1layout = QHBoxLayout()
@@ -141,8 +155,8 @@ class Window(object):
         self.SBEpochs.setToolTip('Set number of epochs')
         self.SBEpochs.setObjectName('nn_Epochs')
         self.SBEpochs.SpinBox.setRange(1,10000)
-        self.settings1layout.addWidget(self.SBBatchSize)
-        self.settings1layout.addWidget(self.SBEpochs)
+        self.settings1layout.addWidget(self.SBBatchSize, stretch = 1)
+        self.settings1layout.addWidget(self.SBEpochs, stretch = 1)
 
         layout.addLayout(self.settings1layout)
         
@@ -161,8 +175,8 @@ class Window(object):
         self.SBScaleFactor.SpinBox.setSingleStep(0.1)
         self.SBScaleFactor.SpinBox.setDecimals(1)
 
-        self.settings2layout.addWidget(self.SBLearningRate)
-        self.settings2layout.addWidget(self.SBScaleFactor)
+        self.settings2layout.addWidget(self.SBLearningRate, stretch = 1)
+        self.settings2layout.addWidget(self.SBScaleFactor, stretch = 1)
         layout.addLayout(self.settings2layout)
         groupBox.setLayout(layout)
         return groupBox
@@ -179,6 +193,7 @@ class TrainingWindow(QMainWindow, Window):
         self.SBEpochs.SpinBox.setValue(self.parent.dl.epochs)
         self.SBScaleFactor.SpinBox.setValue(self.parent.dl.ImageScaleFactor)
         self.SBBatchSize.SpinBox.setValue(self.parent.dl.batch_size)
+        self.SBnumChan.SpinBox.setValue(self.parent.dl.data.numChannels)
         
         
         
@@ -193,6 +208,7 @@ class TrainingWindow(QMainWindow, Window):
         self.CBMono.toggled.connect(self.ChannelsChanged)
         self.CBRGB.toggled.connect(self.ChannelsChanged)
         self.CBnChan.toggled.connect(self.ChannelsChanged)
+        self.SBnumChan.SpinBox.valueChanged.connect(self.inputChannelsChanged)
         
 
         self.setModelOptions()
@@ -246,14 +262,24 @@ class TrainingWindow(QMainWindow, Window):
             self.CBRGB.setChecked(True) 
         elif self.parent.dl.data.channels == dlChannels.nChan:
             self.CBnChan.setChecked(True) 
+            
+        self.SBnumChan.SpinBox.setValue(self.parent.dl.data.numChannels)
         
     def ChannelsChanged(self):
+        self.SBnumChan.setEnabled(False)
         if self.CBMono.isChecked():
             self.parent.dl.data.channels = dlChannels.Mono
         elif self.CBRGB.isChecked():
             self.parent.dl.data.channels = dlChannels.RGB
         elif self.CBnChan.isChecked():
             self.parent.dl.data.channels = dlChannels.nChan
+            self.SBnumChan.setEnabled(True)
+        self.SBnumChan.SpinBox.setValue(self.parent.dl.data.numChannels)
+            
+            
+    def inputChannelsChanged(self):
+        if self.parent.dl.data.channels == dlChannels.nChan:
+            self.parent.dl.data.nchannels = self.SBnumChan.SpinBox.value()
         
     def hide(self):
         self.closeWindows()
@@ -291,7 +317,7 @@ class TrainingWindow(QMainWindow, Window):
             self.BModeSettings.setToolTip('Open classification settings')
             self.BModeSettings.setText('Classification')
             self.BModeSettings.setEnabled(False)
-
+            
 
     def setModelOptions(self):
         self.setArchitectureOptions()
