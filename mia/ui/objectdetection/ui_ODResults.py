@@ -34,7 +34,13 @@ class Window(object):
         self.vlayout.setContentsMargins(0, 0, 0, 0)
         self.vlayout.setSpacing(6)
         self.centralWidget.setLayout(self.vlayout)
-
+        
+        self.CBExPosition = QCheckBox("Export Positions",self.centralWidget)
+        self.CBExPosition.setObjectName('ExportPositions')
+        self.CBExPosition.setChecked(True)
+        self.CBExPosition.setToolTip('Check to export positions of detected objects')
+        
+        self.vlayout.addWidget(self.CBExPosition)
         self.centralWidget.setFixedSize(self.vlayout.sizeHint())
         Form.setFixedSize(self.vlayout.sizeHint())
                 
@@ -55,7 +61,12 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
             self.saveDetectionResults(writer, images, labels)
 
     def saveDetectionResults(self, writer, images, labels):
-        header = ['image name'] + ['frame number'] + ['number of objects'] + ['object type']
+        header = ['image name'] + ['frame number']
+        if self.CBExPosition.isChecked():
+            header = header + ['object number'] + ['object type'] + ['position'] 
+        else:
+            header = header + ['number of objects'] + ['object type']
+            
         writer.writerow(header)
         num = len(labels)
         self.parent.emitinitProgress(num)
@@ -67,11 +78,19 @@ class ObjectDetectionResultsWindow(QMainWindow, Window):
                 frame = self.parent.files.getFrameNumber(label) + 1
             else:
                 frame = 1
-            pointlabels = [x.classlabel for x in points]
-            
-            for i in range(1,max(pointlabels)+1):
-                row = [name] + [frame] + [pointlabels.count(i)] + [i]
-                writer.writerow(row) 
+                
+
+            if self.CBExPosition.isChecked():
+                for i,p in enumerate(points):
+                    num = p.objectNumber if p.objectNumber >= 0 else i+1
+                    row = [name] + [frame] + [num] + [p.classlabel] + [p.getPosition()]
+                    writer.writerow(row) 
+            else:
+                pointlabels = [x.classlabel for x in points]
+                for i in range(1,max(pointlabels)+1):
+                    row = [name] + [frame] + [pointlabels.count(i)] + [i]
+                    writer.writerow(row) 
+
 
     def saveTrackResults(self, writer, images, labels):
         header = ['object number'] + ['time point'] + ['image name'] + ['frame number'] + ['object type'] + ['position']
