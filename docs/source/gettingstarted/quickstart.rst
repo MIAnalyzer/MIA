@@ -38,7 +38,15 @@ To label images for neural network training, use the labeling tools.
 
   Labeling tools for segmentation
   
-Navigate through the training folder to label multiple images. When finished labeling a first set of images you can start training a neural network. Open the training window (:doc:`../training/nntraining`).
+Navigate through the training folder to label multiple images. 
+
+.. figure:: images/labelling.png
+  :class: shadow-image
+  :align: center
+
+  Labeling tools for segmentation
+
+When finished labeling a first set of images you can start training a neural network. Open the training window (:doc:`../training/nntraining`).
 
 .. figure:: images/train.png
   :class: shadow-image
