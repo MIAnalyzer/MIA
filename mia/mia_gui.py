@@ -38,6 +38,7 @@ from ui.ui_Results import ResultsWindow
 
 from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
+from ui.ui_Log import LogWindow
 
 from ui.ui_TrainPlot import TrainPlotWindow
 from ui.settings import Settings
@@ -147,8 +148,8 @@ class MIA_UI(QMainWindow, MainWindow):
         self.odpostprocessing_form = ObjectDetectionPostProcessingWindow(self)
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
-        
         self.plotting_form = TrainPlotWindow(self)
+        self.log_form = LogWindow(self)
         self.ClassListUpdated()
         self.classList.setClass(1)
         self.enableCopyStackLabels()
@@ -342,6 +343,9 @@ class MIA_UI(QMainWindow, MainWindow):
         if self.sender().key() == QKeySequence(Qt.Key_F6):
             self.selectToolButtonX(6)
 
+    def showLog(self):
+        self.log_form.show()
+        self.log_form.showLog(LOG_FILENAME)
 
     def showSettingsWindow(self):
         self.settings_form.show()
