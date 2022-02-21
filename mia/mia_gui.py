@@ -238,7 +238,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.ASaveDeepLearning.triggered.connect(self.saveDLClass)
         self.AOpenManual.triggered.connect(self.OpenManual)
         self.AOpenGithub.triggered.connect(self.OpenGithub)
-        
+        self.AOpenLog.triggered.connect(self.showLog)
         
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)

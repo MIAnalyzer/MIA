@@ -65,9 +65,10 @@ class MainWindow(object):
         self.AboutMenu = self.menubar.addMenu("About")
         self.AOpenManual = QAction("Manual", self.centralWidget)
         self.AOpenGithub = QAction("Source Code", self.centralWidget)
+        self.AOpenLog = QAction("Show Log", self.centralWidget)
         self.AboutMenu.addAction(self.AOpenManual)
         self.AboutMenu.addAction(self.AOpenGithub)
-        
+        self.AboutMenu.addAction(self.AOpenLog)
         
         
         self.setMenuBar(self.menubar)
