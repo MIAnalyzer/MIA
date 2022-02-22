@@ -356,7 +356,7 @@ def InceptionV3(include_top=True,
 
     # Load weights.
     if weights == 'imagenet':
-        weights_path = get_inceptionv3()
+        weights_path = get_inceptionv3(include_top)
         model.load_weights(weights_path)
         
     elif weights is not None:

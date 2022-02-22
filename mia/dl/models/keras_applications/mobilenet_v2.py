@@ -283,15 +283,18 @@ def MobileNetV2(input_shape=None,
     cols = input_shape[col_axis]
 
     if weights == 'imagenet':
-        if alpha not in [0.35, 0.50, 0.75, 1.0, 1.3, 1.4]:
+        # only alpha == 1.0 supported
+        if alpha not in [1.0]:
+            alpha = 1.0
             raise ValueError('If imagenet weights are being loaded, '
-                             'alpha can be one of `0.35`, `0.50`, `0.75`, '
-                             '`1.0`, `1.3` or `1.4` only.')
-
-        if rows != cols or rows not in [96, 128, 160, 192, 224]:
+                             'alpha can be one of'
+                             '`1.0` only.')
+            
+        # only rows == 224 supported
+        if rows != cols or rows not in [224]:
             rows = 224
             warnings.warn('`input_shape` is undefined or non-square, '
-                          'or `rows` is not in [96, 128, 160, 192, 224].'
+                          'or `rows` is not in [224].'
                           ' Weights for input shape (224, 224) will be'
                           ' loaded as the default.')
 

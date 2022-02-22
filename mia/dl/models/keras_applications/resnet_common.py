@@ -376,7 +376,7 @@ def ResNet(stack_fn,
     model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
-    if (weights == 'imagenet') and (model_name in WEIGHTS_HASHES):
+    if (weights == 'imagenet'):
         weights_path = get_ResNet(include_top, model_name)
         model.load_weights(weights_path)
     elif weights is not None:

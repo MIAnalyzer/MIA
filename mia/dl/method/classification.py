@@ -66,7 +66,7 @@ class Classification(LearningMode):
             weights = 'imagenet'
             size = (None, None, 3)
             if channels != 3:
-                addextraInputLayer = True 
+                addextraInputLayer = True                
         else:
             weights = None
             self.preprocessingfnc = None  
@@ -75,11 +75,17 @@ class Classification(LearningMode):
 
         if 'nasnet' in self.backbone:
             if self.pretrained:
-                size = (224, 224,3)
-                # self.parent.augmentation.outputwidth = 224
-                # self.parent.augmentation.outputheight = 224
+                if self.backbone == 'nasnetmobile':
+                    size = (224, 224,3)
+                    self.parent.augmentation.outputwidth = 224
+                    self.parent.augmentation.outputheight = 224
+                if self.backbone == 'nasnetlarge':
+                    size = (331, 331,3)
+                    self.parent.augmentation.outputwidth = 331
+                    self.parent.augmentation.outputheight = 331   
             else:
                 size = (self.parent.augmentation.outputwidth, self.parent.augmentation.outputheight,channels)
+            
 
         basemodel = backboneModel(input_shape=size, weights=weights, include_top=False)
 

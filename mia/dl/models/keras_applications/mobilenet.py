@@ -195,15 +195,17 @@ def MobileNet(input_shape=None,
             raise ValueError('If imagenet weights are being loaded, '
                              'depth multiplier must be 1')
 
-        if alpha not in [0.25, 0.50, 0.75, 1.0]:
+        if alpha not in [1.0]:
+            alpha = 1.0
             raise ValueError('If imagenet weights are being loaded, '
                              'alpha can be one of'
-                             '`0.25`, `0.50`, `0.75` or `1.0` only.')
+                             '`1.0` only.')
 
-        if rows != cols or rows not in [128, 160, 192, 224]:
+        # only 224 rows supported
+        if rows != cols or rows not in [224]:
             rows = 224
             warnings.warn('`input_shape` is undefined or non-square, '
-                          'or `rows` is not in [128, 160, 192, 224]. '
+                          'or `rows` is not in [224]. '
                           'Weights for input shape (224, 224) will be'
                           ' loaded as the default.')
 
