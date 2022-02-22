@@ -189,6 +189,7 @@ def get_NasNetMobile(include_top):
 def get_MobileNet(include_top, alpha, rows):
     url = ('https://github.com/fchollet/deep-learning-models/'
                         'releases/download/v0.6/')
+
     if alpha != 1.0 or rows != 224:
         raise 'not supported'
 
@@ -205,7 +206,6 @@ def get_MobileNet(include_top, alpha, rows):
 def get_MobileNetv2(include_top, alpha, rows):    
     url = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                         'releases/download/v1.1/')
-    
     if alpha != 1.0 or rows != 224:
         raise 'not supported'
 
@@ -238,10 +238,10 @@ def get_DenseNet(include_top, blocks):
             fname = 'densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5'
             file_hash='30ee3e1110167f948a6b9946edeeb738'
         elif blocks == [6, 12, 32, 32]:
-            fname = 'densenet169_weights_tf_dim_ordering_tf_kernels_notop.h5',
+            fname = 'densenet169_weights_tf_dim_ordering_tf_kernels_notop.h5'
             file_hash='b8c4d4c20dd625c148057b9ff1c1176b'
         elif blocks == [6, 12, 48, 32]:
-            fname = 'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5',
+            fname = 'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5'
             file_hash='c13680b51ded0fb44dff2d8f86ac8bb1'
     
     return getTargetFile(fname, url + fname, file_hash) 
