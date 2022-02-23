@@ -261,8 +261,9 @@ def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separate
     [inner.extend(x.innercontours) for x in contours if x.innercontours != []]
     ref_image = image.copy()
     if separateContours:
-        cv2.drawContours(image, cnt, -1, (0), 3)  
-        cv2.drawContours(image, cnt, -1, (1), -1) 
+        for c in cnt:
+            cv2.drawContours(image, [c], -1, (0), 3)  
+            cv2.drawContours(image, [c], -1, (1), -1) 
     else:
         if ignoreclasslabel:
             cv2.drawContours(image, cnt, -1, (1), -1)  

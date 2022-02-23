@@ -130,7 +130,7 @@ class Window(object):
         self.SBFontSize = LabelledSpinBox('Font Size',self.centralWidget)
         self.SBFontSize.setToolTip('Set font size')
         self.SBFontSize.setObjectName('FontSize')
-        self.SBFontSize.SpinBox.setRange(8,32)
+        self.SBFontSize.SpinBox.setRange(4,32)
         vlayout.addWidget(self.SBFontSize)
 
         self.SBPenSize = LabelledSpinBox('Pen Size',self.centralWidget)
