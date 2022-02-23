@@ -3,7 +3,7 @@
 # - download miniconda and this file
 # - open anaconda prompt and cd to the directory of this file
 # - type the following commands in the prompt:
-#   - conda env create -f mia_environment.yml
+#   - conda env create -f mia_environment.yaml
 
 # to start the software open anaconda prompt and type:
 # - conda activate mia_environment
@@ -20,7 +20,7 @@ dependencies:
   - opencv=4.5.1
   - scikit-image=0.18.1
   - imgaug=0.4
-  - conda-forge:pillow=8.4.0
+  - conda-forge::pillow=8.4.0
   - pip
   - pip:
     - mianalyzer
