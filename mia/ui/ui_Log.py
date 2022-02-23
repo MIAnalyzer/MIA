@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui.style import styleForm
 from ui.ui_utils import ScrollLabel
+import os
 
 class Window(object):
     def setupUi(self, Form):
@@ -19,6 +20,7 @@ class Window(object):
         
         self.LogText = ScrollLabel(Form)
         self.setCentralWidget(self.LogText)
+        self.LogText.setText('No log-file created, yet')
         
         self.resize(650,350)
         
@@ -29,6 +31,7 @@ class LogWindow(QMainWindow, Window):
         self.parent = parent
         self.setupUi(self)
 
-    def showLog(self, path):
-        f = open(path, "r")
-        self.LogText.setText(f.read())
+    def showLog(self, logpath):
+        if os.path.exists(logpath):
+            f = open(logpath, "r")
+            self.LogText.setText(f.read())
