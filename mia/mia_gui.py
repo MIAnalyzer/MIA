@@ -996,9 +996,10 @@ class MIA_UI(QMainWindow, MainWindow):
                     self.writeStatus('model saved')
 
     def resetModel(self):
-        self.dl.Reset()
-        self.training_form.setParameterStatus()
-        self.writeStatus('model reset')
+        if self.ConfirmPopup('Are you sure to reset model?'):
+            self.dl.Reset()
+            self.training_form.setParameterStatus()
+            self.writeStatus('model reset')
     
     def showTrainingWindow(self):
         if self.files.trainImagespath is None:
