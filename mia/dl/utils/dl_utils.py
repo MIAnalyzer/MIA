@@ -65,7 +65,16 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitcla
         _, thresh = cv2.threshold(prediction.astype(np.uint8),0,255,cv2.THRESH_BINARY)
         dist_transform = distance_transform_edt(thresh)
         
-        coords = peak_local_max(dist_transform, min_distance=min_distance, labels=thresh)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+        labelmask = np.zeros_like(thresh, dtype=np.uint16) 
+        counter = 1
+        for c in contours:
+            cv2.drawContours(labelmask, [c], -1, counter,-1)
+            counter += 1
+        
+        # for some reason peaks with min_distance from image border are not detected
+        # potential solution would be to extend the image
+        coords = peak_local_max(dist_transform, min_distance=min_distance, labels=labelmask)
         mask = np.zeros_like(thresh, dtype=bool)
         mask[tuple(coords.T)] = True
     
@@ -76,7 +85,7 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitcla
         cnt = Contour.extractContoursFromLabel(labels)
         label = np.zeros(thresh.shape, dtype=np.uint8)
         Contour.drawContoursToImage(label, cnt, separate=True)
-        
+        label[thresh==0] = 0
         label[label>1] = 1
     # multiclass 
     else:
@@ -94,7 +103,16 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitcla
             _, thresh = cv2.threshold(pred.astype(np.uint8),0,255,cv2.THRESH_BINARY)
             dist_transform = distance_transform_edt(thresh)
             
-            coords = peak_local_max(dist_transform, min_distance=min_distance,  labels=thresh)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+            labelmask = np.zeros_like(thresh, dtype=np.uint16) 
+            counter = 1
+            for c in contours:
+                cv2.drawContours(labelmask, [c], -1, counter,-1)
+                counter += 1
+
+            # for some reason peaks with min_distance from image border are not detected
+            # potential solution would be to extend the image
+            coords = peak_local_max(dist_transform, min_distance=min_distance, labels=labelmask)
             mask = np.zeros_like(thresh, dtype=bool)
             mask[tuple(coords.T)] = True
         
@@ -105,7 +123,7 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitcla
             cnt = Contour.extractContoursFromLabel(labels)
             label_i = np.zeros(thresh.shape, dtype=np.uint8)
             Contour.drawContoursToImage(label_i, cnt, separate=True)
-            
+            label_i[thresh==0] = 0
             label[label_i>=1] = i
 
     return label
