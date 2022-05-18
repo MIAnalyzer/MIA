@@ -128,3 +128,43 @@ def separatePredictions(prediction, min_distance = 20, threshold = 0.5, splitcla
 
     return label
     
+
+def erodeDilate(mask, repeats, splitclasses = []):  
+    ############ warning, this function was never tested ####################
+    mask = mask.astype(np.uint8)
+    label = np.zeros_like(mask, dtype=np.uint8)
+    if splitclasses == []:
+        splitclasses = range(1,np.max(mask)+1)
+    else:
+        for i in range(1,np.max(mask)+1):
+            if i not in splitclasses:
+                label[mask == i] = i
+    for i in splitclasses:            
+              
+        pred = np.zeros_like(mask, dtype=np.uint8)
+        pred[mask == i] = 1
+        M = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+        pred = cv2.erode(pred, M, iterations = repeats)
+
+        contours, _ = cv2.findContours(pred, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+        labelmask = np.zeros_like(mask, dtype=np.uint16) 
+        counter = 1
+        for c in contours:
+            cv2.drawContours(labelmask, [c], -1, counter,-1)
+            counter += 1
+
+        res = cv2.dilate(labelmask, M, iterations = repeats +1)
+        
+        total_contours = []
+        for i in range(0,np.max(labelmask), 256):
+            tofind = np.zeros_like(res, dtype=np.uint8)
+            tofind[res>i and res < i + 256] = res - i
+            contours, _ = cv2.findContours(tofind, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+            total_contours.append(contours)
+        
+        label_i = np.zeros(mask.shape, dtype=np.uint8)
+        cv2.drawContours(label_i, total_contours, -1, i,-1)
+        label_i[mask==0] = 0
+
+
+    return label
