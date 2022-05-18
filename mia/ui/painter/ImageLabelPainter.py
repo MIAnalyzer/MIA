@@ -20,17 +20,20 @@ class ImageLabelPainter(Painter):
         super(ImageLabelPainter,self).__init__(canvas)
         self.tools.append(canvasTool.drag)
         self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.setallimagesclass)
         self.tools.append(canvasTool.assignimageclass)
         self.imagelabel = None
 
     def enableDrawBackgroundMode(self):
         super(ImageLabelPainter, self).enableDrawBackgroundMode()
         self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.setallimagesclass)
         self.tools.append(canvasTool.assignimageclass)
 
     def disableDrawBackgroundMode(self):
         super(ImageLabelPainter, self).disableDrawBackgroundMode()
         self.tools.append(canvasTool.setimageclass)
+        self.tools.append(canvasTool.setallimagesclass)
         self.tools.append(canvasTool.assignimageclass)
 
     def draw(self):

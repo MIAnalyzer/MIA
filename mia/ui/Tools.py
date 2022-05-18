@@ -30,6 +30,7 @@ class canvasTool(Enum):
     shift = 'shift'
     point = 'point'
     setimageclass = 'setimageclass'
+    setallimagesclass = 'setallimagesclass'
     assignimageclass = 'assignimageclass'
     objectnumber = 'objectnumber'
     objectcolor = 'objectcolor'
@@ -676,6 +677,29 @@ class DeleteObjectTool(AbstractTool):
     
 
 # classification tools
+class setAllImagesClassTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Set all images to class"
+        self.type = canvasTool.setallimagesclass
+        
+    def initialize(self):
+        # a bit hacky and poor designed as this is the execute
+        for i in range(self.canvas.parent.files.numofImages):  
+            self.canvas.assignImageClass()
+            self.canvas.parent.nextImage()
+        self.canvas.setnewTool(canvasTool.drag.name)
+
+    def mouseReleaseEvent(self,e):
+        pass
+    def mouseMoveEvent(self,e):
+        pass
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
+    
 class setImageClassTool(AbstractTool):
     def __init__(self, canvas):
         super().__init__(canvas)
@@ -684,7 +708,7 @@ class setImageClassTool(AbstractTool):
         self.type = canvasTool.setimageclass
         
     def initialize(self):
-        # a bit hacky and poor designed as this is the execute
+        # a bit hacky and poor designed as this is the execute  
         self.canvas.assignImageClass()
         self.canvas.parent.nextImage()
         self.canvas.setnewTool(canvasTool.drag.name)

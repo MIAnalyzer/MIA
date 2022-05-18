@@ -313,6 +313,8 @@ class Canvas(QGraphicsView):
         self.lasttool = self.tool  
         self.updateImage()
         self.tool.HideSettings()
+        
+        print(tool)
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         elif tool == canvasTool.draw.name:
@@ -335,6 +337,8 @@ class Canvas(QGraphicsView):
             self.tool = Tools.ShiftTool(self)
         elif tool == canvasTool.setimageclass.name:
             self.tool = Tools.setImageClassTool(self)
+        elif tool == canvasTool.setallimagesclass.name:
+            self.tool = Tools.setAllImagesClassTool(self)
         elif tool == canvasTool.assignimageclass.name:
             self.tool = Tools.assignImageClassTool(self)
         elif tool == canvasTool.objectnumber.name:

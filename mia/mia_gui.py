@@ -182,6 +182,7 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.BassignClass.clicked.connect(self.setCanvasMode)
         self.BsetClass.clicked.connect(self.setCanvasMode)
+        self.BsetallClass.clicked.connect(self.setCanvasMode)
         
         self.BsetObject.clicked.connect(self.setCanvasMode)
         self.BshiftObject.clicked.connect(self.setCanvasMode)

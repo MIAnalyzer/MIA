@@ -304,6 +304,13 @@ class MainWindow(object):
         self.BsetClass.setObjectName('setimageclass')
         self.BsetClass.setToolTip('Assign current class and continue to next image')
         self.BsetClass.setIcon(QIcon('icons/setclass.png'))
+        # set all to class tool
+        self.BsetallClass = DCDButton(self.centralWidget)
+        self.BsetallClass.setMaximumSize(bwidth, bheight)
+        self.BsetallClass.setObjectName('setallimagesclass')
+        self.BsetallClass.setToolTip('Assign current class to all images in the current folder')
+        self.BsetallClass.setIcon(QIcon('icons/setallclass.png'))
+
         
         # tool buttons
         self.ToolButtonslayout = QHBoxLayout()
@@ -327,6 +334,7 @@ class MainWindow(object):
         self.ClassificationToolButtons.hide()
         self.ClassificationToolButtonslayout.addWidget(self.BassignClass)
         self.ClassificationToolButtonslayout.addWidget(self.BsetClass)
+        self.ClassificationToolButtonslayout.addWidget(self.BsetallClass)
         
         self.vlayout.addWidget(self.ClassificationToolButtons)
         self.vlayout.addWidget(self.ToolButtons)
