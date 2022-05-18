@@ -314,7 +314,6 @@ class Canvas(QGraphicsView):
         self.updateImage()
         self.tool.HideSettings()
         
-        print(tool)
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         elif tool == canvasTool.draw.name:
