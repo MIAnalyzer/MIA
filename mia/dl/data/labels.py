@@ -42,6 +42,7 @@ def getMatchingImageLabelPairPaths(imagepath, labelpath, stacklabels=dlStackLabe
     if not os.path.isdir(imagepath) or not os.path.isdir(labelpath):
         return list(), list()
 
+
     images = glob.glob(os.path.join(imagepath,'*.*'))
     labels = glob.glob(os.path.join(labelpath,'*.*'))
               
@@ -63,6 +64,8 @@ def getMatchingImageLabelPairPaths(imagepath, labelpath, stacklabels=dlStackLabe
     labels = [each for each in labels if os.path.splitext(os.path.basename(each))[0] in intersection]
     images.sort()
     labels.sort()
+    
+
     
     if unroll:
         return unrollPaths(images, labels, stacklabels)

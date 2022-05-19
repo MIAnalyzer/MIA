@@ -161,7 +161,7 @@ class ResultsWindow(QMainWindow, Window):
         if not folder:
             return
         with self.parent.wait_cursor():
-            images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+            images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath, self.parent.dl.data.stacklabels)
 
             if not images or not labels:
                 self.parent.PopupWarning('No predicted masks')
@@ -230,7 +230,8 @@ class ResultsWindow(QMainWindow, Window):
         thread.start()
 
     def saveAll(self,filename):
-        images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath)
+        images, labels = getMatchingImageLabelPairPaths(self.parent.files.testImagespath,self.parent.files.testImageLabelspath, self.parent.dl.data.stacklabels)
+
         if labels is None or not labels:
             self.parent.emitPopup('No predicted files')
             return
