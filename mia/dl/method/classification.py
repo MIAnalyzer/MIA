@@ -174,7 +174,10 @@ class Classification(LearningMode):
         return cv2.resize(label, shape, interpolation = cv2.INTER_NEAREST)
 
     def countLabelWeight(self, label):
-        return np.zeros((self.parent.NumClasses_real), dtype = np.float)
+        weights = np.zeros((self.parent.NumClasses_real), dtype = np.float)
+        value = int(np.mean(label))
+        weights[value] = 1
+        return weights
 
     def getImageSize4ModelInput(self, inputWidth, inputHeight):
         width = self.parent.augmentation.outputwidth

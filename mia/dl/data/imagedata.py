@@ -306,7 +306,10 @@ class ImageData():
 
     def calcClassWeights(self):
         if self.autocalcClassWeights:
-            self.class_weights = np.sum(self.classValues)/self.classValues
-            self.class_weights /= np.sum(self.class_weights)
+            if not np.all(self.classValues):
+                self.class_weights = np.ones(self.parent.NumClasses_real, dtype = np.float)*0.5
+            else:
+                self.class_weights = np.sum(self.classValues)/self.classValues
+                self.class_weights /= np.sum(self.class_weights)
             if self.parent.NumClasses_real == 2:
                 self.class_weights = self.class_weights[1]
