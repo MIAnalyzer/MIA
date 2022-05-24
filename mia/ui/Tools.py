@@ -405,7 +405,7 @@ class ExtendTool(AbstractTool):
         if not self.canvas.hasImage() or not self.canvas.zoomfactor():
             return Qt.ArrowCursor
         
-        size = (2*self.canvas.parent.SSize.value() + self.canvas.pen_size) * self.canvas.zoomfactor()[0]
+        size = (2*self.canvas.parent.SSize.value()) * self.canvas.zoomfactor()[0]
         # unfortunately max size is somewhere around 100
         if size > 95:
             return Qt.SizeAllCursor
@@ -415,7 +415,7 @@ class ExtendTool(AbstractTool):
         color = self.canvas.parent.ClassColor()
         if self.canvas.parent.CBErase.isChecked():
             p.setBrush(QBrush(Qt.NoBrush))
-            p.setPen(QPen(color,Qt.SolidLine))
+            p.setPen(QPen(color, Qt.SolidLine))
         else:
             p.setBrush(QBrush(color,Qt.SolidPattern))
             p.setPen(QPen(Qt.NoPen))
