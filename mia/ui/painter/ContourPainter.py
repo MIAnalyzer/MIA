@@ -124,7 +124,7 @@ class ContourPainter(Painter):
             super(ContourPainter, self).prepareNewContour()
 
 
-    def getFinalContours(self):
+    def getFinalContours(self, lines=False):
         if self.sketch is None:
             return
         
@@ -138,7 +138,7 @@ class ContourPainter(Painter):
             smartcontours = Contour.extractContoursFromImage(prediction, not self.canvas.parent.allowInnerContours, offset = (int(fov.x()),int(fov.y())))
             Contour.drawContoursToImage(self.contoursketch, smartcontours)  
 
-        super(ContourPainter, self).getFinalContours()
+        super(ContourPainter, self).getFinalContours(lines)
 
     def assistedSegmentation(self, extremepoints):
         with self.canvas.parent.wait_cursor():

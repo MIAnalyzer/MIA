@@ -19,7 +19,7 @@ class ObjectPainter(Painter):
     def __init__(self, canvas):
         super(ObjectPainter,self).__init__(canvas)
         self.points = Point.Points()
-        self.backgroundmode = False
+        self.lines = False
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)
         self.tools.append(canvasTool.deleteobject)
@@ -27,10 +27,38 @@ class ObjectPainter(Painter):
 
     @property
     def shapes(self):
-        if self.backgroundmode:
+        if self.lines:
             return self.contours
         else:
             return self.points
+        
+    def enableLines(self):
+        self.tools.clear()
+        self.tools.append(canvasTool.drag)
+        self.tools.append(canvasTool.scale)
+        self.tools.append(canvasTool.drawline)
+        self.tools.append(canvasTool.polyline)
+        self.tools.append(canvasTool.assign)
+        self.tools.append(canvasTool.erase)
+        self.tools.append(canvasTool.assist)
+        self.tools.append(canvasTool.delete)
+        self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
+        self.lines = True
+
+    def enablePoints(self):
+        self.tools.clear()
+        self.tools.append(canvasTool.drag)
+        self.tools.append(canvasTool.point)
+        self.tools.append(canvasTool.shift)
+        self.tools.append(canvasTool.assign)
+        self.tools.append(canvasTool.assist)
+        self.tools.append(canvasTool.delete)
+        self.tools.append(canvasTool.objectnumber)
+        self.tools.append(canvasTool.objectcolor)
+        self.tools.append(canvasTool.deleteobject)
+        self.lines = False
         
     def clearFOV(self):
         to_del = []
@@ -46,23 +74,20 @@ class ObjectPainter(Painter):
 
     def enableDrawBackgroundMode(self):
         super(ObjectPainter, self).enableDrawBackgroundMode()
-        self.backgroundmode = True
+        self.lines = True
 
     def disableDrawBackgroundMode(self):
         super(ObjectPainter, self).disableDrawBackgroundMode()
-        self.tools.append(canvasTool.drag)
-        self.tools.append(canvasTool.point)
-        self.tools.append(canvasTool.shift)
-        self.tools.append(canvasTool.assign)
-        self.tools.append(canvasTool.assist)
-        self.tools.append(canvasTool.delete)
-        self.tools.append(canvasTool.objectnumber)
-        self.tools.append(canvasTool.objectcolor)
-        self.tools.append(canvasTool.deleteobject)
-        self.backgroundmode = False
+        self.enablePoints()
+
         
     def draw(self):
         super(ObjectPainter, self).draw()
+        
+        for c in self.contours.shapes: 
+            if c.classlabel != 0:
+                self.drawcontour(c, filled = False)  
+        
         # for x in range(self.canvas.parent.NumOfClasses()):
         for x in range(self.points.getMaxClass()):    
             self.drawClass(x+1)
@@ -124,11 +149,11 @@ class ObjectPainter(Painter):
     def save(self):
         if len(self.trackChanges) > self.maxChanges:
             self.trackChanges.pop(0)
-        self.trackChanges.append((copy.deepcopy(self.points.shapes), copy.deepcopy(self.backgroundshapes)))
+        self.trackChanges.append((copy.deepcopy(self.points.shapes), copy.deepcopy(self.contours.shapes)))
         self.canvas.parent.checkIfUndoPossible()
         if not self.points.empty() or not self.contours.empty():
             self.canvas.parent.ensureLabelFolder()
-            Point.savePoints(self.points.shapes, self.canvas.parent.files.CurrentLabelPath(), background = self.backgroundshapes)
+            Point.savePoints(self.points.shapes, self.canvas.parent.files.CurrentLabelPath(), lines = self.contours.shapes)
         else:
             self.canvas.parent.deleteLabel()
 

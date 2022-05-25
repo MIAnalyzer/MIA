@@ -313,17 +313,24 @@ class Canvas(QGraphicsView):
         self.lasttool = self.tool  
         self.updateImage()
         self.tool.HideSettings()
+
         
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         elif tool == canvasTool.draw.name:
             self.tool = Tools.DrawTool(self)
+        elif tool == canvasTool.drawline.name:
+            self.tool = Tools.DrawLineTool(self)
         elif tool == canvasTool.assign.name:
             self.tool = Tools.AssignTool(self)
+        elif tool == canvasTool.erase.name:
+            self.tool = Tools.EraseTool(self)
         elif tool == canvasTool.extend.name:
             self.tool = Tools.ExtendTool(self)
         elif tool == canvasTool.delete.name:
             self.tool = Tools.DeleteTool(self)
+        elif tool == canvasTool.polyline.name:
+            self.tool = Tools.PolyLineTool(self)
         elif tool == canvasTool.poly.name:
             self.tool = Tools.PolygonTool(self)
         elif tool == canvasTool.assist.name:
@@ -349,7 +356,6 @@ class Canvas(QGraphicsView):
 
         if self.tool.type not in self.painter.tools:
             self.tool = Tools.DragTool(self)
-
 
 
         self.tool.initialize()

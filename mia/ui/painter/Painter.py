@@ -183,7 +183,7 @@ class Painter(ABC):
 
 
     #### contour drawing functions
-    def drawcontour(self, contour):   
+    def drawcontour(self, contour, filled = True):   
         painter = self.getPainter()
         path = self.contour2Path(contour)
         if not path.isEmpty():    
@@ -193,6 +193,8 @@ class Painter(ABC):
                 color = self.canvas.parent.ClassColor(contour.classlabel)
             self.setPainterColor(painter, color)
             self.setColorTransparency(painter, color, transparency = 0)
+            if not filled:
+                painter.setBrush(Qt.NoBrush)
             painter.drawPath(path)
             self.drawtrack(contour, painter, color)
             self.drawcontouraccessories(contour, painter)
@@ -253,20 +255,20 @@ class Painter(ABC):
             self.addline(p_last,p_image)
             
   
-    def prepareNewContour(self):
+    def prepareNewContour(self, lines = False):
         if self.canvas.hasImage():
             width = self.canvas.image().width()
             height = self.canvas.image().height()
 
             self.contoursketch = np.zeros((height, width), np.uint8) 
-            Contour.drawContoursToImage(self.contoursketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()))
+            Contour.drawContoursToImage(self.contoursketch, self.contours.getShapesOfClass_x(self.canvas.parent.activeClass()), lines = lines)
 
 
-    def getFinalContours(self):
+    def getFinalContours(self, lines = False):
         if self.sketch is None:
             return
             
-        contours = Contour.extractContoursFromImage(self.contoursketch, not self.canvas.parent.allowInnerContours)
+        contours = Contour.extractContoursFromImage(self.contoursketch, not self.canvas.parent.allowInnerContours, lineextraction = lines)
         # delete changed contours
         old_contours = self.contours.getShapesOfClass_x(self.canvas.parent.activeClass())
         changedcontours = Contour.getContoursNotinListOfContours(old_contours,contours)
@@ -279,17 +281,21 @@ class Painter(ABC):
         self.canvas.redrawImage()
 
         
-    def finishNewContour(self, delete = False, close = True, drawaspolygon = False):
+    def finishNewContour(self, delete = False, close = True, drawaspolygon = False, lines = False):
         if self.NewContour is not None:
             if close:
                 self.NewContour.closeContour()
             i = 0 if delete else 1
             if self.NewContour.numPoints() > 1:
                 if drawaspolygon:
-                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), thickness=max(self.canvas.pen_size,1), lineType =cv2.LINE_4)  
+                    thickness = max(self.canvas.pen_size,1)
+                    if lines:
+                        thickness = 1
+                    cv2.polylines(self.sketch, [self.NewContour.points], 0, (i), thickness = thickness, lineType =cv2.LINE_4)  
                 else:
                     cv2.drawContours(self.sketch, [self.NewContour.points], 0, (i), -1) 
-        self.getFinalContours()
+                    
+        self.getFinalContours(lines)
         self.NewContour = None
 
     def drawcontouraccessories(self, contour, painter = None):

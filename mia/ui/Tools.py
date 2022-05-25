@@ -21,10 +21,13 @@ import utils.shapes.Contour as Contour
 class canvasTool(Enum):
     drag = 'drag'
     draw = 'draw'
+    drawline = 'drawline'
     assign = 'assign'
     delete = 'delete'
     extend = 'extend'
+    erase = 'erase'
     poly =  'poly'
+    polyline =  'polyline'
     assist = 'assist'
     scale =  'scale'
     shift = 'shift'
@@ -40,11 +43,14 @@ class canvasToolButton(Enum):
     # Buttons are set visible or invisible depending on mode
     drag = canvasTool.drag
     draw = canvasTool.draw
+    drawline = canvasTool.drawline
     poly =  canvasTool.poly
+    polyline = canvasTool.polyline
     point = canvasTool.point
     shift = canvasTool.shift
     assign = canvasTool.assign
     extend = canvasTool.extend
+    erase = canvasTool.erase
     delete = canvasTool.delete
     assignimageclass = canvasTool.assignimageclass
     setimageclass = canvasTool.setimageclass
@@ -216,6 +222,95 @@ class DrawTool(AbstractTool):
 
     def HideSettings(self):
         self.canvas.parent.DrawSettings.hide()
+        
+class DrawLineTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Draw line"
+        self.type = canvasTool.drawline
+        self.drawimage = None
+
+
+    def __del__(self): 
+        if self.canvas.painter.NewContour:
+            self.canvas.painter.finishNewContour(drawaspolygon = True, close= False, lines = True)
+            self.drawimage = None           
+   
+
+    @validTool
+    def mouseMoveEvent(self, e):
+        if self.canvas.painter.NewContour:
+            p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+            self.canvas.painter.addPoint2NewContour(p)
+           
+    @validTool
+    def mouseReleaseEvent(self, e):       
+        if self.canvas.painter.NewContour:
+            self.canvas.painter.finishNewContour(drawaspolygon = True, close= False, lines = True)
+            self.drawimage = None
+    
+    @validTool            
+    def mousePressEvent(self, e):
+        if e.button() == Qt.LeftButton:
+            if self.canvas.painter.NewContour is None:
+                self.canvas.painter.prepareNewContour(lines = True)
+                self.canvas.painter.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.QPoint2np(self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))))
+
+    def Cursor(self):
+        return Qt.ArrowCursor
+
+
+class PolyLineTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Polyline"
+        self.type = canvasTool.polyline
+        self.drawimage = None
+        
+    def __del__(self): 
+        if self.canvas.painter.NewContour:
+            self.canvas.painter.finishNewContour(drawaspolygon = True, close= False, lines = True)
+            self.drawimage = None 
+        
+
+    @validTool
+    def mouseMoveEvent(self, e):
+        if self.canvas.painter.NewContour is not None:
+            if not self.canvas.fastPainting:
+                p2 = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                if self.drawimage is None:
+                    self.drawimage = self.canvas.image().copy()
+                self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getFieldOfViewRect())
+                p1 = self.canvas.np2QPoint(self.canvas.painter.NewContour.getLastPoint())
+                self.canvas.painter.addline(p1,p2, dashed = True)              
+    
+    @validTool
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.RightButton:
+            if self.canvas.painter.NewContour:
+                self.canvas.painter.finishNewContour(drawaspolygon = True, close = False, lines = True)
+                self.drawimage = None
+
+
+        elif e.button() == Qt.LeftButton:
+            if self.canvas.painter.NewContour is None:
+                self.canvas.painter.prepareNewContour(lines = True)
+                self.canvas.painter.NewContour = Contour.Contour(self.canvas.parent.activeClass(), self.canvas.QPoint2np(self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))))
+            else:
+                p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                self.canvas.painter.addPoint2NewContour(p)
+                if self.drawimage is None:
+                    self.drawimage = self.canvas.image().copy()
+                self.canvas.copyRect(self.canvas.image(),self.drawimage, self.canvas.getFieldOfViewRect())
+     
+    @validTool                 
+    def mousePressEvent(self,e):
+        pass
+
+    def Cursor(self):
+        return Qt.ArrowCursor
     
     
 class PolygonTool(AbstractTool):
@@ -344,6 +439,84 @@ class DeleteTool(AbstractTool):
     def Cursor(self):
         return Qt.ArrowCursor
         
+    
+class EraseTool(AbstractTool):
+    
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = "Erase"
+        self.type = canvasTool.erase
+        self.inprogress = False
+        self.lock = threading.RLock()
+        
+    @validTool
+    def mouseMoveEvent(self, e):
+        if self.canvas.painter.sketch is None:
+            return
+        with self.lock:
+            # if e.button() == Qt.LeftButton: is not working here for some reasons
+            if self.inprogress:
+                p0 = self.canvas.mapToScene(e.pos())
+                p = self.canvas.QPoint2np(p0)
+                x = p[0,0]
+                y = p[0,1]
+                self.canvas.painter.addCircle(p0, self.canvas.parent.SSize.value(), erase = True)
+                # self.canvas.painter.addCircle(p0, self.canvas.parent.SSize.value())
+                cv2.circle(self.canvas.painter.sketch, (x, y), self.canvas.parent.SSize.value(), (0), -1)
+
+    @validTool 
+    def mouseReleaseEvent(self,e):
+        if e.button() == Qt.LeftButton:
+            self.canvas.painter.finishNewContour()
+            self.inprogress = False
+
+    @validTool                 
+    def mousePressEvent(self,e):
+        if self.canvas.image() is None:
+            return
+        if e.button() == Qt.LeftButton:  
+            self.size = self.canvas.parent.SSize.value()
+            self.canvas.painter.prepareNewContour()
+            self.inprogress = True
+       
+    
+    @validTool
+    def wheelEvent(self,e):
+        if e.angleDelta().y() > 0:
+            v = self.canvas.parent.SSize.value() + 1
+            self.canvas.parent.SSize.setValue(v)
+        else:
+            v = self.canvas.parent.SSize.value() - 1
+            self.canvas.parent.SSize.setValue(v)
+        self.size = self.canvas.parent.SSize.value()
+        self.canvas.setCursor(self.Cursor())
+
+    def createCursor(self):
+        if not self.canvas.hasImage() or not self.canvas.zoomfactor():
+            return Qt.ArrowCursor
+        
+        size = (2*self.canvas.parent.SSize.value()) * self.canvas.zoomfactor()[0]
+        # unfortunately max size is somewhere around 100
+        if size > 95:
+            return Qt.SizeAllCursor
+        icon = QPixmap(size+1,size+1)
+        icon.fill(Qt.transparent)
+        p = QPainter(icon)
+        color = self.canvas.parent.ClassColor()
+        if self.canvas.parent.CBErase.isChecked():
+            p.setBrush(QBrush(Qt.NoBrush))
+            p.setPen(QPen(color, Qt.SolidLine))
+        else:
+            p.setBrush(QBrush(color,Qt.SolidPattern))
+            p.setPen(QPen(Qt.NoPen))
+            
+        p.drawEllipse(0, 0, size, size)
+        p.end()
+        return QCursor(icon, -1, -1)
+
+    def Cursor(self):
+        return self.createCursor()
     
 class ExtendTool(AbstractTool):
     

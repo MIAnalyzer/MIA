@@ -174,10 +174,13 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.Bdrag.clicked.connect(self.setCanvasMode)
         self.Bdraw.clicked.connect(self.setCanvasMode)
+        self.Bdrawline.clicked.connect(self.setCanvasMode)
         self.Bassign.clicked.connect(self.setCanvasMode)
         self.Bextend.clicked.connect(self.setCanvasMode)
+        self.Berase.clicked.connect(self.setCanvasMode)
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
+        self.Bpolyline.clicked.connect(self.setCanvasMode)
         self.Bassist.clicked.connect(self.setCanvasMode)
         
         self.BassignClass.clicked.connect(self.setCanvasMode)
@@ -186,11 +189,13 @@ class MIA_UI(QMainWindow, MainWindow):
         
         self.BsetObject.clicked.connect(self.setCanvasMode)
         self.BshiftObject.clicked.connect(self.setCanvasMode)
+        
+        self.RBLines.clicked.connect(self.setPointsLines)
+        self.RBPoints.clicked.connect(self.setPointsLines)
 
         self.BSetObjectNumber.clicked.connect(self.setCanvasMode)
         self.BDeleteObject.clicked.connect(self.setCanvasMode)
         self.BChangeObjectColor.clicked.connect(self.setCanvasMode)
-
         
         self.Btrain.clicked.connect(self.showTrainingWindow)
         self.Bpredictall.clicked.connect(self.predictAllImages)
@@ -521,6 +526,15 @@ class MIA_UI(QMainWindow, MainWindow):
         else:
             self.canvas.painter.disableDrawBackgroundMode()
             
+        if self.LearningMode() == dlMode.Object_Counting:
+            self.RBPoints.setEnabled(True if self.activeClass() else False)
+            self.RBLines.setEnabled(True if self.activeClass() else False)
+            if self.activeClass():
+                if self.RBPoints.isChecked():
+                    self.canvas.painter.enablePoints()
+                else:
+                    self.canvas.painter.enableLines()
+            
         # we need to first set all to invisible as otherwise the widget_width is extended 
         # and somewhat hard to control with pyqt :(
         for tool in canvasToolButton:
@@ -547,8 +561,15 @@ class MIA_UI(QMainWindow, MainWindow):
         if self.canvas.tool.type not in self.canvas.painter.tools:
             self.setCanvasTool(canvasTool.drag.name)
 
-
-
+    def setPointsLines(self):
+        self.classList.setPointsClass(self.activeClass(), self.RBPoints.isChecked())
+        self.setToolButtons()
+        
+    def getPointsLines(self):
+        if self.classList.getPointsClass(self.activeClass()):
+            self.RBPoints.setChecked(True)
+        else:
+            self.RBLines.setChecked(True)
         
     def addClass(self):
         self.classList.addClass()
@@ -586,6 +607,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.updateCursor()
 
     def classChanged(self):
+        self.getPointsLines()
         self.setToolButtons()
         self.updateCursor()
         self.canvas.painter.resetSmartMask()
@@ -716,6 +738,7 @@ class MIA_UI(QMainWindow, MainWindow):
         if self.initialized:
             self.training_form.SBClasses.SpinBox.setValue(self.NumOfClasses())
             self.training_form.settings_form.changeClassWeightSettings()
+            self.classChanged()
       
     @property
     def separateStackLabels(self):

@@ -200,6 +200,16 @@ class ClassList(QListWidget):
         item = self.item(classnum)
         if item:
             return self.itemWidget(item).classweight.value()
+        
+    def setPointsClass(self, classnum, points):
+        item = self.item(classnum)
+        if item:
+            self.itemWidget(item).points.setValue(points)
+            
+    def getPointsClass(self, classnum):
+        item = self.item(classnum)
+        if item:
+            return self.itemWidget(item).points.value()
             
     def getClassName(self, i):
         item = self.item(i)
@@ -260,6 +270,7 @@ class ClassWidget(QWidget):
         self.edit_name.setStyleSheet("QLineEdit { border: None }")
 
         self.classweight = QSetting(parent, 'nn_classweight_%i' % self.id, 0.5)
+        self.points = QSetting(parent, 'nn_points_%i' % self.id, True if self.id else False)
         
         
         self.label_numOfContours = QLabel(parent)

@@ -82,7 +82,7 @@ class Contour(Shape):
     def setClassLabel(self,n):
         self.classlabel = n
             
-    def addPoint(self, point):
+    def addPoint(self, point): 
         self.points = np.concatenate([self.points, [point]])
         self.boundingbox = None
             
@@ -155,7 +155,11 @@ class Contour(Shape):
     def inside(self, point, distance=0):
         # distance ignored atm, if needed use cv2.pointPolygonTest(self.points,  p, True) 
         p = (point[0,0], point[0,1])
-        inside = cv2.pointPolygonTest(self.points,  p, False)   
+
+        inside = cv2.pointPolygonTest(self.points,  p, True)
+        if distance >= abs(inside):
+            return True 
+        
         if inside < 0:
             return False
         if not self.innercontours:
@@ -193,8 +197,8 @@ class Contour(Shape):
         cY = int(M["m01"] / M["m00"])
         return (cX, cY)
     
-    def getPerimeter(self):
-        return cv2.arcLength(self.points,True)
+    def getPerimeter(self, closed = True):
+        return cv2.arcLength(self.points,closed)
     
     def getSkeletonLength(self, smoothing):
         if self.skeleton is None:
@@ -251,19 +255,28 @@ class Contour(Shape):
 
 
 # utilities
-def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False):
-    drawcontours(image, [contour], classlabel=contour.classlabel, ignoreclasslabel=False, separateContours = False)
+def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False, lines = False):
+    drawcontours(image, [contour], classlabel=contour.classlabel, ignoreclasslabel=ignoreclasslabel, separateContours = separateContours, lines = lines)
 
 
-def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separateContours = False):
+def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separateContours = False, lines = False):
     cnt = [x.points for x in contours if x.numPoints() > 0]
     inner = []
     [inner.extend(x.innercontours) for x in contours if x.innercontours != []]
     ref_image = image.copy()
-    if separateContours:
+    if lines:
+        for c in cnt:
+            if ignoreclasslabel:
+                cv2.drawContours(image, [c], -1, (1), 1)  
+            else:
+                cv2.drawContours(image, inner, -1, (int(classlabel)), 1)
+    elif separateContours:
         for c in cnt:
             cv2.drawContours(image, [c], -1, (0), 3)  
-            cv2.drawContours(image, [c], -1, (1), -1) 
+            if ignoreclasslabel:
+                cv2.drawContours(image, [c], -1, (1), -1) 
+            else:
+                cv2.drawContours(image, [c], -1, (int(classlabel)), -1) 
     else:
         if ignoreclasslabel:
             cv2.drawContours(image, cnt, -1, (1), -1)  
@@ -283,7 +296,7 @@ def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separate
             cv2.drawContours(image, inner, -1, (BACKGROUNDCLASS), 1)
 
 
-def drawContoursToLabel(label, contours, drawbackground = True):
+def drawContoursToLabel(label, contours, drawbackground = True, lines = False):
     if contours == []:
         return
 
@@ -293,12 +306,15 @@ def drawContoursToLabel(label, contours, drawbackground = True):
         if i== 0:
             label = drawbackgroundToLabel(label, list(class_cnts))
         else:
-            drawcontours(label, list(class_cnts), classlabel=i)
+            drawcontours(label, list(class_cnts), classlabel=i, lines = lines)
         
     if not drawbackground:
         label[label==BACKGROUNDCLASS] = 0
     
     return label
+
+def drawContoursToImage(image, contours, separate = False, lines = False):  
+    drawcontours(image, contours, ignoreclasslabel=True, separateContours=separate, lines = lines)
 
 def drawbackgroundToLabel(label, background):
     if not background or background == list():
@@ -307,12 +323,10 @@ def drawbackgroundToLabel(label, background):
         drawcontours(label, background, classlabel=0)
     return label
        
-def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
+def extractContoursFromLabel(image, ext_only = False, offset=(0,0), lineextraction = False):
     image = np.squeeze(image).astype(np.uint8)
     ret_contours = []
-    counter = -1
 
-    # contours
     if np.all(image == BACKGROUNDCLASS):
         return []
     maxclass = np.max(image[image!=BACKGROUNDCLASS])
@@ -325,39 +339,35 @@ def extractContoursFromLabel(image, ext_only = False, offset=(0,0)):
         else:
             thresh = (image == i).astype(np.uint8)
 
-        contours, hierarchy = findContours(thresh, ext_only, offset)
-        if contours is not None:
-            
-            for k, c in enumerate(contours):
-                parent = hierarchy [0][k][3]
-                if parent > -1:
-                    ret_contours[counter].addInnerContour(c)
-                else:
-                    ret_contours.append(Contour(i,c))
-                    counter += 1
+        ret_contours.extend(getContours(thresh, i, ext_only, offset, lineextraction))
+
     ret_contours.reverse()
     return ret_contours
 
-def drawContoursToImage(image, contours, separate = False):  
-    drawcontours(image, contours, ignoreclasslabel=True, separateContours=separate)
-
-
-def extractContoursFromImage(image, ext_only = False, offset = (0,0)):
+def extractContoursFromImage(image, ext_only = False, offset = (0,0), lineextraction = False):
     image = np.squeeze(image).astype(np.uint8)
-    ret_contours = []
-    contours, hierarchy = findContours(image, ext_only, offset)
-
-    if contours is not None:
-        counter = -1
-        for k,c in enumerate(contours):
-            parent = hierarchy [0][k][3]
-            if parent > -1:
-                ret_contours[counter].addInnerContour(c)
-            else:
-                ret_contours.append(Contour(-1,c))
-                counter += 1
+    ret_contours = getContours(image, -1, ext_only, offset, lineextraction)
     ret_contours.reverse()
     return ret_contours
+
+def getContours(threshImage, classlabel, ext_only, offset, lineextraction):
+    detected_contours = []
+    counter = -1
+    contours, hierarchy = findContours(threshImage, ext_only and not lineextraction, offset)
+    if contours is not None:
+        for k, c in enumerate(contours):
+            parent = hierarchy [0][k][3]
+            if lineextraction:
+                detected_contours.append(Contour(classlabel,c))
+                counter += 1
+            else:
+                if parent > -1:
+                    detected_contours[counter].addInnerContour(c)
+                else:
+                    detected_contours.append(Contour(classlabel,c))
+                    counter += 1
+    return detected_contours
+
 
 def packContours(contours):
     if not contours or len(contours) == 0:

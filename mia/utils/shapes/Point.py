@@ -80,8 +80,8 @@ class Point(Shape):
 def distance_p1_p2(p1,p2):
     return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
-def savePoints(points, filename, background = None):
-    bg = packContours(background)
+def savePoints(points, filename, lines = None):
+    bg = packContours(lines)
     pts = []
     if len(points) > 0:   
         f1 = lambda x: np.array((x.classlabel, x.objectNumber),dtype=int)
