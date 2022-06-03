@@ -94,7 +94,7 @@ class DeepLearning(dlObservable):
         
         
         # object detection settings
-        self.od_kernel_stdev = 3
+        self.od_kernel_size = 3
         self.od_peak_val = 125
         
 

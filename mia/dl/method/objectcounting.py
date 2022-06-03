@@ -42,9 +42,7 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         return label
     
     def setObjectSize(self):
-        # stdev should be between 1 and 10 and equals the expansion of an object
-        # peakval is the max value of a single object at its coordinates
-        k = cv2.getGaussianKernel(67, self.parent.od_kernel_stdev) 
+        k = cv2.getGaussianKernel(self.parent.od_kernel_size, -1)
         self.kernel = k*np.transpose(k)
         self.scalefactor = self.parent.od_peak_val/np.max(self.kernel)
         

@@ -27,7 +27,7 @@ class Window(object):
         hlayout = QHBoxLayout()
         self.SObjectSize =  QSlider(Qt.Horizontal, self.centralWidget)
         self.SObjectSize.setMinimum(1)
-        self.SObjectSize.setMaximum(10)
+        self.SObjectSize.setMaximum(255)
         self.SObjectSize.setObjectName('nn_CountingObjectSize')
         self.SObjectSize.setToolTip('Use to adapt object size and distribution. Use smaller values for small and densely distributed objects')
         self.LObjSize = QLabel(self.centralWidget)
@@ -91,7 +91,7 @@ class ObjectDetectionSettingsWindow(QMainWindow, Window):
         self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.augmentation.od_ignoreBackground)
         
     def show(self):
-        self.SObjectSize.setValue(self.parent.parent.dl.od_kernel_stdev)
+        self.SObjectSize.setValue(self.parent.parent.dl.od_kernel_size)
         self.SObjectIntensity.setValue(self.parent.parent.dl.od_peak_val)
         self.CBIgnoreBackgroundTiles.setChecked(self.parent.parent.dl.augmentation.od_ignoreBackground)
         self.SBDiscard.SpinBox.setValue(self.parent.parent.dl.augmentation.od_ignorecycles)
@@ -99,7 +99,7 @@ class ObjectDetectionSettingsWindow(QMainWindow, Window):
         super(ObjectDetectionSettingsWindow, self).show()
         
     def ObjectSizeChanged(self):
-        self.parent.parent.dl.od_kernel_stdev = self.SObjectSize.value()
+        self.parent.parent.dl.od_kernel_size = self.SObjectSize.value()
         
     def ObjectIntensityChanged(self):
         self.parent.parent.dl.od_peak_val = self.SObjectIntensity.value()
