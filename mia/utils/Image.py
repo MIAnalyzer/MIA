@@ -4,7 +4,8 @@ from PIL import Image
 import numpy as np
 from scipy.ndimage import zoom
 
-import dl.data.imagedata as data
+import dl.data.imagedata
+
 
 def supportedImageFormats():
     return ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']
@@ -155,7 +156,7 @@ class ImageFile():
         return im.astype(np.uint8)
 
     def getDLInputImage(self, channels, channelmode, frame=0):
-        if channelmode == data.dlChannels.Mono or channelmode == data.dlChannels.RGB:
+        if channelmode == dl.data.imagedata.dlChannels.Mono or channelmode == dl.data.imagedata.dlChannels.RGB:
             return self.convertFrame2DeepLearningInput(channels, self.getImage(frame))
         else:
             return self.convertStack2DeepLearningInput(channels, self.getImage(frame))
