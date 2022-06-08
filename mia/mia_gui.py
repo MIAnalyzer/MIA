@@ -957,6 +957,7 @@ class MIA_UI(QMainWindow, MainWindow):
                     except:
                         pass
                     self.dl.initModel(self.NumOfClasses())
+
                     self.dl.LoadModelWeights(filename)
                     self.writeStatus('model loaded')
                     

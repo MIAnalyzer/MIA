@@ -310,6 +310,7 @@ class AssignTool(AbstractTool):
                 contour.setClassLabel(self.canvas.parent.activeClass())
                 self.canvas.painter.checkForChanges()
                 
+                
     def mousePressEvent(self,e):
         pass
 
