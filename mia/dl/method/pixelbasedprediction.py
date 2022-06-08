@@ -43,8 +43,7 @@ class PixelBasedPrediction(ABC):
         results = []
         origImage = image
         
-        res = self.PredictFromGenerator(origImage)
-
+        res = self.PredictFromGenerator(origImage)       
         results.append(res)
         
         if self.parent.tta:

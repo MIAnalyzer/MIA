@@ -27,6 +27,7 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
 
         self.kernel = None
         self.scalefactor = 1
+        self.ignoreBackgroundLayer = True
 
         self.maxDetectionLimit = 5000
 
@@ -50,7 +51,7 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         # should we create heatmap here?
         return label
         
-    def preprocessLabel(self, label):
+    def preprocessLabel(self, label):        
         label = label.astype('float')
         self.setObjectSize()
         if self.parent.NumClasses > 2:
@@ -59,7 +60,11 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
             for i in range(label.shape[0]):
                 one_hot[i,...] = cv2.filter2D(one_hot[i,...],-1, self.kernel)
                 one_hot[i,...,0] = one_hot[i,...,0]-(1-np.max(self.kernel))
-                label = one_hot
+            
+
+            if self.ignoreBackgroundLayer:
+                one_hot[...,0] = 0
+            label = one_hot
         else:
             for i in range(label.shape[0]):
                 label[i,...,0] = cv2.filter2D(label[i,...],-1, self.kernel)
@@ -79,21 +84,23 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
     def convert2Image(self,prediction):
         prediction = np.squeeze(prediction)
         # threshold?
-        thresh = 1
+        thresh = self.parent.od_peak_val//3
         calcResult = True
         # we need to add emergency break here, otherwise too many objects might be detected and break program
-        while calcResult and thresh < 100:
+        while calcResult and thresh < self.parent.od_peak_val:
             result = np.zeros(prediction.shape[0:2])
-            prediction[prediction < thresh] = 0
-
             if self.parent.NumClasses > 2:
                 maxarg = np.argmax(prediction, axis = 2)
                 for i in range(1,prediction.shape[2]):
-                    peaks = peak_local_max(prediction[...,i], min_distance=3, indices = False)
+                    maxvals = peak_local_max(prediction[...,i], min_distance=max(2,self.parent.od_kernel_size//4), threshold_abs=thresh)
+                    peaks = np.zeros_like(prediction[...,i], dtype='bool')
+                    peaks[tuple(maxvals.T)] = True
                     result[(maxarg==i) & peaks] = i 
             else:
-                peaks = peak_local_max(prediction, min_distance=3, indices = False)
-                result[peaks] = 1
+                maxvals = peak_local_max(prediction, min_distance=max(2,self.parent.od_kernel_size//3), threshold_abs=thresh)
+                peak_mask = np.zeros_like(prediction, dtype='bool')
+                peak_mask[tuple(maxvals.T)] = True  
+                result[peak_mask] = 1
             calcResult = np.count_nonzero(result) > self.maxDetectionLimit
             thresh += 1
 

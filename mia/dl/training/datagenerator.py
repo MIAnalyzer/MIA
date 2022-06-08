@@ -59,7 +59,7 @@ class TrainingDataGenerator(Sequence):
             img, mask = self.parent.augmentation.augment(batch_images,batch_masks, self.validation)
 
             img = self.parent.data.preprocessImage(img)   
-            mask = self.parent.data.preprocessLabel(mask)          
+            mask = self.parent.data.preprocessLabel(mask)                     
             return img, mask
         
     def _loadBatchFromMemory(self, batch_start, batch_end): 
