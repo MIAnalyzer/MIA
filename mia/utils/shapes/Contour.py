@@ -13,7 +13,6 @@ import math
 from skimage import morphology
 from skimage.morphology import medial_axis, skeletonize
 
-
 BACKGROUNDCLASS = 255
 from utils.shapes.Shape import Shape, Shapes, FreeFormContour_ID, FreeFormContour_ID_legacy
 
@@ -252,10 +251,19 @@ class Contour(Shape):
 
 # utilities
 def drawcontour(image, contour, ignoreclasslabel=False, separateContours = False):
-    drawcontours(image, [contour], classlabel=contour.classlabel, ignoreclasslabel=False, separateContours = False)
+    contouring(image, [contour], classlabel=contour.classlabel, ignoreclasslabel=False, separateContours = False)
 
 
 def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separateContours = False):
+    cnt_with_innercnts = [x for x in contours if x.innercontours != []]
+    cnt_without_innercnts = [x for x in contours if x.innercontours == []]
+    
+    for c in cnt_with_innercnts:
+        contouring(image, [c], classlabel, ignoreclasslabel, separateContours)
+    contouring(image, cnt_without_innercnts, classlabel, ignoreclasslabel, separateContours)
+    
+def contouring(image, contours, classlabel=1, ignoreclasslabel=False, separateContours = False):
+    
     cnt = [x.points for x in contours if x.numPoints() > 0]
     inner = []
     [inner.extend(x.innercontours) for x in contours if x.innercontours != []]
@@ -267,9 +275,11 @@ def drawcontours(image, contours, classlabel=1, ignoreclasslabel=False, separate
     else:
         if ignoreclasslabel:
             cv2.drawContours(image, cnt, -1, (1), -1)  
-            cv2.drawContours(image, inner, -1, (0), -1)
+            cv2.drawContours(image, inner, -1, (BACKGROUNDCLASS), -1)
             # the contour of inner needs to be redrawn and belongs to outer, otherwise the inner contour is growing on each iteration
             cv2.drawContours(image, inner, -1, (1), 1)
+            image[image==BACKGROUNDCLASS] = ref_image[image==BACKGROUNDCLASS]
+
         elif classlabel != 0:
             cv2.drawContours(image, cnt, -1, (int(classlabel)), -1)  
             cv2.drawContours(image, inner, -1, (BACKGROUNDCLASS), -1)
