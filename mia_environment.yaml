@@ -15,7 +15,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.7
-  - tensorflow-gpu=2.6
+  - tensorflow-gpu # installs different tf-version on linux and windows, tested for 2.6 (win) and 2.4 (linux)
   - pyqt=5.12.3
   - opencv=4.5.1
   - scikit-image=0.18.1
