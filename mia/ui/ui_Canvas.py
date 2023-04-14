@@ -313,7 +313,7 @@ class Canvas(QGraphicsView):
         self.lasttool = self.tool  
         self.updateImage()
         self.tool.HideSettings()
-        
+
         if tool == canvasTool.drag.name:
             self.tool = Tools.DragTool(self)
         elif tool == canvasTool.draw.name:
@@ -328,6 +328,8 @@ class Canvas(QGraphicsView):
             self.tool = Tools.PolygonTool(self)
         elif tool == canvasTool.assist.name:
             self.tool = Tools.DEXTRTool(self)
+        elif tool == canvasTool.sam.name:
+            self.tool = Tools.SAMTool(self)
         elif tool == canvasTool.scale.name:
             self.tool = Tools.ScaleTool(self)
         elif tool == canvasTool.point.name:

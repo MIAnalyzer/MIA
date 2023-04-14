@@ -29,6 +29,7 @@ import dl.training.lrschedule as schedule
 import dl.machine_learning.hed as hed
 import dl.machine_learning.dextr.dextr_segmentation as dextr
 import dl.machine_learning.grabcut_segmentation as gcs
+import dl.machine_learning.segment_anything.sam as sam
 import dl.data.imagedata as imagedata
 from dl.method.segmentation import Segmentation
 from dl.method.objectcounting import ObjectCounting
@@ -52,6 +53,7 @@ class DeepLearning(dlObservable):
         self.hed = hed.HED_Segmentation()
         self.dextr = dextr.DEXTR_Segmentation()
         self.grabcut = gcs.GrabCutSegmentation()
+        self.sam = sam.SegmentAnything()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment(self)
         self.record = training_record.TrainingRecording(self)
@@ -259,6 +261,22 @@ class DeepLearning(dlObservable):
         except:
             self.notifyError() 
         self.notifyPredictionFinished(prediction)
+        
+    def SAM(self, image, bbox, points, labels):
+        
+        width = image.shape[1]
+        height = image.shape[0]
+        image = cv2.resize(image, (int(width*self.ImageScaleFactor), int(height*self.ImageScaleFactor)))
+        
+        
+        if bbox is not None:
+            bbox = int(bbox*self.ImageScaleFactor)
+        if points is not None:
+            points = points*self.ImageScaleFactor
+
+        self.sam.setImage(image)
+        mask = np.squeeze(self.sam.getMask(bbox, points, labels)).astype(np.uint8)
+        return cv2.resize(mask, (width, height), interpolation=cv2.INTER_NEAREST)
 
 
     def AutoSegment(self, image):    

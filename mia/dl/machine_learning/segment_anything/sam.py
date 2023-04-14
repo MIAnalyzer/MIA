@@ -38,7 +38,6 @@ class SegmentAnything():
                 self.image = image
             else:
                 if self.image.shape != image.shape or not (self.image==image).all():
-                    t =time.time()
                     self.predictor.set_image(image)
                     self.image = image
         except:

@@ -24,6 +24,7 @@ class ContourPainter(Painter):
         super(ContourPainter,self).__init__(canvas)
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.assist)
+        self.tools.append(canvasTool.sam)
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)
         self.tools.append(canvasTool.deleteobject)
@@ -61,6 +62,7 @@ class ContourPainter(Painter):
         super(ContourPainter, self).enableDrawBackgroundMode()
         self.tools.append(canvasTool.assign)
         self.tools.append(canvasTool.assist)
+        self.tools.append(canvasTool.sam)
         self.tools.append(canvasTool.objectnumber)
         self.tools.append(canvasTool.objectcolor)
         self.tools.append(canvasTool.deleteobject)
@@ -139,6 +141,24 @@ class ContourPainter(Painter):
             Contour.drawContoursToImage(self.contoursketch, smartcontours)  
 
         super(ContourPainter, self).getFinalContours()
+        
+    def SegmentAnything(self, points, labels, bbox):
+        with self.canvas.parent.wait_cursor():
+            try:
+                prediction = self.canvas.parent.dl.SAM(self.canvas.parent.getCurrentImage(), None, np.asarray(points, dtype = np.int), np.asarray(labels, dtype = np.int))
+            except:
+                self.canvas.parent.PopupWarning('SAM not working, try smaller image size (settings->Image Down Scaling)')
+                return
+            
+            if prediction is None:
+                self.canvas.redrawImage()
+                return
+            shapes = Contour.extractContoursFromLabel(prediction, not self.canvas.parent.allowInnerContours)
+            for s in shapes:
+                s.setClassLabel(self.canvas.parent.activeClass())
+            self.contours.addShapes(shapes)
+            self.checkForChanges()    
+    
 
     def assistedSegmentation(self, extremepoints):
         with self.canvas.parent.wait_cursor():

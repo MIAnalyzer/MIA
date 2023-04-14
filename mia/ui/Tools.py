@@ -26,6 +26,7 @@ class canvasTool(Enum):
     extend = 'extend'
     poly =  'poly'
     assist = 'assist'
+    sam = 'sam'
     scale =  'scale'
     shift = 'shift'
     point = 'point'
@@ -467,6 +468,53 @@ class DEXTRTool(AbstractTool):
             if len(self.extremePoints) == 4:
                 self.canvas.painter.assistedSegmentation(self.extremePoints)
                 self.extremePoints.clear()
+
+    def mousePressEvent(self,e):
+        pass
+    def Cursor(self):
+        return Qt.ArrowCursor  
+    
+class SAMTool(AbstractTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.canvas = canvas
+        self.Text = 'Segment Anything'
+        self.type = canvasTool.sam
+        self.Points = []
+        self.Labels = []
+        self.BoundingBox = []
+
+    def __del__(self): 
+        self.Points.clear()
+        self.Labels.clear()
+        self.BoundingBox.clear()
+        self.canvas.redrawImage()
+        
+    def mouseMoveEvent(self, e):
+        pass
+
+    @validTool  
+    def mouseReleaseEvent(self,e):
+        if self.canvas.image() is None:
+            return
+        if e.button() == Qt.LeftButton:  
+            p = self.canvas.mapToScene(e.pos())
+
+            h = self.canvas.pen_size
+            w = self.canvas.pen_size
+            x = p.x() - w//2
+            y = p.y() - h//2
+
+            self.canvas.painter.addRectangle(x, y, h, w)
+            self.Points.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
+            self.Labels.append(1)
+            
+        if e.button() == Qt.RightButton:  
+            if self.Points:
+                self.canvas.painter.SegmentAnything(self.Points, self.Labels, None)
+                self.Points.clear()
+                self.Labels.clear()
+        
 
     def mousePressEvent(self,e):
         pass
