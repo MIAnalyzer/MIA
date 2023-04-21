@@ -69,6 +69,7 @@ setup(
 	'mia/icons/saveall.png',
 	'mia/icons/savemodel.png', 
 	'mia/icons/setclass.png',
+	'mia/icons/setallclass.png',
 	'mia/icons/settings.png', 
 	'mia/icons/shift.png',
 	'mia/icons/tracking.png', 
