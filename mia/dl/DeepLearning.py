@@ -29,7 +29,7 @@ import dl.training.lrschedule as schedule
 import dl.machine_learning.hed as hed
 import dl.machine_learning.dextr.dextr_segmentation as dextr
 import dl.machine_learning.grabcut_segmentation as gcs
-import dl.machine_learning.segment_anything.sam as sam
+# import dl.machine_learning.segment_anything.sam as sam
 import dl.data.imagedata as imagedata
 from dl.method.segmentation import Segmentation
 from dl.method.objectcounting import ObjectCounting
@@ -53,7 +53,7 @@ class DeepLearning(dlObservable):
         self.hed = hed.HED_Segmentation()
         self.dextr = dextr.DEXTR_Segmentation()
         self.grabcut = gcs.GrabCutSegmentation()
-        self.sam = sam.SegmentAnything()
+        # self.sam = sam.SegmentAnything()
         self.data = imagedata.ImageData(self)
         self.augmentation = augment.ImageAugment(self)
         self.record = training_record.TrainingRecording(self)
@@ -270,7 +270,7 @@ class DeepLearning(dlObservable):
         
         
         if bbox is not None:
-            bbox = int(bbox*self.ImageScaleFactor)
+            bbox = bbox*self.ImageScaleFactor
         if points is not None:
             points = points*self.ImageScaleFactor
 
