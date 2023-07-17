@@ -12,9 +12,9 @@ import numpy as np
 import random
 import threading
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import time
-from tensorflow.python.keras.utils.data_utils import Sequence
+from tensorflow.keras.utils import Sequence
 import dl.utils.dl_utils as dl_utils
+
 
 class TrainingDataGenerator(Sequence):
     def __init__(self, parent, validation = False):

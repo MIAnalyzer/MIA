@@ -332,7 +332,7 @@ def EfficientNet(width_coefficient,
         img_input = layers.Input(shape=input_shape)
     else:
         if backend.backend() == 'tensorflow':
-            from tensorflow.python.keras.backend import is_keras_tensor
+            from tensorflow.keras.backend import is_keras_tensor
         else:
             is_keras_tensor = backend.is_keras_tensor
         if not is_keras_tensor(input_tensor):

@@ -145,7 +145,16 @@ class ContourPainter(Painter):
     def SegmentAnything(self, points, labels, bbox):
         with self.canvas.parent.wait_cursor():
             try:
-                prediction = self.canvas.parent.dl.SAM(self.canvas.parent.getCurrentImage(), None, np.asarray(points, dtype = np.int), np.asarray(labels, dtype = np.int))
+                if not bbox.any():
+                    bbox = None
+                if not points:
+                    points = None
+                    labels = None
+                else:
+                    points = np.asarray(points, dtype = np.int)
+                    labels = np.asarray(labels, dtype = np.int)
+                prediction = self.canvas.parent.dl.SAM(self.canvas.parent.getCurrentImage(), bbox, points, labels)
+
             except:
                 self.canvas.parent.PopupWarning('SAM not working, try smaller image size (settings->Image Down Scaling)')
                 return

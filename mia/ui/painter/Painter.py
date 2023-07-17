@@ -176,8 +176,10 @@ class Painter(ABC):
         self.canvas.updateImage()
 
 
-    def addRectangle(self, x, y, width, height, color = None):
+    def addRectangle(self, x, y, width, height, color = None, filled = True):
         p = self.getPainter(color)
+        if not filled:
+            p.setBrush(Qt.NoBrush)
         p.drawRect(x, y, width, height)
         self.canvas.updateImage()
 

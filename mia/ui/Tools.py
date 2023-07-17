@@ -482,42 +482,114 @@ class SAMTool(AbstractTool):
         self.type = canvasTool.sam
         self.Points = []
         self.Labels = []
-        self.BoundingBox = []
+        self.BoundingBox = np.array([0, 0, 0, 0])
+        self.beginbb = False
+        self.drawimage = None
 
     def __del__(self): 
         self.Points.clear()
         self.Labels.clear()
-        self.BoundingBox.clear()
+        self.BoundingBox = np.array([0, 0, 0, 0])
         self.canvas.redrawImage()
+        self.drawimage = None  
+
+    @property
+    def mode(self):
+        # 0: negative points; 1: positive points; 2: bounding box
+        if self.canvas.parent.RBsamneg.isChecked():
+            return 0
+        elif self.canvas.parent.RBsampos.isChecked():
+            return 1
+        elif self.canvas.parent.RBsambb.isChecked():
+            return 2
         
-    def mouseMoveEvent(self, e):
-        pass
+    def mouseMoveEvent(self, e):     
+        if not self.canvas.fastPainting:
+            if self.mode == 2:
+                if self.beginbb:
+                    p = self.canvas.f2intPoint(self.canvas.mapToScene(e.pos()))
+                    if self.drawimage is None:
+                        self.drawimage = self.canvas.image().copy()
+                    self.canvas.copyRect(self.drawimage, self.canvas.image(),self.canvas.getFieldOfViewRect())
+                    x = self.BoundingBox[0]
+                    y = self.BoundingBox[1]
+                    h = p.x()-self.BoundingBox[0]
+                    w = p.y()-self.BoundingBox[1]  
+                    self.canvas.painter.addRectangle(x, y, h, w, filled = False)
 
     @validTool  
     def mouseReleaseEvent(self,e):
         if self.canvas.image() is None:
             return
+        
         if e.button() == Qt.LeftButton:  
-            p = self.canvas.mapToScene(e.pos())
+            if self.mode == 0 or self.mode == 1:
+                p = self.canvas.mapToScene(e.pos())
+    
+                h = max(self.canvas.pen_size,2)
+                w = max(self.canvas.pen_size,2)
+                x = p.x() - w//2
+                y = p.y() - h//2
 
-            h = self.canvas.pen_size
-            w = self.canvas.pen_size
-            x = p.x() - w//2
-            y = p.y() - h//2
+                if self.mode == 0:
+                    color = QColor(255,0,0)
+                if self.mode == 1:
+                    color = QColor(0,255,0)
+                self.canvas.painter.addRectangle(x, y, h, w, color)
+                self.Points.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
+                self.Labels.append(self.mode)
+            elif self.mode == 2:
+                p = self.canvas.mapToScene(e.pos())
+                self.BoundingBox[2] = p.x()
+                self.BoundingBox[3] = p.y()
+                
+                
+                         
+                if self.BoundingBox[2] < self.BoundingBox[0]:
+                    self.BoundingBox[2], self.BoundingBox[0] = self.BoundingBox[0], self.BoundingBox[2]
+                if self.BoundingBox[3] < self.BoundingBox[1]:
+                    self.BoundingBox[3], self.BoundingBox[1] = self.BoundingBox[1], self.BoundingBox[3]
 
-            self.canvas.painter.addRectangle(x, y, h, w)
-            self.Points.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
-            self.Labels.append(1)
+                if self.canvas.fastPainting:
+                    x = self.BoundingBox[0]
+                    y = self.BoundingBox[1]
+                    h = self.BoundingBox[2]-self.BoundingBox[0]
+                    w = self.BoundingBox[3]-self.BoundingBox[1]
+                    self.canvas.painter.addRectangle(x, y, h, w, filled = False)
+                    
+                self.beginbb = False
             
+        modifiers = QApplication.keyboardModifiers()
         if e.button() == Qt.RightButton:  
-            if self.Points:
-                self.canvas.painter.SegmentAnything(self.Points, self.Labels, None)
-                self.Points.clear()
-                self.Labels.clear()
+            if modifiers == Qt.ShiftModifier or modifiers == Qt.ControlModifier:
+                if self.mode == 0:
+                    self.canvas.parent.RBsambb.setChecked(True) 
+                elif self.mode == 1:
+                    self.canvas.parent.RBsamneg.setChecked(True)
+                elif self.mode == 2:
+                    self.canvas.parent.RBsampos.setChecked(True)
+                self.canvas.setCursor(self.Cursor())
+            else:
+                if self.Points or self.BoundingBox.any():
+                    self.canvas.painter.SegmentAnything(self.Points, self.Labels, self.BoundingBox)
+                    self.Points.clear()
+                    self.Labels.clear()
+                    self.BoundingBox = np.zeros_like(self.BoundingBox)
+
         
 
     def mousePressEvent(self,e):
-        pass
+        if self.canvas.image() is None:
+            return
+
+        if e.button() == Qt.LeftButton: 
+            if self.mode == 2:
+                p = self.canvas.mapToScene(e.pos())
+                self.BoundingBox[0] = p.x()
+                self.BoundingBox[1] = p.y()
+                self.beginbb = True
+                self.drawimage = None
+            
     def Cursor(self):
         return Qt.ArrowCursor  
 

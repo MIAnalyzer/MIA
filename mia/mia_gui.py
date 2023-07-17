@@ -179,6 +179,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.Bdelete.clicked.connect(self.setCanvasMode)
         self.Bpoly.clicked.connect(self.setCanvasMode)
         self.Bassist.clicked.connect(self.setCanvasMode)
+        self.BsamTool.clicked.connect(self.setCanvasMode)
         
         self.BassignClass.clicked.connect(self.setCanvasMode)
         self.BsetClass.clicked.connect(self.setCanvasMode)
@@ -191,7 +192,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.BDeleteObject.clicked.connect(self.setCanvasMode)
         self.BChangeObjectColor.clicked.connect(self.setCanvasMode)
 
-        
+        self.CBSAM.stateChanged.connect(self.showSAMFrame)
         self.Btrain.clicked.connect(self.showTrainingWindow)
         self.Bpredictall.clicked.connect(self.predictAllImages)
         self.Bpredict.clicked.connect(self.predictImage)
@@ -199,11 +200,9 @@ class MIA_UI(QMainWindow, MainWindow):
         self.Bsavemodel.clicked.connect(self.saveModel)
         self.Bautoseg.clicked.connect(self.autoSegment)
         self.CBSmartMode.stateChanged.connect(self.setSmartMode)
-        self.CBInner.stateChanged.connect(self.updateImage)
 
         self.Bresetmodel.clicked.connect(self.resetModel)
         self.Bautodect.clicked.connect(self.autoPointDetection)
-        
         
         self.Bresults.clicked.connect(self.showResultsWindow)
         self.BSettings.clicked.connect(self.showSettingsWindow)
@@ -240,6 +239,10 @@ class MIA_UI(QMainWindow, MainWindow):
         self.AOpenManual.triggered.connect(self.OpenManual)
         self.AOpenGithub.triggered.connect(self.OpenGithub)
         self.AOpenLog.triggered.connect(self.showLog)
+
+        self.Asam_vit_b.triggered.connect(self.set_sam_Model)
+        self.Asam_vit_l.triggered.connect(self.set_sam_Model)
+        self.Asam_vit_h.triggered.connect(self.set_sam_Model)
         
         self.AExit.triggered.connect(self.close)
         self.ASettings.triggered.connect(self.showSettingsWindow)
@@ -437,7 +440,7 @@ class MIA_UI(QMainWindow, MainWindow):
         
     @property
     def allowInnerContours(self):
-        return self.CBInner.isChecked()
+        return self.settings_form.CBInner.isChecked()
         
     def changeLearningMode(self, i):
         self.dl.WorkingMode = dlMode(i)
@@ -447,7 +450,7 @@ class MIA_UI(QMainWindow, MainWindow):
             self.SegmentationSettings.show()
         else:
             self.SegmentationSettings.hide()
-            
+
         if self.LearningMode() == dlMode.Object_Counting:
             self.DetectionSettings.show()
         else:
@@ -470,6 +473,8 @@ class MIA_UI(QMainWindow, MainWindow):
             
 
         self.setWorkingFolder()
+
+
 
     def TrackingSupported(self):
         if self.LearningMode() == dlMode.Segmentation:
@@ -514,6 +519,13 @@ class MIA_UI(QMainWindow, MainWindow):
         if not self.files.train_test_dir and self.TrackingSupported():
             return self.Tracking.isVisible()
         return False
+
+    def showSAMFrame(self):
+        if self.CBSAM.isChecked():
+            self.SAMSettings.show()
+        else:
+            self.SAMSettings.hide()
+    
 
     def setToolButtons(self):
         if self.activeClass() == 0:
@@ -1151,6 +1163,14 @@ class MIA_UI(QMainWindow, MainWindow):
     def autoPointDetection(self):
         with self.wait_cursor():
             self.canvas.painter.autodetection()
+
+    def set_sam_Model(self):
+        if self.Asam_vit_b.isChecked():
+            self.dl.sam.setModel('vit_b')
+        elif self.Asam_vit_l.isChecked():
+            self.dl.sam.setModel('vit_l')
+        elif self.Asam_vit_h.isChecked():
+            self.dl.sam.setModel('vit_h')
         
     def saveDLClass(self):
         

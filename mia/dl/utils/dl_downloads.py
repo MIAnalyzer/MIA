@@ -10,7 +10,7 @@ Created on Thu Dec 16 12:32:17 2021
 # rework and unify
     
 import os
-from tensorflow.python.keras.utils.data_utils import get_file
+from tensorflow.keras.utils import get_file
 
 SUBDIR = 'models'
 MIAURL = 'https://github.com/MIAnalyzer/MIA/releases/download/weights/'
@@ -60,6 +60,20 @@ def get_dextr():
     fname = 'dextr_coco.h5'
     url = MIAURL + fname
     fhash = '16415d65f6e15d3fa053afa21d5927e0'
+    return getTargetFile(fname, url, fhash)
+
+def get_sam(model_name):
+    if model_name == 'vit_b':
+        fname = 'sam_vit_b_01ec64.pth'
+        fhash = '01ec64d29a2fca3f0661936605ae66f8'
+    elif model_name == 'vit_l':
+        fname = 'sam_vit_l_0b3195.pth'
+        fhash = '0b3195507c641ddb6910d2bb5adee89c'
+    # can not store on github atm, because file is larger 2GB
+    elif model_name == 'vit_h':
+        fname = 'sam_vit_h_4b8939.pth'
+        fhash = '4b8939a88964f0f4ff5f5b2642c598a6'
+    url = MIAURL + fname
     return getTargetFile(fname, url, fhash)
 
 def get_deeplabX():

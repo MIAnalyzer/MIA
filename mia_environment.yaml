@@ -12,17 +12,26 @@
 name: mia_environment
 channels:
   - defaults
-  - conda-forge
+  - nvidia
 dependencies:
   - python=3.7
-  - tensorflow-gpu # installs different tf-version on linux and windows, tested for 2.6 (win) and 2.4 (linux)
-  - pyqt=5.12.3
   - opencv=4.5.1
   - scikit-image=0.18.1
   - imgaug=0.4
+  - conda-forge::pyqt=5.12.3
+  - conda-forge::cudatoolkit=11.3.1
+  - conda-forge::cudnn=8.1.0
   - conda-forge::pillow=8.4.0
+  - pytorch::pytorch=1.13.1
+  - pytorch::torchvision=0.14.1
+  - pytorch::pytorch-cuda=11.7
   - pip
   - pip:
+    - tensorflow < 2.11
     - mianalyzer
-
   
+# for linux: in case you receive: 'GLIBCXX_3.4.xx not found', run:
+# export LD_LIBRARY_PATH=/path-to-conda/envs/mia_environment/lib:$LD_LIBRARY_PATH
+  
+
+

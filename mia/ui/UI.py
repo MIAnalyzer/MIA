@@ -5,6 +5,7 @@ Created on Thu Oct 10 11:28:44 2019
 @author: Koerber
 """
 
+from msilib.schema import RadioButton
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -143,7 +144,7 @@ class MainWindow(object):
         
         
         # settings for segmentation
-        self.SegmentationSettingslayout = QHBoxLayout()
+        self.SegmentationSettingslayout = QVBoxLayout()
         self.SegmentationSettingslayout.setContentsMargins(0, 0, 0, 0)
         layout0 = QVBoxLayout()
         self.Bautoseg = DCDButton(self.centralWidget)
@@ -163,20 +164,102 @@ class MainWindow(object):
         self.CBSmartMode = QCheckBox("Smart Mode",self.centralWidget)
         self.CBSmartMode.setToolTip("Check to activate smart segmentation mode")
         self.CBSmartMode.setObjectName('SmartMode')
-        self.CBInner = QCheckBox("Inner Contours",self.centralWidget)
-        self.CBInner.setToolTip("Check to allow contours to have holes")
-        self.CBInner.setObjectName('InnerContours')
-        self.CBInner.setChecked(True)
-        layout.addWidget(self.CBSmartMode)
-        layout.addWidget(self.CBInner)
 
-        self.SegmentationSettingslayout.addLayout(layout)
-        self.SegmentationSettingslayout.addLayout(layout0)
+        self.CBSAM = QCheckBox("SAM",self.centralWidget)
+        self.CBSAM.setToolTip("Check to open segment anything (SAM)")
+        self.CBSAM.setObjectName('sam_activate')
+        self.CBSAM.setChecked(False)
+        layout.addWidget(self.CBSmartMode)
+        layout.addWidget(self.CBSAM)
+
+        samlayout = QVBoxLayout()
+        samlayout.setContentsMargins(0, 0, 0, 0)
+
+        sam1layout = QHBoxLayout()
+        sam2layout = QHBoxLayout()
+        self.BsamTool = DCDButton(self.centralWidget)
+        self.BsamTool.setText('SAM')
+        self.BsamTool.setObjectName('sam')
+        self.BsamTool.setToolTip('Select to activate segment anything.')
+        self.BsamTool.setIcon(QIcon('icons/sam.png'))
+
+        self.RBsampos = QRadioButton(self.centralWidget)
+        self.RBsampos.setText('Pos')
+        self.RBsampos.setObjectName('sam_positive')
+        self.RBsampos.setToolTip('Select to assign positive object points for SAM.')
+ 
+        self.RBsamneg = QRadioButton(self.centralWidget)
+        self.RBsamneg.setText('Neg')
+        self.RBsamneg.setObjectName('sam_negative')
+        self.RBsamneg.setToolTip('Select to assign negative objects points for SAM.')
+
+        self.RBsambb = QRadioButton(self.centralWidget)
+        self.RBsambb.setText('Box')
+        self.RBsambb.setObjectName('sam_bbox')
+        self.RBsambb.setToolTip('Select to assign object bounding box for SAM.')
+
+        self.CBSamSettings = DCDButton(self.centralWidget)
+        self.CBSamSettings.setMaximumSize(bwidth, bheight)
+        self.CBSamSettings.setIcon(QIcon('icons/settings.png'))
+
+        self.SAMMenu = QMenu(self.centralWidget)
+        ag = QActionGroup(self.centralWidget, exclusive=True)
+
+        self.Asam_vit_b = QAction('vit_b', self.centralWidget, checkable=True)
+        self.Asam_vit_l = QAction('vit_l', self.centralWidget, checkable=True)
+        self.Asam_vit_h = QAction('vit_h', self.centralWidget, checkable=False)
+        ag.addAction(self.Asam_vit_b)
+        ag.addAction(self.Asam_vit_l)
+        ag.addAction(self.Asam_vit_h)
+        self.Asam_vit_b.setChecked(True)
+        self.SAMMenu.addAction(self.Asam_vit_b)
+        self.SAMMenu.addAction(self.Asam_vit_l)
+        self.SAMMenu.addAction(self.Asam_vit_h)
+        
+
+        self.CBSamSettings.setMenu(self.SAMMenu)
+
+
+        sam1layout.addWidget(self.BsamTool)
+        sam1layout.addWidget(self.CBSamSettings)
+
+        sam2layout.addWidget(self.RBsampos)
+        sam2layout.addWidget(self.RBsamneg)
+        sam2layout.addWidget(self.RBsambb)
+
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
+        
+        samlayout.addWidget(line)
+        samlayout.addLayout(sam1layout)
+        samlayout.addLayout(sam2layout)
+
+        line = QFrame(self.centralWidget)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet("background: " + getBrightColor(asString = True))
+
+        samlayout.addWidget(line)
+
+        self.SAMSettings = QFrame()
+        self.SAMSettings.setContentsMargins(0, 0, 0, 0)
+        self.SAMSettings.setLayout(samlayout)
+        self.SAMSettings.hide()
+
+        layout3 = QHBoxLayout()
+        layout3.addLayout(layout)
+        layout3.addLayout(layout0)
+
+        self.SegmentationSettingslayout.addLayout(layout3)
+        self.SegmentationSettingslayout.addWidget(self.SAMSettings)
+
+
         self.SegmentationSettings = QFrame()
         self.SegmentationSettings.setLayout(self.SegmentationSettingslayout)
         self.SegmentationSettings.hide()
         self.vlayout.addWidget(self.SegmentationSettings)
-        
         
         # settings for object detection
         self.DetectionSettingslayout = QHBoxLayout()

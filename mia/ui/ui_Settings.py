@@ -124,8 +124,14 @@ class Window(object):
         self.CBFastDrawing = QCheckBox("Fast Drawing",self.centralWidget)
         self.CBFastDrawing.setToolTip('Reduces performance needs during drawing. Might be used for large images.')
         self.CBFastDrawing.setObjectName('FastDrawing')
+
+        self.CBInner = QCheckBox("Inner Contours",self.centralWidget)
+        self.CBInner.setToolTip("Check to allow contours to have holes")
+        self.CBInner.setObjectName('InnerContours')
+        self.CBInner.setChecked(True)
+
         vlayout.addWidget(self.CBFastDrawing)
-        
+        vlayout.addWidget(self.CBInner)
 
         self.SBFontSize = LabelledSpinBox('Font Size',self.centralWidget)
         self.SBFontSize.setToolTip('Set font size')
@@ -177,6 +183,7 @@ class SettingsWindow(QMainWindow, Window):
         
         self.CBShapeNumbers.stateChanged.connect(self.showContourNumbers)
         self.CBFastDrawing.stateChanged.connect(self.fastDrawing)
+        self.CBInner.stateChanged.connect(self.setInnerContours)
         self.CBSeparateLabels.stateChanged.connect(self.separateLabels)
         self.SBPenSize.SpinBox.valueChanged.connect(self.setPenSize)
         self.SBFontSize.SpinBox.valueChanged.connect(self.setFontSize)
@@ -259,6 +266,9 @@ class SettingsWindow(QMainWindow, Window):
     def setFontSize(self):
         self.parent.canvas.FontSize = self.SBFontSize.SpinBox.value()
         self.parent.canvas.redrawImage()
+
+    def setInnerContours(self):
+        self.parent.updateImage()
         
     def setTransparency(self):
         self.parent.canvas.ContourTransparency = self.STransparency.value()
