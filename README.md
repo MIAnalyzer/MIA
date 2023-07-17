@@ -27,7 +27,9 @@ Please use [image.sc](https://forum.image.sc/tag/mia) with the ```mia```-tag for
 ## Reference
 If you use this code for your research, please cite: 
 
-https://biorxiv.org/cgi/content/short/2022.01.14.476308v1
+https://www.cell.com/cell-reports-methods/pdf/S2667-2375(23)00146-7.pdf
+
+Körber, MIA is an open-source standalone deep learning application for microscopic image analysis, Cell Reports Methods (2023)
 
 
 ## Requirements
