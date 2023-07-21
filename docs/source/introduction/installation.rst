@@ -5,7 +5,7 @@ Installation
 
 The easiest way to install MIA is via conda (see https://docs.conda.io/en/latest/miniconda.html for installation options).
 
-After installation of conda, download the `environment <https://github.com/MIAnalyzer/MIA/releases/download/v0.2.4/mia_environment.yaml>`_ file.
+After installation of conda, download the `environment <https://github.com/MIAnalyzer/MIA/releases/download/weights/mia_environment.yaml>`_ file.
 
 Then, open an anaconda prompt and type:
 
