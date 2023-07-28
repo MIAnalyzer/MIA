@@ -5,7 +5,7 @@ Created on Thu Oct 10 11:28:44 2019
 @author: Koerber
 """
 
-from msilib.schema import RadioButton
+
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *

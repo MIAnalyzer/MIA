@@ -30,8 +30,12 @@ dependencies:
     - tensorflow < 2.11
     - mianalyzer
   
-# for linux: in case you receive: 'GLIBCXX_3.4.xx not found', run:
-# export LD_LIBRARY_PATH=/path-to-conda/envs/mia_environment/lib:$LD_LIBRARY_PATH
+# for linux: in case you receive: 'GLIBCXX_3.4.xx not found',
+# or 'libcudart.x.x' not found and GPU not recognized,
+# run:
+# export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+
+
   
 
 
