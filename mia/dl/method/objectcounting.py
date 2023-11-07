@@ -132,7 +132,8 @@ class ObjectCounting(PixelBasedPrediction, LearningMode):
         
     def countLabelWeight(self, label):
         classValues = np.zeros((self.parent.NumClasses_real), dtype = np.float)
+        sigma = 0.3*((self.parent.od_kernel_size-1)*0.5 - 1) + 0.8
         for i in range(1,self.parent.NumClasses_real):
-            classValues[i] = self.parent.od_kernel_stdev*np.count_nonzero((label == i))
-        classValues[0] = label.size - self.parent.od_kernel_stdev*np.count_nonzero(label)
+            classValues[i] = sigma*np.count_nonzero((label == i))
+        classValues[0] = label.size - sigma*np.count_nonzero(label)
         return classValues
