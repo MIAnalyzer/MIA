@@ -1,5 +1,9 @@
 # MIA - Microscopic Image Analyzer
-![MIA](https://github.com/MIAnalyzer/MIA/blob/master/docs/source/gettingstarted/images/user_interface.PNG?raw=true)
+![MIA](https://github.com/MIAnalyzer/MIA/blob/master/docs/source/applications/images/mia-sam.gif?raw=true)
+
+*Fast labeling with MIA utilizing [segment anything](https://github.com/facebookresearch/segment-anything)*
+
+
 
 MIA is a software for deep learning based image analysis. It covers image labeling, neural network training and inference. It can be used for image classification, object detection, semantic segmentation and tracking.
 
