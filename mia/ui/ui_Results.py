@@ -11,8 +11,6 @@ from PyQt5.QtCore import *
 
 import csv
 import os
-import glob
-import concurrent.futures
 from ui.segmentation.ui_SegResults import SegmentationResultsWindow
 from ui.objectdetection.ui_ODResults import ObjectDetectionResultsWindow
 from ui.classification.ui_ClassResults import ClassificationResultsWindow
@@ -26,8 +24,6 @@ from utils.Image import ImageFile
 from dl.method.mode import dlMode
 from utils.workerthread import WorkerThread
 import cv2
-import threading
-import sys
 
 class Window(object):
     def setupUi(self, Form):

@@ -51,6 +51,9 @@ class MainWindow(object):
         self.FileMenu.addAction(self.ASaveSettings)
         self.ALoadSettings = QAction("Load Settings", self.centralWidget)
         self.FileMenu.addAction(self.ALoadSettings)
+
+        self.AImport = QAction("Import...", self.centralWidget)
+        self.FileMenu.addAction(self.AImport)
         
         self.ASaveDeepLearning = QAction("Save DL Object", self.centralWidget)
         self.FileMenu.addAction(self.ASaveDeepLearning)

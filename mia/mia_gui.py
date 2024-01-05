@@ -36,6 +36,8 @@ from ui.objectdetection.ui_ODPostProcessing import ObjectDetectionPostProcessing
 
 from ui.ui_Results import ResultsWindow
 
+from ui.ui_Import import ImportWindow
+
 from ui.ui_Training import TrainingWindow
 from ui.ui_Settings import SettingsWindow
 from ui.ui_Log import LogWindow
@@ -145,6 +147,7 @@ class MIA_UI(QMainWindow, MainWindow):
         ### windows - should this be moved to UI ?
         self.segpostprocessing_form = SegmentationPostProcessingWindow(self)
         self.results_form = ResultsWindow(self)
+        self.import_form = ImportWindow(self)
         self.odpostprocessing_form = ObjectDetectionPostProcessingWindow(self)
         self.training_form = TrainingWindow(self)
         self.settings_form = SettingsWindow(self)
@@ -235,6 +238,7 @@ class MIA_UI(QMainWindow, MainWindow):
         self.ASetTestFolder.triggered.connect(self.setTestFolder)
         self.ASaveSettings.triggered.connect(self.SaveSettings)
         self.ALoadSettings.triggered.connect(self.LoadSettings)
+        self.AImport.triggered.connect(self.Import)
         self.ASaveDeepLearning.triggered.connect(self.saveDLClass)
         self.AOpenManual.triggered.connect(self.OpenManual)
         self.AOpenGithub.triggered.connect(self.OpenGithub)
@@ -381,6 +385,9 @@ class MIA_UI(QMainWindow, MainWindow):
     def settingsLoaded(self):
         self.ClassListUpdated()
 
+    def Import(self):
+        self.import_form.show()
+
     def closeModeWindows(self):
         if self.initialized:
             self.odpostprocessing_form.hide()
@@ -465,6 +472,7 @@ class MIA_UI(QMainWindow, MainWindow):
             # could be done in an observer
             self.results_form.ModeChanged()
             self.training_form.ModeChanged()
+            self.import_form.ModeChanged()
             if not self.TrackingSupported():
                 self.enableTrackingMode(False)
 
