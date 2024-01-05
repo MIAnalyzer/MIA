@@ -70,6 +70,9 @@ class ImportWindow(QMainWindow, Window):
             return
         files = glob.glob(os.path.join(folder,'*.tif'))
         num = len(files)
+        if num == 0:
+            self.parent.PopupWarning('No matching tif-files found')
+            return
         if self.parent.ConfirmPopup('Convert %i files to segmentation masks?' %num):
             self.parent.emitinitProgress(num)
             for f in files:
