@@ -517,6 +517,18 @@ class SAMTool(AbstractTool):
                     w = p.y()-self.BoundingBox[1]  
                     self.canvas.painter.addRectangle(x, y, h, w, filled = False)
 
+    def drawPoint(self, p, label):
+        h = max(self.canvas.pen_size,2)
+        w = max(self.canvas.pen_size,2)
+        x = p.x() - w//2
+        y = p.y() - h//2
+
+        if label == 0:
+            color = QColor(255,0,0)
+        if label == 1:
+            color = QColor(0,255,0)
+        self.canvas.painter.addRectangle(x, y, h, w, color)
+
     @validTool  
     def mouseReleaseEvent(self,e):
         if self.canvas.image() is None:
@@ -525,19 +537,12 @@ class SAMTool(AbstractTool):
         if e.button() == Qt.LeftButton:  
             if self.mode == 0 or self.mode == 1:
                 p = self.canvas.mapToScene(e.pos())
-    
-                h = max(self.canvas.pen_size,2)
-                w = max(self.canvas.pen_size,2)
-                x = p.x() - w//2
-                y = p.y() - h//2
 
-                if self.mode == 0:
-                    color = QColor(255,0,0)
-                if self.mode == 1:
-                    color = QColor(0,255,0)
-                self.canvas.painter.addRectangle(x, y, h, w, color)
                 self.Points.append(self.canvas.QPoint2npPoint(self.canvas.f2intPoint(p)))
                 self.Labels.append(self.mode)
+                self.drawPoint(p, self.mode)
+
+
             elif self.mode == 2:
                 p = self.canvas.mapToScene(e.pos())
                 self.BoundingBox[2] = p.x()
@@ -584,6 +589,11 @@ class SAMTool(AbstractTool):
 
         if e.button() == Qt.LeftButton: 
             if self.mode == 2:
+                self.canvas.painter.checkForChanges()
+
+                for p,l in zip(self.Points,self.Labels):
+                    self.drawPoint(self.canvas.np2QPoint(p),l)
+
                 p = self.canvas.mapToScene(e.pos())
                 self.BoundingBox[0] = p.x()
                 self.BoundingBox[1] = p.y()
